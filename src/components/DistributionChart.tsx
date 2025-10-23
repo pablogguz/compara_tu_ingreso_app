@@ -131,6 +131,9 @@ export default function DistributionChart({
           style: {
             fontFamily: 'Inter, sans-serif',
           },
+          animation: {
+            duration: 800,
+          },
         },
         title: { text: '' },
         xAxis: {
@@ -161,6 +164,13 @@ export default function DistributionChart({
         },
         tooltip: {
           enabled: false,
+        },
+        plotOptions: {
+          series: {
+            animation: {
+              duration: 800,
+            },
+          },
         },
         series,
         credits: { enabled: false },
