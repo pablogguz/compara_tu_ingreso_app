@@ -5,8 +5,10 @@ import { getCookieConsent, setCookieConsent, initGA } from '@/lib/analytics'
 
 export default function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Check if consent has been given
     const consent = getCookieConsent()
     if (consent === null) {
@@ -28,7 +30,8 @@ export default function CookieBanner() {
     setShowBanner(false)
   }
 
-  if (!showBanner) return null
+  // Don't render anything until mounted (prevents SSR mismatch)
+  if (!mounted || !showBanner) return null
 
   return (
     <div 

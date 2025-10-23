@@ -136,20 +136,35 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
 
       // Send to Google Sheets if consent given
       if (getCookieConsent() === 'accepted') {
-        await fetch('/api/appendResponse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            timestamp: new Date().toISOString(),
-            municipality: munCode,
-            monthly_income: monthlyIncome,
-            adults,
-            children,
-            perceived_percentile: perceivedPercentile,
-            actual_percentile: results.national_percentile,
-            equiv_income: equivIncome,
-          }),
-        })
+        try {
+          const response = await fetch('/api/appendResponse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              timestamp: new Date().toISOString(),
+              municipality: munCode,
+              monthly_income: monthlyIncome,
+              adults,
+              children,
+              perceived_percentile: perceivedPercentile,
+              actual_percentile: results.national_percentile,
+              equiv_income: equivIncome,
+            }),
+          })
+          
+          const data = await response.json()
+          
+          if (!response.ok) {
+            console.error('Failed to save to sheet:', data)
+          } else {
+            console.log('Successfully saved to sheet:', data)
+          }
+        } catch (sheetError) {
+          console.error('Error saving to sheet:', sheetError)
+          // Don't block the user from seeing results if sheet save fails
+        }
+      } else {
+        console.log('Cookie consent not given, skipping sheet save')
       }
 
       onCalculate(input, results)
