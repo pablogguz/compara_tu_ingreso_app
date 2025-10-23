@@ -94,7 +94,7 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
                 results={results}
               />
             </div>
-            <div className="stats-container">
+            <div className={`stats-container ${isVisible ? 'visible' : ''}`}>
               <div className="stats-title">
                 <i className="fas fa-chart-bar"></i>
                 <span> Estadísticas de tu municipio</span>

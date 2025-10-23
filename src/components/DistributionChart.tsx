@@ -29,6 +29,9 @@ export default function DistributionChart({
   const [chartOptions, setChartOptions] = useState<Highcharts.Options | null>(
     null
   )
+  const [chartInstance, setChartInstance] = useState<Highcharts.Chart | null>(
+    null
+  )
 
   useEffect(() => {
     loadChartData()
@@ -133,6 +136,7 @@ export default function DistributionChart({
           },
           animation: {
             duration: 800,
+            easing: 'easeInOutQuad',
           },
         },
         title: { text: '' },
@@ -151,11 +155,14 @@ export default function DistributionChart({
             },
             style: { fontSize: '14px' },
           },
+          softMin: 0,
+          softMax: p99,
         },
         yAxis: {
           title: { text: '' },
           labels: { enabled: false },
           gridLineWidth: 0,
+          softMin: 0,
         },
         legend: {
           align: 'left',
@@ -169,6 +176,19 @@ export default function DistributionChart({
           series: {
             animation: {
               duration: 800,
+              easing: 'easeInOutQuad',
+            },
+          },
+          area: {
+            animation: {
+              duration: 800,
+              easing: 'easeInOutQuad',
+            },
+          },
+          line: {
+            animation: {
+              duration: 800,
+              easing: 'easeInOutQuad',
             },
           },
         },
@@ -176,7 +196,14 @@ export default function DistributionChart({
         credits: { enabled: false },
       }
 
-      setChartOptions(options)
+      // Update chart with animation if it exists, otherwise set options
+      if (chartInstance) {
+        // Update existing chart with animation
+        // Use false for the third parameter to enable smooth transitions in both directions
+        chartInstance.update(options, true, false)
+      } else {
+        setChartOptions(options)
+      }
     } catch (error) {
       console.error('Error loading chart data:', error)
     }
@@ -187,6 +214,10 @@ export default function DistributionChart({
   }
 
   return (
-    <HighchartsReact highcharts={Highcharts} options={chartOptions} />
+    <HighchartsReact 
+      highcharts={Highcharts} 
+      options={chartOptions}
+      callback={(chart: Highcharts.Chart) => setChartInstance(chart)}
+    />
   )
 }

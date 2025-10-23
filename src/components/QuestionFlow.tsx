@@ -28,6 +28,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   const [perceivedPercentile, setPerceivedPercentile] = useState(50)
   const [municipalities, setMunicipalities] = useState<Array<{value: string, label: string}>>([])
   const [incomeError, setIncomeError] = useState(false)
+  const [incomeWarning, setIncomeWarning] = useState(false)
   const [isCalculating, setIsCalculating] = useState(false)
 
   // Load municipalities on mount
@@ -56,11 +57,23 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   }, [])
 
   const validateIncome = (value: number | '') => {
-    if (value === '' || value <= 0 || value > 50000) {
+    if (value === '' || value <= 0) {
       setIncomeError(true)
+      setIncomeWarning(false)
       return false
     }
-    setIncomeError(false)
+    if (value > 50000) {
+      setIncomeError(true)
+      setIncomeWarning(false)
+      return false
+    }
+    if (value > 12000) {
+      setIncomeWarning(true)
+      setIncomeError(false)
+    } else {
+      setIncomeWarning(false)
+      setIncomeError(false)
+    }
     return true
   }
 
@@ -317,11 +330,14 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                       borderRadius: '12px',
                       padding: '0 16px',
                       transition: 'all 0.2s ease',
-                      boxShadow: 'none'
+                      boxShadow: 'none',
+                      backgroundColor: incomeError ? '#fef2f2' : 'white'
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#58a2ec'
-                      e.target.style.boxShadow = '0 0 0 3px rgba(88, 162, 236, 0.1)'
+                      if (!incomeError) {
+                        e.target.style.borderColor = '#58a2ec'
+                        e.target.style.boxShadow = '0 0 0 3px rgba(88, 162, 236, 0.1)'
+                      }
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = incomeError ? '#dc3545' : '#e0e0e0'
@@ -331,8 +347,13 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                 </div>
               </div>
               {incomeError && (
-                <div className="error-message">
-                  Por favor, introduce un valor entre 0 y 50.000 €
+                <div className="error-message" style={{ color: '#dc3545', marginTop: '0.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
+                  Por favor, introduce un valor entre 1 y 50.000 €
+                </div>
+              )}
+              {incomeWarning && !incomeError && (
+                <div style={{ color: '#f59e0b', marginTop: '0.5rem', fontSize: '0.9rem', textAlign: 'center', fontWeight: '500' }}>
+                  ⚠️ Recuerda que este valor debe ser mensual, no anual
                 </div>
               )}
               <div className="button-wrapper">
@@ -361,8 +382,8 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
               <h2 className="question-title">¿Cómo es tu hogar?</h2>
               <p className="question-subtitle">Composición de tu unidad familiar</p>
               <div className="question-content">
-                <div className="household-inputs" style={{ display: 'flex', gap: '2rem', maxWidth: '500px', margin: '0 auto', justifyContent: 'center' }}>
-                  <div className="input-group" style={{ flex: '0 0 auto', minWidth: '140px' }}>
+                <div className="household-inputs" style={{ display: 'flex', gap: '1.5rem', maxWidth: '380px', margin: '0 auto', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <div className="input-group" style={{ flex: '0 0 auto', minWidth: '140px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.95rem', fontWeight: '600', color: '#333', textAlign: 'center' }}>Mayores de 14 años</label>
                     <Select
                       value={{ value: adults, label: adults.toString() }}
@@ -377,7 +398,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                           ...base,
                           minHeight: '56px',
                           minWidth: '140px',
-                          width: '100%',
+                          width: '140px',
                           fontSize: '1.05rem',
                           borderColor: state.isFocused ? '#58a2ec' : '#e0e0e0',
                           borderWidth: '2px',
@@ -422,8 +443,8 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                       }}
                     />
                   </div>
-                  <div className="input-group">
-                    <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.95rem', fontWeight: '600', color: '#333' }}>Menores de 14 años</label>
+                  <div className="input-group" style={{ flex: '0 0 auto', minWidth: '140px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.95rem', fontWeight: '600', color: '#333', textAlign: 'center' }}>Menores de 14 años</label>
                     <Select
                       value={{ value: children, label: children.toString() }}
                       onChange={(option) => setChildren(option?.value || 0)}
@@ -436,7 +457,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                         control: (base, state) => ({
                           ...base,
                           minHeight: '56px',
-                          width: '100%',
+                          width: '140px',
                            minWidth: '140px',
                           fontSize: '1.05rem',
                           borderColor: state.isFocused ? '#58a2ec' : '#e0e0e0',

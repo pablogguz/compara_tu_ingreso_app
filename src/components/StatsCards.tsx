@@ -10,13 +10,52 @@ interface StatsCardsProps {
 
 export default function StatsCards({ municipality }: StatsCardsProps) {
   const [stats, setStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadMunicipalityStats(municipality).then(setStats)
+    console.log('StatsCards: Loading stats for municipality:', municipality)
+    setLoading(true)
+    setError(null)
+    
+    loadMunicipalityStats(municipality)
+      .then((data) => {
+        console.log('StatsCards: Loaded stats:', data)
+        setStats(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        console.error('StatsCards: Error loading stats:', err)
+        setError(err.message)
+        setLoading(false)
+      })
   }, [municipality])
 
+  if (loading) {
+    return (
+      <div style={{ padding: '1rem', textAlign: 'center', color: '#64748b' }}>
+        <div style={{ marginBottom: '0.5rem' }}>
+          <i className="fas fa-spinner fa-spin"></i>
+        </div>
+        Cargando estadísticas...
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '1rem', color: '#ef4444', fontSize: '0.875rem' }}>
+        Error: {error}
+      </div>
+    )
+  }
+
   if (!stats) {
-    return <div>Loading statistics...</div>
+    return (
+      <div style={{ padding: '1rem', color: '#f59e0b', fontSize: '0.875rem' }}>
+        No se encontraron datos para este municipio
+      </div>
+    )
   }
 
   return (
