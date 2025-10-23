@@ -1,0 +1,31 @@
+{
+  "name": "compara-tu-ingreso",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "export": "next build && next export"
+  },
+  "dependencies": {
+    "apache-arrow": "^15.0.0",
+    "googleapis": "^133.0.0",
+    "highcharts": "^11.4.0",
+    "highcharts-react-official": "^3.2.1",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-select": "^5.10.2",
+    "react-window": "^2.2.1",
+    "react-windowed-select": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/react-window": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}
