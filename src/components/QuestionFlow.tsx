@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Select from 'react-select'
+import Select, { components } from 'react-select'
+import { FixedSizeList as List } from 'react-window'
 import { UserInput, CalculatedResults } from '@/types'
 import {
   calculateEquivIncome,
@@ -160,6 +161,33 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     }
   }
 
+  // Virtualized MenuList for react-select with react-window
+  const MenuList = (props: any) => {
+    const { options, children, maxHeight, getValue } = props
+    const [value] = getValue()
+    const initialOffset = options.indexOf(value) * 40
+
+    if (!children || !Array.isArray(children)) {
+      return <components.MenuList {...props}>{children}</components.MenuList>
+    }
+
+    const height = Math.min(maxHeight || 300, children.length * 40, 300)
+
+    return (
+      <List
+        height={height}
+        itemCount={children.length}
+        itemSize={40}
+        initialScrollOffset={initialOffset}
+        width="100%"
+      >
+        {({ index, style }: { index: number; style: React.CSSProperties }) => (
+          <div style={style}>{children[index]}</div>
+        )}
+      </List>
+    )
+  }
+
   return (
     <div id="main-form">
       <div className="container-fluid">
@@ -201,6 +229,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                     placeholder="Escribe tu municipio..."
                     isClearable
                     isSearchable
+                    components={{ MenuList }}
                     noOptionsMessage={() => "No se encontraron municipios"}
                     filterOption={(option, inputValue) => {
                       // Custom fast filter - only search in label
@@ -244,12 +273,14 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                         zIndex: 9999,
                         borderRadius: '12px',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        border: '1px solid #e0e0e0'
                       }),
                       menuList: (base) => ({
                         ...base,
-                        padding: '4px',
-                        maxHeight: '300px'
+                        padding: '0px',
+                        maxHeight: '300px',
+                        minHeight: '300px'
                       }),
                       option: (base, state) => ({
                         ...base,
@@ -257,10 +288,14 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                         color: state.isFocused || state.isSelected ? 'white' : '#333',
                         cursor: 'pointer',
                         fontSize: '0.95rem',
-                        padding: '12px 14px',
-                        borderRadius: '8px',
-                        margin: '2px 0',
+                        padding: '10px 14px',
+                        borderRadius: '0px',
+                        margin: '0px',
                         transition: 'all 0.15s ease',
+                        minHeight: '40px',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
                         '&:active': {
                           backgroundColor: '#4591db'
                         }
