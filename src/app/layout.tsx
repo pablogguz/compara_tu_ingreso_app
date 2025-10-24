@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://comparatuingreso.es'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Compara tu ingreso',
   description: 'Compara tus ingresos con los del resto de hogares en España utilizando datos administrativos de declaraciones de IRPF',
   keywords: 'ingresos, distribución de ingresos, comparación de ingresos, España, IRPF, renta per cápita',
@@ -9,15 +12,25 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Compara tu ingreso',
     description: 'Compara tus ingresos con los del resto de hogares en España utilizando datos administrativos de declaraciones de IRPF',
-    images: ['/card_teaser.png'],
+    images: [
+      {
+        url: `${siteUrl}/card_teaser.png`,
+        width: 1200,
+        height: 630,
+        alt: 'Compara tu ingreso',
+      },
+    ],
     type: 'website',
+    siteName: 'Compara tu ingreso',
+    locale: 'es_ES',
   },
   twitter: {
     card: 'summary_large_image',
     site: '@pablogguz_',
+    creator: '@pablogguz_',
     title: 'Compara tu ingreso',
     description: 'Compara tus ingresos con los del resto de hogares en España utilizando datos administrativos de declaraciones de IRPF',
-    images: ['/card_teaser.png'],
+    images: [`${siteUrl}/card_teaser.png`],
   },
 }
 
