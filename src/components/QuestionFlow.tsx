@@ -17,7 +17,7 @@ import {
 import { getCookieConsent } from '@/lib/analytics'
 
 interface QuestionFlowProps {
-  onCalculate: (input: UserInput, results: CalculatedResults) => void
+  onCalculate: (input: UserInput) => void
 }
 
 export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
@@ -147,49 +147,41 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     
     setIsCalculating(true)
     
-    try {
-      // Municipality is already the code
-      const munCode = municipality
-      
-      // Load municipality data to get province
-      const munData = await loadMunicipalityLookup()
-      const selectedMun = munData.find((m) => m.mun_code === munCode)
-      if (!selectedMun) {
-        console.error('Municipality not found:', munCode)
-        throw new Error('Municipality not found')
-      }
+    const munCode = municipality
+    
+    // Create a promise for the async calculations
+    const calculationPromise = (async () => {
+      try {
+        // Load municipality data to get province
+        const munData = await loadMunicipalityLookup()
+        const selectedMun = munData.find((m) => m.mun_code === munCode)
+        if (!selectedMun) {
+          console.error('Municipality not found:', munCode)
+          throw new Error('Municipality not found')
+        }
 
-      // Calculate equivalent income
-      const equivIncome = calculateEquivIncome(monthlyIncome, adults, children)
+        // Calculate equivalent income
+        const equivIncome = calculateEquivIncome(monthlyIncome, adults, children)
 
-      // Load percentile data
-      const [nationalPerc, provincialPerc, municipalPerc] = await Promise.all([
-        loadNationalPercentiles(),
-        loadProvincialPercentiles(selectedMun.prov_code),
-        loadMunicipalPercentiles(munCode),
-      ])
+        // Load percentile data
+        const [nationalPerc, provincialPerc, municipalPerc] = await Promise.all([
+          loadNationalPercentiles(),
+          loadProvincialPercentiles(selectedMun.prov_code),
+          loadMunicipalPercentiles(munCode),
+        ])
 
-      // Calculate percentiles
-      const results: CalculatedResults = {
-        equiv_income: equivIncome,
-        national_percentile: findPercentile(equivIncome, nationalPerc),
-        provincial_percentile: findPercentile(equivIncome, provincialPerc),
-        municipal_percentile: findPercentile(equivIncome, municipalPerc),
-        selected_prov: selectedMun.prov_code,
-      }
+        // Calculate percentiles
+        const results: CalculatedResults = {
+          equiv_income: equivIncome,
+          national_percentile: findPercentile(equivIncome, nationalPerc),
+          provincial_percentile: findPercentile(equivIncome, provincialPerc),
+          municipal_percentile: findPercentile(equivIncome, municipalPerc),
+          selected_prov: selectedMun.prov_code,
+        }
 
-      const input: UserInput = {
-        municipality: munCode,
-        monthlyIncome,
-        adults,
-        children,
-        perceivedPercentile,
-      }
-
-      // Send to Google Sheets if consent given
-      if (getCookieConsent() === 'accepted') {
-        try {
-          const response = await fetch('/api/appendResponse', {
+        // Send to Google Sheets if consent given (non-blocking)
+        if (getCookieConsent() === 'accepted') {
+          fetch('/api/appendResponse', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -203,29 +195,30 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
               equiv_income: equivIncome,
             }),
           })
-          
-          const data = await response.json()
-          
-          if (!response.ok) {
-            console.error('Failed to save to sheet:', data)
-          } else {
-            console.log('Successfully saved to sheet:', data)
-          }
-        } catch (sheetError) {
-          console.error('Error saving to sheet:', sheetError)
-          // Don't block the user from seeing results if sheet save fails
+            .then(response => response.json())
+            .then(data => console.log('Successfully saved to sheet:', data))
+            .catch(sheetError => console.error('Error saving to sheet:', sheetError))
         }
-      } else {
-        console.log('Cookie consent not given, skipping sheet save')
-      }
 
-      onCalculate(input, results)
-    } catch (error) {
-      console.error('Calculation error:', error)
-      alert('Error calculating results. Please try again.')
-    } finally {
-      setIsCalculating(false)
+        return results
+      } catch (error) {
+        console.error('Calculation error:', error)
+        throw error
+      }
+    })()
+    
+    const input: UserInput = {
+      municipality: munCode,
+      monthlyIncome,
+      adults,
+      children,
+      perceivedPercentile,
+      calculationPromise,
     }
+
+    // Immediately trigger the transition with the promise
+    onCalculate(input)
+    setIsCalculating(false)
   }
 
   // Virtualized MenuList for react-select with react-window and smart sorting

@@ -30,17 +30,37 @@ export default function Home() {
     setShowQuestions(true)
   }
 
-  const handleCalculate = async (input: UserInput, calculatedResults: CalculatedResults) => {
-    setUserInput(input)
-    setResults(calculatedResults)
+  const handleCalculate = async (input: UserInput) => {
+    // Immediately show spinner and hide questions
     setShowQuestions(false)
     setIsLoading(true)
     
-    // Show spinner for a minimum time to ensure smooth transition
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    setIsLoading(false)
-    setShowResults(true)
+    try {
+      // Perform calculations during spinner time
+      if (!input.calculationPromise) {
+        throw new Error('Calculation promise not provided')
+      }
+      
+      const calculatedResults = await input.calculationPromise
+      
+      setUserInput(input)
+      setResults(calculatedResults)
+      
+      // Ensure minimum spinner time for smooth UX (at least 1 second)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Set results to show first, then hide loading to prevent content gap
+      setShowResults(true)
+      
+      // Use requestAnimationFrame to ensure DOM update before hiding spinner
+      await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)))
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Calculation error:', error)
+      setIsLoading(false)
+      setShowQuestions(true)
+      alert('Error calculating results. Please try again.')
+    }
   }
 
   return (
@@ -53,7 +73,7 @@ export default function Home() {
         <QuestionFlow onCalculate={handleCalculate} />
       )}
       
-      {isLoading && (
+      {isLoading && !showResults && (
         <div className="loading-container">
           <div className="spinner-wrapper">
             <div className="spinner-outer"></div>

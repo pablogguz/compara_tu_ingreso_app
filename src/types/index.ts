@@ -50,11 +50,12 @@ export interface MunicipalityStats {
 }
 
 export interface UserInput {
-  municipality: string;
-  monthlyIncome: number;
-  adults: number;
-  children: number;
-  perceivedPercentile: number;
+  municipality: string
+  monthlyIncome: number
+  adults: number
+  children: number
+  perceivedPercentile: number
+  calculationPromise?: Promise<CalculatedResults>
 }
 
 export interface CalculatedResults {
