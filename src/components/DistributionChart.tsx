@@ -91,9 +91,30 @@ export default function DistributionChart({
                 ? 'Distribución provincial'
                 : 'Distribución municipal',
           data: seriesData,
-          color: '#58a2ec',
-          fillOpacity: 0.2,
+          color: {
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+              [0, 'rgba(88, 162, 236, 0.8)'],
+              [1, 'rgba(88, 162, 236, 0.1)']
+            ]
+          },
+          fillColor: {
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+              [0, 'rgba(88, 162, 236, 0.5)'],
+              [1, 'rgba(88, 162, 236, 0.05)']
+            ]
+          },
+          lineWidth: 3,
           enableMouseTracking: false,
+          marker: {
+            enabled: false
+          },
+          states: {
+            hover: {
+              lineWidth: 3
+            }
+          }
         },
         {
           type: 'line',
@@ -104,14 +125,34 @@ export default function DistributionChart({
           ],
           color: '#155494',
           dashStyle: 'Dash',
-          lineWidth: 2,
-          marker: { enabled: false },
+          lineWidth: 3,
+          marker: { 
+            enabled: true,
+            radius: 6,
+            fillColor: '#155494',
+            lineWidth: 3,
+            lineColor: '#ffffff',
+            symbol: 'circle',
+            states: {
+              hover: {
+                radius: 8,
+                lineWidth: 3
+              }
+            }
+          },
           enableMouseTracking: true,
           stickyTracking: false,
           tooltip: {
             headerFormat: '',
             pointFormat: `<b>Tu posición</b><br/>Percentil: ${Math.round(currentPercentile)}%<br/>Ingresos: {point.x:,.0f} €`,
           },
+          zIndex: 5,
+          shadow: {
+            color: 'rgba(21, 84, 148, 0.3)',
+            width: 5,
+            offsetX: 0,
+            offsetY: 0
+          }
         },
       ]
 
@@ -132,8 +173,21 @@ export default function DistributionChart({
           : [], // Empty data when not national
         color: '#e74c3c',
         dashStyle: 'Dash',
-        lineWidth: 2,
-        marker: { enabled: false },
+        lineWidth: 3,
+        marker: { 
+          enabled: true,
+          radius: 6,
+          fillColor: '#e74c3c',
+          lineWidth: 3,
+          lineColor: '#ffffff',
+          symbol: 'circle',
+          states: {
+            hover: {
+              radius: 8,
+              lineWidth: 3
+            }
+          }
+        },
         enableMouseTracking: viewType === 'national',
         stickyTracking: false,
         visible: viewType === 'national', // This is the key!
@@ -142,6 +196,13 @@ export default function DistributionChart({
           headerFormat: '',
           pointFormat: `<b>Tu predicción</b><br/>Percentil nacional: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
         },
+        zIndex: 5,
+        shadow: {
+          color: 'rgba(231, 76, 60, 0.3)',
+          width: 5,
+          offsetX: 0,
+          offsetY: 0
+        }
       })
 
       // Build chart options
@@ -154,6 +215,8 @@ export default function DistributionChart({
             duration: 1200,
             easing: 'easeInOutQuad',
           },
+          backgroundColor: 'transparent',
+          spacing: [20, 20, 20, 20],
         },
         title: { text: '' },
         xAxis: {
@@ -163,8 +226,11 @@ export default function DistributionChart({
             text: 'Ingresos anuales equivalentes',
             style: {
               fontSize: '16px',
+              fontWeight: '600',
+              color: '#334155',
               fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             },
+            margin: 15,
           },
           labels: {
             formatter: function () {
@@ -175,10 +241,16 @@ export default function DistributionChart({
               return Math.round(value) + ' €';
             },
             style: {
-              fontSize: '14px',
+              fontSize: '13px',
+              color: '#64748b',
+              fontWeight: '500',
               fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             },
           },
+          lineColor: '#e2e8f0',
+          lineWidth: 2,
+          tickColor: '#e2e8f0',
+          tickWidth: 2,
           softMin: 0,
           softMax: p99,
         },
@@ -187,6 +259,7 @@ export default function DistributionChart({
           labels: { enabled: false },
           gridLineWidth: 0,
           softMin: 0,
+          lineWidth: 0,
         },
         legend: {
           align: 'left',
@@ -195,18 +268,38 @@ export default function DistributionChart({
           itemStyle: {
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
             fontSize: '14px',
+            fontWeight: '600',
+            color: '#334155',
           },
+          itemHoverStyle: {
+            color: '#58a2ec'
+          },
+          itemMarginBottom: 10,
+          symbolRadius: 6,
+          symbolHeight: 12,
+          symbolWidth: 12,
+          symbolPadding: 8,
         },
         tooltip: {
           enabled: true,
           shared: false,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          borderColor: '#ccc',
-          borderRadius: 8,
+          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+          borderColor: '#e2e8f0',
+          borderWidth: 2,
+          borderRadius: 12,
+          shadow: {
+            color: 'rgba(0, 0, 0, 0.1)',
+            width: 8,
+            offsetX: 0,
+            offsetY: 4
+          },
           style: {
             fontSize: '14px',
+            fontWeight: '500',
+            color: '#334155',
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           },
+          padding: 12,
           useHTML: false,
         },
         plotOptions: {
@@ -246,8 +339,21 @@ export default function DistributionChart({
                 ? 'Distribución provincial'
                 : 'Distribución municipal',
           data: seriesData,
-          color: '#58a2ec',
-          fillOpacity: 0.2,
+          color: {
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+              [0, 'rgba(88, 162, 236, 0.8)'],
+              [1, 'rgba(88, 162, 236, 0.1)']
+            ]
+          },
+          fillColor: {
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+              [0, 'rgba(88, 162, 236, 0.5)'],
+              [1, 'rgba(88, 162, 236, 0.05)']
+            ]
+          },
+          lineWidth: 3,
           enableMouseTracking: false,
         }, false) // false = don't redraw yet
 
@@ -264,6 +370,14 @@ export default function DistributionChart({
             [xAxis, 0],
             [xAxis, userLineMaxY],
           ],
+          lineWidth: 3,
+          marker: { 
+            enabled: true,
+            radius: 6,
+            fillColor: '#155494',
+            lineWidth: 3,
+            lineColor: '#ffffff',
+          },
           tooltip: {
             headerFormat: '',
             pointFormat: `<b>Tu posición</b><br/>Percentil: ${Math.round(currentPercentile)}%<br/>Ingresos: {point.x:,.0f} €`,
@@ -278,7 +392,20 @@ export default function DistributionChart({
             [predictedX, userLineMaxY],
           ]
           if (predSeries) {
-            predSeries.update({ type: 'line', data: predData, visible: true, showInLegend: true }, false)
+            predSeries.update({ 
+              type: 'line', 
+              data: predData, 
+              visible: true, 
+              showInLegend: true,
+              lineWidth: 3,
+              marker: { 
+                enabled: true,
+                radius: 6,
+                fillColor: '#e74c3c',
+                lineWidth: 3,
+                lineColor: '#ffffff',
+              }
+            }, false)
           } else {
             chartInstance.addSeries({
               type: 'line',
@@ -286,10 +413,23 @@ export default function DistributionChart({
               data: predData,
               color: '#e74c3c',
               dashStyle: 'Dash',
-              lineWidth: 2,
-              marker: { enabled: false },
+              lineWidth: 3,
+              marker: { 
+                enabled: true,
+                radius: 6,
+                fillColor: '#e74c3c',
+                lineWidth: 3,
+                lineColor: '#ffffff',
+              },
               enableMouseTracking: true,
               stickyTracking: false,
+              zIndex: 5,
+              shadow: {
+                color: 'rgba(231, 76, 60, 0.3)',
+                width: 5,
+                offsetX: 0,
+                offsetY: 0
+              },
               tooltip: {
                 headerFormat: '',
                 pointFormat: `<b>Tu predicción</b><br/>Percentil nacional: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
