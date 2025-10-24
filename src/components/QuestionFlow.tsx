@@ -339,7 +339,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                         // React-select will use our filterOption
                       }
                     }}
-                    maxMenuHeight={300}
+                    maxMenuHeight={250}
                     menuPlacement="auto"
                     styles={{
                       control: (base, state) => ({
@@ -382,8 +382,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                       menuList: (base) => ({
                         ...base,
                         padding: '0px',
-                        maxHeight: '300px',
-                        minHeight: '300px'
+                        maxHeight: '250px'
                       }),
                       option: (base, state) => ({
                         ...base,
