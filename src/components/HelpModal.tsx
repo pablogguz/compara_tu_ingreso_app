@@ -8,6 +8,7 @@ const IngresosTab = lazy(() => import('@/components/HelpModal/IngresosTab'))
 const HogarTab = lazy(() => import('@/components/HelpModal/HogarTab'))
 const MetodologiaTab = lazy(() => import('@/components/HelpModal/MetodologiaTab'))
 const GraficaTab = lazy(() => import('@/components/HelpModal/GraficaTab'))
+const AutorTab = lazy(() => import('@/components/HelpModal/AutorTab'))
 
 export default function HelpModal() {
   const [isOpen, setIsOpen] = useState(false)
@@ -79,6 +80,12 @@ export default function HelpModal() {
             >
               Gráfica
             </button>
+            <button
+              className={`tab-btn ${activeTab === 'autor' ? 'active' : ''}`}
+              onClick={() => setActiveTab('autor')}
+            >
+              Sobre el autor
+            </button>
           </div>
 
           <div className="modal-body">
@@ -88,6 +95,7 @@ export default function HelpModal() {
               {activeTab === 'hogar' && <HogarTab />}
               {activeTab === 'metodologia' && <MetodologiaTab />}
               {activeTab === 'grafica' && <GraficaTab />}
+              {activeTab === 'autor' && <AutorTab />}
             </Suspense>
           </div>
         </div>

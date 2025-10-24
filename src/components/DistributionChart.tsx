@@ -92,7 +92,7 @@ export default function DistributionChart({
               : 'Distribución municipal',
           data: seriesData,
           color: '#58a2ec',
-          fillOpacity: 0.3,
+          fillOpacity: 0.2,
           enableMouseTracking: false,
         },
         {
@@ -145,7 +145,7 @@ export default function DistributionChart({
       const options: Highcharts.Options = {
         chart: {
           style: {
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           },
           animation: {
             duration: 800,
@@ -158,15 +158,23 @@ export default function DistributionChart({
           max: p99,
           title: {
             text: 'Ingresos anuales equivalentes',
-            style: { fontSize: '16px' },
+            style: { 
+              fontSize: '16px',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            },
           },
           labels: {
             formatter: function () {
-              return (
-                Math.round(this.value as number).toLocaleString('es-ES') + ' €'
-              )
+              const value = this.value as number;
+              if (value >= 1000) {
+                return Math.round(value / 1000) + 'k €';
+              }
+              return Math.round(value) + ' €';
             },
-            style: { fontSize: '14px' },
+            style: { 
+              fontSize: '14px',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            },
           },
           softMin: 0,
           softMax: p99,
@@ -181,6 +189,10 @@ export default function DistributionChart({
           align: 'left',
           verticalAlign: 'top',
           layout: 'horizontal',
+          itemStyle: {
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            fontSize: '14px',
+          },
         },
         tooltip: {
           enabled: true,
@@ -190,7 +202,7 @@ export default function DistributionChart({
           borderRadius: 8,
           style: {
             fontSize: '14px',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           },
           useHTML: false,
         },
