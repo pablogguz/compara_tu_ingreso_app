@@ -80,6 +80,15 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     return true
   }
 
+  // Normalize text by removing accents and converting to lowercase
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+  }
+
   const handleNext = () => {
     if (step === 1 && !municipality) return
     if (step === 2 && !validateIncome(monthlyIncome)) return
@@ -91,41 +100,41 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   // Smart municipality filter with prioritized sorting
   const filterMunicipalities = (option: any, inputValue: string) => {
     if (!inputValue) return true
-    const searchLower = inputValue.toLowerCase().trim()
-    const munName = option.data.munName?.toLowerCase() || ''
-    const provName = option.data.provName?.toLowerCase() || ''
+    const searchNormalized = normalizeText(inputValue)
+    const munName = normalizeText(option.data.munName || '')
+    const provName = normalizeText(option.data.provName || '')
     
     // Match if search is in municipality name OR province name
-    return munName.includes(searchLower) || provName.includes(searchLower)
+    return munName.includes(searchNormalized) || provName.includes(searchNormalized)
   }
 
   // Get sorted municipalities based on search input
   const getSortedMunicipalities = (inputValue: string) => {
     if (!inputValue) return municipalities
     
-    const searchLower = inputValue.toLowerCase().trim()
+    const searchNormalized = normalizeText(inputValue)
     
     // Filter and score municipalities
     const scored = municipalities
       .map(mun => {
-        const munName = mun.munName?.toLowerCase() || ''
-        const provName = mun.provName?.toLowerCase() || ''
+        const munName = normalizeText(mun.munName || '')
+        const provName = normalizeText(mun.provName || '')
         
         // Skip non-matches
-        if (!munName.includes(searchLower) && !provName.includes(searchLower)) {
+        if (!munName.includes(searchNormalized) && !provName.includes(searchNormalized)) {
           return null
         }
         
         let score = 0
         
         // Highest priority: exact match on municipality name
-        if (munName === searchLower) score = 1000
+        if (munName === searchNormalized) score = 1000
         // High priority: municipality name starts with search
-        else if (munName.startsWith(searchLower)) score = 500
+        else if (munName.startsWith(searchNormalized)) score = 500
         // Medium priority: municipality name contains search
-        else if (munName.includes(searchLower)) score = 100
+        else if (munName.includes(searchNormalized)) score = 100
         // Low priority: only province name matches
-        else if (provName.includes(searchLower)) score = 10
+        else if (provName.includes(searchNormalized)) score = 10
         
         return { ...mun, score }
       })
@@ -232,7 +241,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     // Sort children based on our smart algorithm if there's a search
     let sortedChildren = children
     if (inputValue && Array.isArray(children) && children.length > 0) {
-      const searchLower = inputValue.toLowerCase().trim()
+      const searchNormalized = normalizeText(inputValue)
       
       sortedChildren = [...children].sort((a: any, b: any) => {
         const aData = a?.props?.data
@@ -240,25 +249,25 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
         
         if (!aData || !bData) return 0
         
-        const aMunName = aData.munName?.toLowerCase() || ''
-        const bMunName = bData.munName?.toLowerCase() || ''
-        const aProvName = aData.provName?.toLowerCase() || ''
-        const bProvName = bData.provName?.toLowerCase() || ''
+        const aMunName = normalizeText(aData.munName || '')
+        const bMunName = normalizeText(bData.munName || '')
+        const aProvName = normalizeText(aData.provName || '')
+        const bProvName = normalizeText(bData.provName || '')
         
         // Calculate scores
         let aScore = 0
         let bScore = 0
         
         // Exact match on municipality name
-        if (aMunName === searchLower) aScore = 1000
-        else if (aMunName.startsWith(searchLower)) aScore = 500
-        else if (aMunName.includes(searchLower)) aScore = 100
-        else if (aProvName.includes(searchLower)) aScore = 10
+        if (aMunName === searchNormalized) aScore = 1000
+        else if (aMunName.startsWith(searchNormalized)) aScore = 500
+        else if (aMunName.includes(searchNormalized)) aScore = 100
+        else if (aProvName.includes(searchNormalized)) aScore = 10
         
-        if (bMunName === searchLower) bScore = 1000
-        else if (bMunName.startsWith(searchLower)) bScore = 500
-        else if (bMunName.includes(searchLower)) bScore = 100
-        else if (bProvName.includes(searchLower)) bScore = 10
+        if (bMunName === searchNormalized) bScore = 1000
+        else if (bMunName.startsWith(searchNormalized)) bScore = 500
+        else if (bMunName.includes(searchNormalized)) bScore = 100
+        else if (bProvName.includes(searchNormalized)) bScore = 10
         
         // Sort by score descending, then alphabetically
         if (bScore !== aScore) return bScore - aScore
