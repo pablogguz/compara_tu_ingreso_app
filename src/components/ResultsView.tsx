@@ -13,6 +13,8 @@ interface ResultsViewProps {
 export default function ResultsView({ userInput, results }: ResultsViewProps) {
   const [viewType, setViewType] = useState<ViewType>('national')
   const [isVisible, setIsVisible] = useState(false)
+  const [municipalityName, setMunicipalityName] = useState<string>('tu municipio')
+  const [provinceName, setProvinceName] = useState<string>('tu provincia')
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 100)
@@ -44,15 +46,15 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
                     viewType === 'national'
                       ? 'España'
                       : viewType === 'provincial'
-                      ? 'tu provincia'
-                      : 'tu municipio'
+                      ? provinceName
+                      : municipalityName
                   }`
                 : `En 2023, tu hogar ingresó más que el ${displayPercentile}% de la población en ${
                     viewType === 'national'
                       ? 'España'
                       : viewType === 'provincial'
-                      ? 'tu provincia'
-                      : 'tu municipio'
+                      ? provinceName
+                      : municipalityName
                   }`}
             </div>
           </div>
@@ -100,9 +102,13 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
             <div className={`stats-container ${isVisible ? 'visible' : ''}`}>
               <div className="stats-title">
                 <i className="fas fa-chart-bar"></i>
-                <span> Estadísticas de tu municipio</span>
+                <span> Estadísticas de {municipalityName}</span>
               </div>
-              <StatsCards municipality={userInput.municipality} />
+              <StatsCards 
+                municipality={userInput.municipality} 
+                onMunicipalityNameLoaded={setMunicipalityName}
+                onProvinceNameLoaded={setProvinceName}
+              />
             </div>
           </div>
         </div>

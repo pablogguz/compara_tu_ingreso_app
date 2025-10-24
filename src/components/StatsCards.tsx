@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { loadMunicipalityStats } from '@/lib/dataLoader'
+import { loadMunicipalityStats, loadMunicipalityLookup } from '@/lib/dataLoader'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
 
 interface StatsCardsProps {
   municipality: string
+  onMunicipalityNameLoaded?: (name: string) => void
+  onProvinceNameLoaded?: (name: string) => void
 }
 
-export default function StatsCards({ municipality }: StatsCardsProps) {
+export default function StatsCards({ municipality, onMunicipalityNameLoaded, onProvinceNameLoaded }: StatsCardsProps) {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -18,10 +20,25 @@ export default function StatsCards({ municipality }: StatsCardsProps) {
     setLoading(true)
     setError(null)
     
-    loadMunicipalityStats(municipality)
-      .then((data) => {
-        console.log('StatsCards: Loaded stats:', data)
-        setStats(data)
+    Promise.all([
+      loadMunicipalityStats(municipality),
+      loadMunicipalityLookup()
+    ])
+      .then(([statsData, lookupData]) => {
+        console.log('StatsCards: Loaded stats:', statsData)
+        setStats(statsData)
+        
+        // Find and pass municipality and province names to parent
+        const munData = lookupData.find(m => m.mun_code === municipality)
+        if (munData) {
+          if (onMunicipalityNameLoaded) {
+            onMunicipalityNameLoaded(munData.mun_name)
+          }
+          if (onProvinceNameLoaded) {
+            onProvinceNameLoaded(munData.prov_name)
+          }
+        }
+        
         setLoading(false)
       })
       .catch((err) => {
@@ -29,7 +46,7 @@ export default function StatsCards({ municipality }: StatsCardsProps) {
         setError(err.message)
         setLoading(false)
       })
-  }, [municipality])
+  }, [municipality, onMunicipalityNameLoaded, onProvinceNameLoaded])
 
   if (loading) {
     return (
