@@ -235,9 +235,32 @@ export default function DistributionChart({
 
       // Update chart with animation if it exists, otherwise set options
       if (chartInstance) {
-        // Update existing chart with animation
-        // Use false for the third parameter to enable smooth transitions in both directions
-        chartInstance.update(options, true, false)
+        // Only update the distribution area series (first series)
+        // This keeps the vertical lines static while redrawing the distribution
+        chartInstance.series[0].update({
+          type: 'area',
+          name:
+            viewType === 'national'
+              ? 'Distribución nacional'
+              : viewType === 'provincial'
+                ? 'Distribución provincial'
+                : 'Distribución municipal',
+          data: seriesData,
+          color: '#58a2ec',
+          fillOpacity: 0.2,
+          enableMouseTracking: false,
+        }, false) // false = don't redraw yet
+        
+        // Update x-axis if needed
+        chartInstance.xAxis[0].update({
+          max: p99,
+        }, false)
+        
+        // Now redraw with animation
+        chartInstance.redraw({
+          duration: 800,
+          easing: 'easeInOutQuad'
+        })
       } else {
         setChartOptions(options)
       }
