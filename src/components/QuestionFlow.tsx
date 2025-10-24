@@ -27,7 +27,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   const [adults, setAdults] = useState(1)
   const [children, setChildren] = useState(0)
   const [perceivedPercentile, setPerceivedPercentile] = useState(50)
-  const [municipalities, setMunicipalities] = useState<Array<{value: string, label: string}>>([])
+  const [municipalities, setMunicipalities] = useState<Array<{value: string, label: string, munName?: string, provName?: string}>>([])
   const [incomeError, setIncomeError] = useState(false)
   const [incomeWarning, setIncomeWarning] = useState(false)
   const [isCalculating, setIsCalculating] = useState(false)
@@ -39,6 +39,8 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
         const options = data.map((m) => ({
           value: m.mun_code,
           label: `${m.mun_name} (${m.prov_name})`,
+          munName: m.mun_name, // Store for smart filtering
+          provName: m.prov_name,
         }))
         setMunicipalities(options)
       })
@@ -46,13 +48,13 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
         console.error('Failed to load municipalities:', error)
         // Fallback: Add sample municipalities so dropdown works during development
         setMunicipalities([
-          { value: '28005', label: 'Aranjuez (Madrid)' },
-          { value: '08019', label: 'Barcelona (Barcelona)' },
-          { value: '28079', label: 'Madrid (Madrid)' },
-          { value: '41091', label: 'Sevilla (Sevilla)' },
-          { value: '46250', label: 'Valencia (Valencia)' },
-          { value: '29067', label: 'Málaga (Málaga)' },
-          { value: '48020', label: 'Bilbao (Vizcaya)' },
+          { value: '28005', label: 'Aranjuez (Madrid)', munName: 'Aranjuez', provName: 'Madrid' },
+          { value: '08019', label: 'Barcelona (Barcelona)', munName: 'Barcelona', provName: 'Barcelona' },
+          { value: '28079', label: 'Madrid (Madrid)', munName: 'Madrid', provName: 'Madrid' },
+          { value: '41091', label: 'Sevilla (Sevilla)', munName: 'Sevilla', provName: 'Sevilla' },
+          { value: '46250', label: 'Valencia (Valencia)', munName: 'Valencia', provName: 'Valencia' },
+          { value: '29067', label: 'Málaga (Málaga)', munName: 'Málaga', provName: 'Málaga' },
+          { value: '48020', label: 'Bilbao (Vizcaya)', munName: 'Bilbao', provName: 'Vizcaya' },
         ])
       })
   }, [])
@@ -85,6 +87,56 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   }
 
   const handlePrev = () => setStep(step - 1)
+
+  // Smart municipality filter with prioritized sorting
+  const filterMunicipalities = (option: any, inputValue: string) => {
+    if (!inputValue) return true
+    const searchLower = inputValue.toLowerCase().trim()
+    const munName = option.data.munName?.toLowerCase() || ''
+    const provName = option.data.provName?.toLowerCase() || ''
+    
+    // Match if search is in municipality name OR province name
+    return munName.includes(searchLower) || provName.includes(searchLower)
+  }
+
+  // Get sorted municipalities based on search input
+  const getSortedMunicipalities = (inputValue: string) => {
+    if (!inputValue) return municipalities
+    
+    const searchLower = inputValue.toLowerCase().trim()
+    
+    // Filter and score municipalities
+    const scored = municipalities
+      .map(mun => {
+        const munName = mun.munName?.toLowerCase() || ''
+        const provName = mun.provName?.toLowerCase() || ''
+        
+        // Skip non-matches
+        if (!munName.includes(searchLower) && !provName.includes(searchLower)) {
+          return null
+        }
+        
+        let score = 0
+        
+        // Highest priority: exact match on municipality name
+        if (munName === searchLower) score = 1000
+        // High priority: municipality name starts with search
+        else if (munName.startsWith(searchLower)) score = 500
+        // Medium priority: municipality name contains search
+        else if (munName.includes(searchLower)) score = 100
+        // Low priority: only province name matches
+        else if (provName.includes(searchLower)) score = 10
+        
+        return { ...mun, score }
+      })
+      .filter(Boolean) as Array<{value: string, label: string, munName?: string, provName?: string, score: number}>
+    
+    // Sort by score (descending), then alphabetically
+    return scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      return a.label.localeCompare(b.label)
+    })
+  }
 
   const handleCalculate = async () => {
     if (!validateIncome(monthlyIncome) || monthlyIncome === '') return
@@ -176,28 +228,68 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     }
   }
 
-  // Virtualized MenuList for react-select with react-window
+  // Virtualized MenuList for react-select with react-window and smart sorting
   const MenuList = (props: any) => {
-    const { options, children, maxHeight, getValue } = props
+    const { options, children, maxHeight, getValue, selectProps } = props
     const [value] = getValue()
-    const initialOffset = options.indexOf(value) * 40
-
-    if (!children || !Array.isArray(children)) {
-      return <components.MenuList {...props}>{children}</components.MenuList>
+    
+    // Get the current input value for sorting
+    const inputValue = selectProps.inputValue || ''
+    
+    // Sort children based on our smart algorithm if there's a search
+    let sortedChildren = children
+    if (inputValue && Array.isArray(children) && children.length > 0) {
+      const searchLower = inputValue.toLowerCase().trim()
+      
+      sortedChildren = [...children].sort((a: any, b: any) => {
+        const aData = a?.props?.data
+        const bData = b?.props?.data
+        
+        if (!aData || !bData) return 0
+        
+        const aMunName = aData.munName?.toLowerCase() || ''
+        const bMunName = bData.munName?.toLowerCase() || ''
+        const aProvName = aData.provName?.toLowerCase() || ''
+        const bProvName = bData.provName?.toLowerCase() || ''
+        
+        // Calculate scores
+        let aScore = 0
+        let bScore = 0
+        
+        // Exact match on municipality name
+        if (aMunName === searchLower) aScore = 1000
+        else if (aMunName.startsWith(searchLower)) aScore = 500
+        else if (aMunName.includes(searchLower)) aScore = 100
+        else if (aProvName.includes(searchLower)) aScore = 10
+        
+        if (bMunName === searchLower) bScore = 1000
+        else if (bMunName.startsWith(searchLower)) bScore = 500
+        else if (bMunName.includes(searchLower)) bScore = 100
+        else if (bProvName.includes(searchLower)) bScore = 10
+        
+        // Sort by score descending, then alphabetically
+        if (bScore !== aScore) return bScore - aScore
+        return aData.label?.localeCompare(bData.label) || 0
+      })
     }
 
-    const height = Math.min(maxHeight || 300, children.length * 40, 300)
+    if (!sortedChildren || !Array.isArray(sortedChildren)) {
+      return <components.MenuList {...props}>{sortedChildren}</components.MenuList>
+    }
+
+    const height = Math.min(maxHeight || 300, sortedChildren.length * 40, 300)
+    const initialOffset = value ? sortedChildren.findIndex((child: any) => child?.props?.data?.value === value.value) * 40 : 0
 
     return (
       <List
         height={height}
-        itemCount={children.length}
+        itemCount={sortedChildren.length}
         itemSize={40}
         initialScrollOffset={initialOffset}
         width="100%"
       >
         {({ index, style }: { index: number; style: React.CSSProperties }) => (
-          <div style={style}>{children[index]}</div>
+          <div style={style}>{sortedChildren[index]}</div>
         )}
       </List>
     )
@@ -246,10 +338,13 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                     isSearchable
                     components={{ MenuList }}
                     noOptionsMessage={() => "No se encontraron municipios"}
-                    filterOption={(option, inputValue) => {
-                      // Custom fast filter - only search in label
-                      if (!inputValue) return true
-                      return option.label.toLowerCase().includes(inputValue.toLowerCase())
+                    filterOption={filterMunicipalities}
+                    // Override options dynamically based on input for smart sorting
+                    onInputChange={(inputValue, { action }) => {
+                      // This helps trigger re-render with sorted options
+                      if (action === 'input-change') {
+                        // React-select will use our filterOption
+                      }
                     }}
                     maxMenuHeight={300}
                     menuPlacement="auto"
