@@ -259,6 +259,7 @@ export default function DistributionChart({
         // Update 'Tu posición' (position + tooltip percentile for current tab)
         const userLineMaxY = Math.max(...densityData.map((d) => d.y)) * 1.15
         chartInstance.series[1]?.update({
+          type: 'line',
           data: [
             [xAxis, 0],
             [xAxis, userLineMaxY],
@@ -277,7 +278,7 @@ export default function DistributionChart({
             [predictedX, userLineMaxY],
           ]
           if (predSeries) {
-            predSeries.update({ data: predData, visible: true, showInLegend: true }, false)
+            predSeries.update({ type: 'line', data: predData, visible: true, showInLegend: true }, false)
           } else {
             chartInstance.addSeries({
               type: 'line',
