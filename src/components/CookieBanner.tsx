@@ -65,12 +65,6 @@ export default function CookieBanner() {
           Utilizamos cookies para entender cómo utilizan los usuarios nuestra web y
           mejorar tu experiencia, y guardamos las respuestas de forma anónima con fines
           de investigación académica.{' '}
-          <span
-            className="info-toggle"
-            style={{ cursor: 'pointer', color: '#58a2ec', textDecoration: 'underline' }}
-          >
-            Más información.
-          </span>
         </div>
         <div className="cookie-buttons" style={{ display: 'flex', gap: '0.75rem' }}>
           <button
