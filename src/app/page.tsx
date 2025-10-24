@@ -46,8 +46,8 @@ export default function Home() {
       setUserInput(input)
       setResults(calculatedResults)
       
-      // Ensure minimum spinner time for smooth UX (at least 1 second)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Minimum spinner time for smooth transition (100ms)
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Set results to show first, then hide loading to prevent content gap
       setShowResults(true)
