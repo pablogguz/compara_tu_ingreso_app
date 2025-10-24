@@ -160,11 +160,31 @@ Expected preview:
 
 ## 🐛 Common Issues & Solutions
 
-### Issue: "Error appending to sheet"
+### Issue: "Error appending to sheet" or "DECODER routines::unsupported"
 **Solution**: 
-- Verify service account email has Editor access to sheet
-- Check `GOOGLE_SHEETS_PRIVATE_KEY` includes full key with newlines
-- Ensure sheet ID matches your Google Sheet
+1. Verify service account email has Editor access to sheet
+2. **Fix private key format in Vercel**:
+   - Go to Vercel Dashboard → Settings → Environment Variables
+   - Edit `GOOGLE_SHEETS_PRIVATE_KEY`
+   - **Paste the ENTIRE key including the header/footer on separate lines**:
+   ```
+   -----BEGIN PRIVATE KEY-----
+   MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...
+   (your actual key content here - it will be many lines)
+   ...abc123xyz
+   -----END PRIVATE KEY-----
+   ```
+   - **IMPORTANT**: In Vercel's text area, this should be pasted with actual line breaks, NOT as `\n`
+   - Click Save
+3. Redeploy the app
+4. Check Vercel function logs for "Private key format check" to verify it's correct
+
+**Alternative method** - Use escaped newlines:
+- Paste the key as a single line with `\n` characters:
+  ```
+  -----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG...\n-----END PRIVATE KEY-----\n
+  ```
+- The code now handles both formats automatically
 
 ### Issue: Cookie banner not showing
 **Solution**: Fixed! Clear localStorage and refresh:
