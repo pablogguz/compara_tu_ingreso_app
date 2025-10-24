@@ -70,7 +70,8 @@ export default function CookieBanner() {
           lineHeight: '1.5',
           color: '#475569'
         }}>
-          Utilizamos cookies para mejorar tu experiencia y guardar respuestas de forma anónima con fines académicos.
+          Utilizamos cookies para mejorar tu experiencia y guardamos las respuestas de forma anónima con fines
+          de investigación académica.
         </div>
         <div className="cookie-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
           <button
