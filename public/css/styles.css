@@ -836,33 +836,95 @@ body,
   opacity: 0.5;
 }
 
-/* Primary button */
+/* Primary button with glassmorphism */
 .btn-primary,
 .btn-nav.next-btn,
 .calculate-btn,
 .btn-calculate {
-  background: var(--primary);
+  background: linear-gradient(135deg, 
+    rgba(88, 162, 236, 0.9) 0%, 
+    rgba(88, 162, 236, 0.95) 50%,
+    rgba(59, 130, 246, 0.9) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--primary-foreground);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(88, 162, 236, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 2px 8px rgba(255, 255, 255, 0.2) inset;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-nav.next-btn::before,
+.calculate-btn::before,
+.btn-calculate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary::after,
+.btn-nav.next-btn::after,
+.calculate-btn::after,
+.btn-calculate::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 70%
+  );
+  animation: shimmerButton 3s infinite;
 }
 
 .btn-primary:hover,
 .btn-nav.next-btn:hover,
 .calculate-btn:hover,
 .btn-calculate:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--primary) 90%, black);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-0.0625rem);
+  transform: translateY(-0.25rem) scale(1.02);
+  box-shadow: 
+    0 16px 48px rgba(88, 162, 236, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 4px 16px rgba(255, 255, 255, 0.3) inset;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-primary:hover::before,
+.btn-nav.next-btn:hover::before,
+.calculate-btn:hover::before,
+.btn-calculate:hover::before {
+  opacity: 1;
 }
 
 .btn-primary:active,
 .btn-nav.next-btn:active,
 .calculate-btn:active,
 .btn-calculate:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.125rem) scale(1);
+  box-shadow: 
+    0 8px 24px rgba(88, 162, 236, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
 }
 
 /* Secondary button */
@@ -1710,6 +1772,89 @@ body,
 }
 
 /* Mobile adjustments - no need for explicit breakpoints since flexbox handles wrapping */
+/* Navigation button with glassmorphism */
+.nav-button {
+    background: linear-gradient(135deg, 
+        rgba(88, 162, 236, 0.9) 0%, 
+        rgba(88, 162, 236, 0.95) 50%,
+        rgba(59, 130, 246, 0.9) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 100px;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 
+        0 8px 32px rgba(88, 162, 236, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+        0 2px 8px rgba(255, 255, 255, 0.2) inset;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    margin: 0.25rem;
+}
+
+.nav-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+    );
+    opacity: 0;
+    transition: opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    animation: shimmerButton 3s infinite;
+}
+
+.nav-button:hover {
+    transform: translateY(-0.25rem) scale(1.02);
+    box-shadow: 
+        0 16px 48px rgba(88, 162, 236, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+        0 4px 16px rgba(255, 255, 255, 0.3) inset;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.nav-button:hover::before {
+    opacity: 1;
+}
+
+.nav-button:active {
+    transform: translateY(-0.125rem) scale(1);
+    box-shadow: 
+        0 8px 24px rgba(88, 162, 236, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
 @media (max-width: 768px) {
     .pills-container {
         padding: 0.5rem;
