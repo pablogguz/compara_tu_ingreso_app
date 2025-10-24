@@ -658,6 +658,8 @@ body,
   background: var(--primary);
   color: var(--primary-foreground);
   box-shadow: var(--shadow-sm);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  cursor: pointer;
 }
 
 .btn-primary:hover,
@@ -684,6 +686,8 @@ body,
   color: var(--secondary-foreground);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  cursor: pointer;
 }
 
 .btn-secondary:hover,
