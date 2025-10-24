@@ -38,13 +38,13 @@ export default function CookieBanner() {
       id="cookieConsent" 
       style={{ 
         position: 'fixed', 
-        bottom: 0, 
+        top: 0, 
         left: 0, 
         right: 0, 
         backgroundColor: '#f8f9fa', 
-        borderTop: '2px solid #58a2ec',
+        borderBottom: '2px solid #58a2ec',
         padding: '1.5rem',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
         zIndex: 9999,
         display: 'block'
       }}
