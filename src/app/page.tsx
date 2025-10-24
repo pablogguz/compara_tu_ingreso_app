@@ -47,7 +47,7 @@ export default function Home() {
       setResults(calculatedResults)
       
       // Minimum spinner time for smooth transition (100ms)
-      await new Promise(resolve => setTimeout(resolve, 100))
+      //await new Promise(resolve => setTimeout(resolve, 100))
       
       // Set results to show first, then hide loading to prevent content gap
       setShowResults(true)
