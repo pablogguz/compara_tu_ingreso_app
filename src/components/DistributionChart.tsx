@@ -140,7 +140,7 @@ export default function DistributionChart({
         showInLegend: viewType === 'national', // Hide from legend too
         tooltip: {
           headerFormat: '',
-          pointFormat: `<b>Tu predicción</b><br/>Percentil: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
+          pointFormat: `<b>Tu predicción</b><br/>Percentil nacional: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
         },
       })
 
@@ -151,7 +151,7 @@ export default function DistributionChart({
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           },
           animation: {
-            duration: 800,
+            duration: 1200,
             easing: 'easeInOutQuad',
           },
         },
