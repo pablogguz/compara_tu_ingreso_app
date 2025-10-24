@@ -93,6 +93,7 @@ export default function DistributionChart({
           data: seriesData,
           color: '#58a2ec',
           fillOpacity: 0.3,
+          enableMouseTracking: false,
         },
         {
           type: 'line',
@@ -105,6 +106,12 @@ export default function DistributionChart({
           dashStyle: 'Dash',
           lineWidth: 2,
           marker: { enabled: false },
+          enableMouseTracking: true,
+          stickyTracking: false,
+          tooltip: {
+            headerFormat: '',
+            pointFormat: `<b>Tu posición</b><br/>Percentil: ${Math.round(currentPercentile)}%<br/>Ingresos: {point.x:,.0f} €`,
+          },
         },
       ]
 
@@ -125,6 +132,12 @@ export default function DistributionChart({
           dashStyle: 'Dash',
           lineWidth: 2,
           marker: { enabled: false },
+          enableMouseTracking: true,
+          stickyTracking: false,
+          tooltip: {
+            headerFormat: '',
+            pointFormat: `<b>Tu predicción</b><br/>Percentil: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
+          },
         })
       }
 
@@ -170,7 +183,16 @@ export default function DistributionChart({
           layout: 'horizontal',
         },
         tooltip: {
-          enabled: false,
+          enabled: true,
+          shared: false,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderColor: '#ccc',
+          borderRadius: 8,
+          style: {
+            fontSize: '14px',
+            fontFamily: 'Inter, sans-serif',
+          },
+          useHTML: false,
         },
         plotOptions: {
           series: {

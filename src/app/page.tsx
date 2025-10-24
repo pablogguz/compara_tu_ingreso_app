@@ -6,6 +6,7 @@ import QuestionFlow from '@/components/QuestionFlow'
 import ResultsView from '@/components/ResultsView'
 import CookieBanner from '@/components/CookieBanner'
 import HelpModal from '@/components/HelpModal'
+import Footer from '@/components/Footer'
 import { UserInput, CalculatedResults } from '@/types'
 import { initGA, shouldLoadGA } from '@/lib/analytics'
 
@@ -51,6 +52,9 @@ export default function Home() {
       
       {/* Help Modal - always visible after landing */}
       {!showLanding && <HelpModal />}
+      
+      {/* Footer - always visible */}
+      <Footer />
     </>
   )
 }
