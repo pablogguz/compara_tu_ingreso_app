@@ -1651,11 +1651,10 @@ body,
         padding: 0rem 1rem !important;
     }
 
-    .pill-button {
-        padding: 0.4rem 0.75rem; /* Reduced padding to fit 3 buttons on one line */
-        font-size: 0.7rem; /* Slightly smaller font */
-        margin-right: 0.05rem !important;
-        margin-left: 0.05rem !important;
+    .nav-button {
+        padding: 0.8rem 1.1rem !important; /* Reduced internal padding on mobile */
+        /* font-size: 0.75rem !important; */
+        margin: 0.25rem !important; /* Keep margin between buttons the same */
     }
 }
 
