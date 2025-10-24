@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
   images: {
     unoptimized: true,
   },
@@ -48,7 +47,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: https:",
-              "connect-src 'self' https://sheets.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com",
+              "connect-src 'self' https://sheets.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
               "frame-src 'none'",
               "object-src 'none'",
               "base-uri 'self'",
