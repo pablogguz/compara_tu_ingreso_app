@@ -14,6 +14,7 @@ export default function Home() {
   const [showLanding, setShowLanding] = useState(true)
   const [showQuestions, setShowQuestions] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [userInput, setUserInput] = useState<UserInput | null>(null)
   const [results, setResults] = useState<CalculatedResults | null>(null)
 
@@ -29,10 +30,16 @@ export default function Home() {
     setShowQuestions(true)
   }
 
-  const handleCalculate = (input: UserInput, calculatedResults: CalculatedResults) => {
+  const handleCalculate = async (input: UserInput, calculatedResults: CalculatedResults) => {
     setUserInput(input)
     setResults(calculatedResults)
     setShowQuestions(false)
+    setIsLoading(true)
+    
+    // Show spinner for a minimum time to ensure smooth transition
+    await new Promise(resolve => setTimeout(resolve, 800))
+    
+    setIsLoading(false)
     setShowResults(true)
   }
 
@@ -46,8 +53,17 @@ export default function Home() {
         <QuestionFlow onCalculate={handleCalculate} />
       )}
       
+      {isLoading && (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p className="loading-text">Calculando tus resultados...</p>
+        </div>
+      )}
+      
       {showResults && userInput && results && (
-        <ResultsView userInput={userInput} results={results} />
+        <div className="fade-in">
+          <ResultsView userInput={userInput} results={results} />
+        </div>
       )}
       
       {/* Help Modal - always visible after landing */}

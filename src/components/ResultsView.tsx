@@ -30,39 +30,42 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
   return (
     <div className="results-container">
       <div className="main-results-section">
-        {/* Hero section */}
-        <div className={`results-hero ${isVisible ? 'visible' : ''}`}>
-          <div className="hero-content">
-            <div className="result-header">
-              <div className="percentile-display">
-                <span className="percentile-number">{displayPercentile}</span>
-                <span className="percentile-symbol">%</span>
-              </div>
-              <div className="result-text">
-                {displayPercentile <= 1
-                  ? `En 2023, tu hogar estuvo entre el 1% más pobre de ${
-                      viewType === 'national'
-                        ? 'España'
-                        : viewType === 'provincial'
-                        ? 'tu provincia'
-                        : 'tu municipio'
-                    }`
-                  : `En 2023, tu hogar ingresó más que el ${displayPercentile}% de la población en ${
-                      viewType === 'national'
-                        ? 'España'
-                        : viewType === 'provincial'
-                        ? 'tu provincia'
-                        : 'tu municipio'
-                    }`}
-              </div>
+        {/* Single unified card with hero and distribution */}
+        <div className={`distribution-container ${isVisible ? 'visible' : ''}`}>
+          {/* Hero section - now inside the same card */}
+          <div className="result-header">
+            <div className="percentile-display">
+              <span className="percentile-number">{displayPercentile}</span>
+              <span className="percentile-symbol">%</span>
+            </div>
+            <div className="result-text">
+              {displayPercentile <= 1
+                ? `En 2023, tu hogar estuvo entre el 1% más pobre de ${
+                    viewType === 'national'
+                      ? 'España'
+                      : viewType === 'provincial'
+                      ? 'tu provincia'
+                      : 'tu municipio'
+                  }`
+                : `En 2023, tu hogar ingresó más que el ${displayPercentile}% de la población en ${
+                    viewType === 'national'
+                      ? 'España'
+                      : viewType === 'provincial'
+                      ? 'tu provincia'
+                      : 'tu municipio'
+                  }`}
             </div>
           </div>
-        </div>
 
-        {/* Distribution section */}
-        <div className={`distribution-container ${isVisible ? 'visible' : ''}`}>
+          {/* Divider */}
+          <div style={{ 
+            height: '1px', 
+            background: 'var(--border)', 
+            margin: 'var(--spacing-md) 0' 
+          }}></div>
+
           {/* View toggles */}
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '0.5rem' }}>
             <button
               onClick={() => setViewType('national')}
               className={`nav-button ${viewType === 'national' ? 'active' : ''}`}
