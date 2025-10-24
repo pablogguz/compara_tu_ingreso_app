@@ -55,7 +55,11 @@ export default function Home() {
       
       {isLoading && (
         <div className="loading-container">
-          <div className="spinner"></div>
+          <div className="spinner-wrapper">
+            <div className="spinner-outer"></div>
+            <div className="spinner-inner"></div>
+            <div className="spinner-dot"></div>
+          </div>
           <p className="loading-text">Calculando tus resultados...</p>
         </div>
       )}

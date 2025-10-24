@@ -92,6 +92,7 @@
   font-size: 24px;
   color: #333;
   font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .modal-close {
@@ -136,6 +137,7 @@
   white-space: nowrap;
   transition: all 0.2s ease;
   font-weight: 500;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .tab-btn:hover {
@@ -166,6 +168,7 @@
   padding: 60px;
   color: #58a2ec;
   font-size: 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .loading-spinner::before {
@@ -189,6 +192,7 @@
 .help-content {
   color: #333;
   line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .help-content h4 {
@@ -196,6 +200,7 @@
   font-size: 20px;
   margin: 0 0 16px 0;
   font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .help-content h5 {
@@ -203,6 +208,7 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 12px 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .help-content p {
