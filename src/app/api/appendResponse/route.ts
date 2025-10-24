@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     // Append to sheet
     const result = await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:H', // Adjust sheet name if needed
+      range: 'Hoja 1!A:H', // Adjust sheet name if needed
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [
