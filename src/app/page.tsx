@@ -98,7 +98,7 @@ export default function Home() {
           position: 'fixed',
           bottom: '1rem',
           left: '1rem',
-          fontSize: '1rem',
+          fontSize: '0.75rem',
           color: '#64748b',
           zIndex: 50,
           fontWeight: 500,
