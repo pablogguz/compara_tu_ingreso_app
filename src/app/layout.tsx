@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     description: 'Compara tus ingresos con los del resto de hogares en España utilizando datos administrativos de declaraciones de IRPF',
     images: [
       {
-        url: `${siteUrl}/card_teaser.png`,
+        url: `${siteUrl}/card_media.svg`,
         width: 1200,
         height: 630,
         alt: 'Compara tu ingreso',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     creator: '@pablogguz_',
     title: 'Compara tu ingreso',
     description: 'Compara tus ingresos con los del resto de hogares en España utilizando datos administrativos de declaraciones de IRPF',
-    images: [`${siteUrl}/card_teaser.png`],
+    images: [`${siteUrl}/card_media.svg`],
   },
 }
 
