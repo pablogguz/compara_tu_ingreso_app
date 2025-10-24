@@ -206,7 +206,7 @@ body,
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
   animation: drawCurve 2s ease-out forwards;
-  stroke-width: 3;
+  stroke-width: 2;
 }
 
 .landing-title {
