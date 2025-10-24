@@ -250,12 +250,57 @@ export default function DistributionChart({
           fillOpacity: 0.2,
           enableMouseTracking: false,
         }, false) // false = don't redraw yet
-        
+
         // Update x-axis if needed
         chartInstance.xAxis[0].update({
           max: p99,
         }, false)
-        
+
+        // Update 'Tu posición' (position + tooltip percentile for current tab)
+        const userLineMaxY = Math.max(...densityData.map((d) => d.y)) * 1.15
+        chartInstance.series[1]?.update({
+          data: [
+            [xAxis, 0],
+            [xAxis, userLineMaxY],
+          ],
+          tooltip: {
+            headerFormat: '',
+            pointFormat: `<b>Tu posición</b><br/>Percentil: ${Math.round(currentPercentile)}%<br/>Ingresos: {point.x:,.0f} €`,
+          },
+        }, false)
+
+        // Add/remove 'Tu predicción' depending on tab
+        const predSeries = chartInstance.series.find(s => s.name === 'Tu predicción')
+        if (viewType === 'national') {
+          const predData = [
+            [predictedX, 0],
+            [predictedX, userLineMaxY],
+          ]
+          if (predSeries) {
+            predSeries.update({ data: predData, visible: true, showInLegend: true }, false)
+          } else {
+            chartInstance.addSeries({
+              type: 'line',
+              name: 'Tu predicción',
+              data: predData,
+              color: '#e74c3c',
+              dashStyle: 'Dash',
+              lineWidth: 2,
+              marker: { enabled: false },
+              enableMouseTracking: true,
+              stickyTracking: false,
+              tooltip: {
+                headerFormat: '',
+                pointFormat: `<b>Tu predicción</b><br/>Percentil nacional: ${userInput.perceivedPercentile}%<br/>Ingresos: {point.x:,.0f} €`,
+              },
+            }, false)
+          }
+        } else if (predSeries) {
+          // Remove it entirely on provincial/municipal
+          predSeries.remove(false)
+        }
+
+
         // Now redraw with animation
         chartInstance.redraw({
           duration: 800,
