@@ -62,6 +62,13 @@ export default function Home() {
     }
   }
 
+  const handleRecalculate = () => {
+    setShowResults(false)
+    setShowQuestions(true)
+    setUserInput(null)
+    setResults(null)
+  }
+
   return (
     <>
       <CookieBanner />
@@ -85,7 +92,7 @@ export default function Home() {
       
       {showResults && userInput && results && (
         <div className="fade-in">
-          <ResultsView userInput={userInput} results={results} />
+          <ResultsView userInput={userInput} results={results} onRecalculate={handleRecalculate} />
         </div>
       )}
       

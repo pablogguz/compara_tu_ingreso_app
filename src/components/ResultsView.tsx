@@ -8,9 +8,10 @@ import StatsCards from './StatsCards'
 interface ResultsViewProps {
   userInput: UserInput
   results: CalculatedResults
+  onRecalculate: () => void
 }
 
-export default function ResultsView({ userInput, results }: ResultsViewProps) {
+export default function ResultsView({ userInput, results, onRecalculate }: ResultsViewProps) {
   const [viewType, setViewType] = useState<ViewType>('national')
   const [isVisible, setIsVisible] = useState(false)
   const [municipalityName, setMunicipalityName] = useState<string>('tu municipio')
@@ -67,7 +68,7 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
           }}></div>
 
           {/* View toggles */}
-          <div style={{ marginBottom: '0.5rem' }}>
+          <div style={{ marginBottom: '-2rem' }}>
             <button
               onClick={() => setViewType('national')}
               className={`nav-button ${viewType === 'national' ? 'active' : ''}`}
@@ -110,6 +111,36 @@ export default function ResultsView({ userInput, results }: ResultsViewProps) {
                 onProvinceNameLoaded={setProvinceName}
               />
             </div>
+          </div>
+
+          {/* Recalculate button - bottom left */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-start', 
+            marginTop: '1.5rem',
+            paddingLeft: '0.5rem'
+          }}>
+            <button
+              onClick={onRecalculate}
+              className="btn-secondary"
+              style={{
+                padding: '0.75rem 1.5rem',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                borderRadius: '100px',
+                border: '2px solid var(--border)',
+                background: 'var(--secondary)',
+                color: 'var(--secondary-foreground)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <i className="fas fa-calculator"></i>
+              Volver a calcular
+            </button>
           </div>
         </div>
       </div>

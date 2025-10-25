@@ -1070,7 +1070,7 @@ body,
 .stats-container {
   flex: 1.5;
   width: 60rem;
-  margin-top: -7rem !important;
+  margin-top: -5rem !important;
   margin-right: -2rem !important;
   border-radius: var(--radius-lg);
   height: fit-content;
