@@ -164,6 +164,10 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
       ? monthlyIncome * (14 / 12) 
       : monthlyIncome
     
+    console.log('Payment periods:', paymentPeriods)
+    console.log('Original monthly income:', monthlyIncome)
+    console.log('Adjusted monthly income:', adjustedMonthlyIncome)
+    
     // Create a promise for the async calculations
     const calculationPromise = (async () => {
       try {
