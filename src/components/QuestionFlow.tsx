@@ -31,6 +31,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   const [incomeError, setIncomeError] = useState(false)
   const [incomeWarning, setIncomeWarning] = useState(false)
   const [isCalculating, setIsCalculating] = useState(false)
+  const [paymentPeriods, setPaymentPeriods] = useState<12 | 14>(12)
 
   // Load municipalities on mount
   useEffect(() => {
@@ -158,6 +159,11 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
     
     const munCode = municipality
     
+    // Adjust income based on payment periods (14 pagas means annual is distributed differently)
+    const adjustedMonthlyIncome = paymentPeriods === 14 
+      ? monthlyIncome * (14 / 12) 
+      : monthlyIncome
+    
     // Create a promise for the async calculations
     const calculationPromise = (async () => {
       try {
@@ -169,8 +175,8 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
           throw new Error('Municipality not found')
         }
 
-        // Calculate equivalent income
-        const equivIncome = calculateEquivIncome(monthlyIncome, adults, children)
+        // Calculate equivalent income using adjusted monthly income
+        const equivIncome = calculateEquivIncome(adjustedMonthlyIncome, adults, children)
 
         // Load percentile data
         const [nationalPerc, provincialPerc, municipalPerc] = await Promise.all([
@@ -492,6 +498,86 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
                   />
                 </div>
               </div>
+              
+              {/* Payment periods toggle - moved below input */}
+              <div style={{ textAlign: 'center', marginTop: '.5rem', marginBottom: '.5rem' }}>
+                <div style={{ 
+                  fontSize: '0.875rem', 
+                  color: '#64748b', 
+                  marginBottom: '0.75rem', 
+                  fontWeight: 500,
+                  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+                  letterSpacing: '-0.01em'
+                }}>
+                  ¿Cuántas pagas recibes al año?
+                </div>
+                <div 
+                  onClick={() => setPaymentPeriods(paymentPeriods === 12 ? 14 : 12)}
+                  style={{ 
+                    display: 'inline-flex',
+                    position: 'relative',
+                    width: '200px',
+                    height: '44px',
+                    background: paymentPeriods === 12 ? 'rgba(226, 232, 240, 0.5)' : 'rgba(88, 162, 236, 0.15)',
+                    borderRadius: '100px',
+                    padding: '4px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    border: `2px solid ${paymentPeriods === 12 ? 'rgba(203, 213, 225, 0.8)' : 'rgba(88, 162, 236, 0.3)'}`,
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                  }}
+                >
+                  {/* Sliding background */}
+                  <div style={{
+                    position: 'absolute',
+                    width: 'calc(50% - 4px)',
+                    height: 'calc(100% - 8px)',
+                    background: 'linear-gradient(135deg, rgba(88, 162, 236, 0.95) 0%, rgba(59, 130, 246, 0.95) 100%)',
+                    borderRadius: '100px',
+                    top: '4px',
+                    left: paymentPeriods === 12 ? '4px' : 'calc(50% + 0px)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 2px 8px rgba(88, 162, 236, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2) inset'
+                  }} />
+                  
+                  {/* Labels */}
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+                    letterSpacing: '-0.01em',
+                    color: paymentPeriods === 12 ? '#ffffff' : '#64748b',
+                    transition: 'color 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    zIndex: 1,
+                    userSelect: 'none'
+                  }}>
+                    12 pagas
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+                    letterSpacing: '-0.01em',
+                    color: paymentPeriods === 14 ? '#ffffff' : '#64748b',
+                    transition: 'color 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    zIndex: 1,
+                    userSelect: 'none'
+                  }}>
+                    14 pagas
+                  </div>
+                </div>
+              </div>
+              
               {incomeError && (
                 <div className="error-message" style={{ color: '#dc3545', marginTop: '0.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
                   Por favor, introduce un valor entre 1 y 50.000 €
