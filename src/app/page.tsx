@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from '@vercel/analytics/next'
 import LandingPage from '@/components/LandingPage'
 import QuestionFlow from '@/components/QuestionFlow'
 import ResultsView from '@/components/ResultsView'
