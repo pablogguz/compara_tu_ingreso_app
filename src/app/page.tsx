@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import LandingPage from '@/components/LandingPage'
 import QuestionFlow from '@/components/QuestionFlow'
 import ResultsView from '@/components/ResultsView'
@@ -113,6 +114,8 @@ export default function Home() {
       >
         hecho con ❤️ por pablo garcía guzmán
       </div>
+      
+      <Analytics />
     </>
   )
 }
