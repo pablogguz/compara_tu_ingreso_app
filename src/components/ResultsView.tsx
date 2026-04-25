@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { UserInput, CalculatedResults, ViewType } from '@/types'
+import { useMemo, useState } from 'react'
+import type { UserInput, CalculatedResults, ViewType } from '@/types'
+import { useMunicipalities, findMunicipality } from '@/lib/DataContext'
+import { formatCurrency } from '@/lib/calculations'
+import { useCountUp } from '@/hooks/useCountUp'
 import DistributionChart from './DistributionChart'
 import StatsCards from './StatsCards'
+import { ErrorBoundary } from './ErrorBoundary'
 
 interface ResultsViewProps {
   userInput: UserInput
@@ -11,134 +15,108 @@ interface ResultsViewProps {
   onRecalculate: () => void
 }
 
-export default function ResultsView({ userInput, results, onRecalculate }: ResultsViewProps) {
-  const [viewType, setViewType] = useState<ViewType>('national')
-  const [isVisible, setIsVisible] = useState(false)
-  const [municipalityName, setMunicipalityName] = useState<string>('tu municipio')
-  const [provinceName, setProvinceName] = useState<string>('tu provincia')
+const viewLabels: Record<ViewType, string> = {
+  national: 'Nacional',
+  provincial: 'Provincial',
+  municipal: 'Municipal',
+}
 
-  useEffect(() => {
-    setTimeout(() => setIsVisible(true), 100)
-  }, [])
+export default function ResultsView({
+  userInput,
+  results,
+  onRecalculate,
+}: ResultsViewProps) {
+  const [viewType, setViewType] = useState<ViewType>('national')
+  const { municipalities } = useMunicipalities()
+
+  const { municipalityName, provinceName } = useMemo(() => {
+    const m = findMunicipality(municipalities, userInput.municipality)
+    return {
+      municipalityName: m?.mun_name ?? 'tu municipio',
+      provinceName: m?.prov_name ?? 'tu provincia',
+    }
+  }, [municipalities, userInput.municipality])
 
   const currentPercentile =
     viewType === 'national'
       ? results.national_percentile
       : viewType === 'provincial'
-      ? results.provincial_percentile
-      : results.municipal_percentile
+        ? results.provincial_percentile
+        : results.municipal_percentile
 
   const displayPercentile = Math.min(99, currentPercentile)
+  const animatedPercentile = useCountUp(displayPercentile, 1100)
+
+  const placeName =
+    viewType === 'national'
+      ? 'España'
+      : viewType === 'provincial'
+        ? provinceName
+        : municipalityName
+
+  const headline =
+    displayPercentile <= 1
+      ? `Tu hogar estuvo entre el 1% más pobre de ${placeName}`
+      : `Tu hogar ingresó más que el ${displayPercentile}% de la población en ${placeName}`
 
   return (
     <div className="results-container">
       <div className="main-results-section">
-        {/* Single unified card with hero and distribution */}
-        <div className={`distribution-container ${isVisible ? 'visible' : ''}`}>
-          {/* Hero section - now inside the same card */}
+        <div className="distribution-container">
           <div className="result-header">
             <div className="percentile-display">
-              <span className="percentile-number">{displayPercentile}</span>
+              <span className="percentile-number">{animatedPercentile}</span>
               <span className="percentile-symbol">%</span>
             </div>
-            <div className="result-text">
-              {displayPercentile <= 1
-                ? `En 2023, tu hogar estuvo entre el 1% más pobre de ${
-                    viewType === 'national'
-                      ? 'España'
-                      : viewType === 'provincial'
-                      ? provinceName
-                      : municipalityName
-                  }`
-                : `En 2023, tu hogar ingresó más que el ${displayPercentile}% de la población en ${
-                    viewType === 'national'
-                      ? 'España'
-                      : viewType === 'provincial'
-                      ? provinceName
-                      : municipalityName
-                  }`}
+            <div className="result-text-block">
+              <div className="result-eyebrow">En 2023</div>
+              <div className="result-text">{headline}</div>
+              <div className="result-meta">
+                <i className="fas fa-coins"></i>
+                Ingresos anuales equivalentes&nbsp;
+                <strong>{formatCurrency(results.equiv_income)}</strong>
+              </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ 
-            height: '1px', 
-            background: 'var(--border)', 
-            margin: 'var(--spacing-md) 0' 
-          }}></div>
+          <div className="results-divider" />
 
-          {/* View toggles */}
-          <div style={{ marginBottom: '-2rem' }}>
-            <button
-              onClick={() => setViewType('national')}
-              className={`nav-button ${viewType === 'national' ? 'active' : ''}`}
-            >
-              Nacional
-            </button>
-            <button
-              onClick={() => setViewType('provincial')}
-              className={`nav-button ${
-                viewType === 'provincial' ? 'active' : ''
-              }`}
-            >
-              Provincial
-            </button>
-            <button
-              onClick={() => setViewType('municipal')}
-              className={`nav-button ${viewType === 'municipal' ? 'active' : ''}`}
-            >
-              Municipal
-            </button>
+          <div className="view-toggles">
+            {(['national', 'provincial', 'municipal'] as ViewType[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setViewType(v)}
+                className={`nav-button ${viewType === v ? 'active' : ''}`}
+              >
+                {viewLabels[v]}
+              </button>
+            ))}
           </div>
 
-          {/* Chart and stats */}
           <div className="chart-controls-container">
             <div className="chart-container">
-              <DistributionChart
-                viewType={viewType}
-                userInput={userInput}
-                results={results}
-              />
+              <ErrorBoundary label="DistributionChart">
+                <DistributionChart
+                  viewType={viewType}
+                  userInput={userInput}
+                  results={results}
+                />
+              </ErrorBoundary>
             </div>
-            <div className={`stats-container ${isVisible ? 'visible' : ''}`}>
+            <div className="stats-container">
               <div className="stats-title">
                 <i className="fas fa-chart-bar"></i>
-                <span> Estadísticas de {municipalityName}</span>
+                <span>&nbsp;Estadísticas de {municipalityName}</span>
               </div>
-              <StatsCards 
-                municipality={userInput.municipality} 
-                onMunicipalityNameLoaded={setMunicipalityName}
-                onProvinceNameLoaded={setProvinceName}
-              />
+              <ErrorBoundary label="StatsCards">
+                <StatsCards municipality={userInput.municipality} />
+              </ErrorBoundary>
             </div>
           </div>
 
-          {/* Recalculate button - bottom left */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'flex-start', 
-            marginTop: '1.5rem',
-            paddingLeft: '0.5rem'
-          }}>
-            <button
-              onClick={onRecalculate}
-              className="btn-secondary"
-              style={{
-                padding: '0.75rem 1.5rem',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                borderRadius: '100px',
-                border: '2px solid var(--border)',
-                background: 'var(--secondary)',
-                color: 'var(--secondary-foreground)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <i className="fas fa-calculator"></i>
+          <div className="results-actions">
+            <button onClick={onRecalculate} className="btn-recalculate">
+              <i className="fas fa-rotate-left"></i>
               Volver a calcular
             </button>
           </div>
