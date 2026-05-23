@@ -35,6 +35,7 @@ export const baseSelectStyles: StylesConfig<any, false> = {
     backgroundColor: SURFACE,
     borderColor: state.isFocused || state.menuIsOpen ? PRIMARY_SOFT : BORDER,
     borderWidth: '1.5px',
+    borderStyle: 'solid',
     borderRadius: '14px',
     boxShadow:
       state.isFocused || state.menuIsOpen
