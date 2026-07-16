@@ -297,7 +297,7 @@
 }
 
 .nav-button.active {
-  background: linear-gradient(135deg, #58a2ec 0%, #3b82f6 100%);
+  background: var(--btn-grad);
   color: #ffffff;
   border-color: transparent;
   box-shadow:
@@ -353,7 +353,7 @@
 }
 
 .view-toggles .nav-button.active {
-  background: linear-gradient(135deg, #58a2ec 0%, #3b82f6 100%);
+  background: var(--btn-grad);
   color: #ffffff;
   box-shadow:
     0 4px 12px -2px rgba(59, 130, 246, 0.4),
@@ -376,20 +376,41 @@
   font-size: 0.9rem;
   font-weight: 600;
   font-family: inherit;
-  color: var(--secondary-foreground);
-  background: var(--secondary);
-  border: 1.5px solid var(--border);
+  color: var(--muted-foreground);
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
   border-radius: 100px;
   cursor: pointer;
-  transition: all var(--motion-fast) var(--ease);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition:
+    background var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    color var(--motion-fast) var(--ease),
+    box-shadow var(--motion-fast) var(--ease),
+    transform var(--motion-fast) var(--ease-spring);
 }
 
 .btn-recalculate:hover {
-  background: var(--accent);
-  border-color: var(--primary);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(88, 162, 236, 0.4);
   color: var(--primary);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.08);
+}
+
+.btn-recalculate:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.btn-recalculate i {
+  transition: transform var(--motion-base, 400ms) var(--ease-spring);
+}
+
+.btn-recalculate:hover i {
+  transform: rotate(-90deg);
 }
 
 .btn-recalculate i {

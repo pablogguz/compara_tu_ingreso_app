@@ -50,7 +50,7 @@
   height: 2.25rem;
   padding: 0 0.55rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, #58a2ec 0%, #3b82f6 100%);
+  background: var(--btn-grad);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 700;
@@ -320,7 +320,7 @@
   width: calc(50% - 4px);
   height: calc(100% - 8px);
   border-radius: 100px;
-  background: linear-gradient(135deg, #58a2ec 0%, #3b82f6 100%);
+  background: var(--btn-grad);
   box-shadow:
     0 2px 6px rgba(59, 130, 246, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -663,7 +663,7 @@
 }
 
 .cookie-btn--accept {
-  background: linear-gradient(135deg, #58a2ec 0%, #3b82f6 100%);
+  background: var(--btn-grad);
   color: #ffffff;
   border: none;
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
