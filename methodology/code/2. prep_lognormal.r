@@ -38,6 +38,23 @@ atlas_all <- merge(
 ) %>%
     filter(year == 2023)
 
+# Nowcast 2023 -> 2024 income using ECV CCAA growth factors (see 0d. ecv_nowcast.r).
+# Scaling income by a constant shifts each tract's log-normal in log-space
+# (mu -> mu + log(factor)) and leaves sigma (from the Gini) unchanged, so
+# within-area inequality is preserved and only the level moves to 2024.
+ccaa_growth <- read_fst("data-raw/ccaa_growth.fst") %>%
+    select(prov_code, nowcast_factor = factor)
+
+atlas_all <- atlas_all %>%
+    left_join(ccaa_growth, by = "prov_code") %>%
+    mutate(
+        nowcast_factor = coalesce(nowcast_factor, 1),
+        across(
+            c(net_income_equiv, net_income_pc, median_income_equiv),
+            ~ .x * nowcast_factor
+        )
+    )
+
 # Impute missing net_income_equiv values
 atlas_all <- atlas_all %>%
     mutate(is_imputed = as.integer(is.na(net_income_equiv) & !is.na(net_income_pc))) %>%

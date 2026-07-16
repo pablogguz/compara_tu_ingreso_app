@@ -35,9 +35,20 @@ atlas_income <- merge(
     filter(year == 2023) %>%
     select(
         mun_code, prov_code,
-        prov_name, mun_name, net_income_equiv, 
+        prov_name, mun_name, net_income_equiv,
         net_income_pc, population
     )
+
+# Nowcast 2023 -> 2024 equivalised income with ECV CCAA factors (see 0d. ecv_nowcast.r)
+ccaa_growth <- read_fst("data-raw/ccaa_growth.fst") %>%
+    select(prov_code, nowcast_factor = factor)
+atlas_income <- atlas_income %>%
+    left_join(ccaa_growth, by = "prov_code") %>%
+    mutate(
+        nowcast_factor = coalesce(nowcast_factor, 1),
+        across(c(net_income_equiv, net_income_pc), ~ .x * nowcast_factor)
+    ) %>%
+    select(-nowcast_factor)
 
 atlas_income_sources <- get_atlas(
     "income_sources",
