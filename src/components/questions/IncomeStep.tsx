@@ -36,12 +36,12 @@ export default function IncomeStep({
             <h2 className="question-title">
               ¿Cuáles fueron los ingresos netos{' '}
               <strong className="accent-text">mensuales</strong> de tu hogar en
-              2023?
+              2024?
             </h2>
             <p className="question-subtitle">
               Introduce los ingresos netos{' '}
               <strong className="accent-text">mensuales</strong> de tu hogar en
-              2023
+              2024
             </p>
           </div>
         </header>

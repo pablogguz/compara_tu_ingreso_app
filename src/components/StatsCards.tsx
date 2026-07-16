@@ -76,7 +76,7 @@ export default function StatsCards({ municipality }: StatsCardsProps) {
           </h3>
         </header>
         <p className="stat-card__label">
-          Ingreso medio equivalente (2023
+          Ingreso medio equivalente (2024
           {isImputed(stats.net_income_equiv_is_imputed) ? ', media provincial' : ''})
         </p>
       </article>

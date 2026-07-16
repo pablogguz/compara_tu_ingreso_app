@@ -4,6 +4,7 @@ export default function DatosTab() {
       <h4>¿De dónde vienen los datos?</h4>
       <p>
         El Atlas de Distribución de Renta de los Hogares (ADRH) es una estadística oficial del Instituto Nacional de Estadística (INE) que proporciona información sobre el nivel y la distribución de la renta de la población a un nivel territorial muy detallado. Los datos se publican anualmente, siendo los últimos disponibles los correspondientes al año 2023.
+        Para reflejar rentas más recientes, proyectamos (actualizamos) los ingresos de 2023 a 2024 aplicando, en cada comunidad autónoma, el crecimiento de la renta media por unidad de consumo que publica la Encuesta de Condiciones de Vida (ECV) del INE. Así, cuando introduces tus ingresos de 2024, te comparamos con una distribución también referida a 2024. El resto de indicadores (educación, población extranjera) no se proyectan.
         Puedes consultar todos los detalles en la{' '}
         <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177088&menu=ultiDatos&idp=1254735976608" target="_blank" rel="noopener noreferrer">
           página oficial del INE.

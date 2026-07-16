@@ -69,7 +69,7 @@ export default function ResultsView({
               <span className="percentile-symbol">%</span>
             </div>
             <div className="result-text-block">
-              <div className="result-eyebrow">En 2023</div>
+              <div className="result-eyebrow">En 2024</div>
               <div className="result-text">{headline}</div>
               <div className="result-meta">
                 <i className="fas fa-coins"></i>
