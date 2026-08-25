@@ -35,27 +35,35 @@ export default function HouseholdStep({
     () => (typeof document !== 'undefined' ? document.body : null),
     []
   )
+
   return (
-    <div className="question-step">
+    <section className="question-step" aria-labelledby="q-household">
       <div className="question-content-wrapper">
         <header className="question-header">
           <span className="question-icon" aria-hidden="true">
             <i className="fas fa-users"></i>
           </span>
           <div className="question-header__text">
-            <h2 className="question-title">¿Cómo es tu hogar?</h2>
+            <h2 className="question-title" id="q-household">
+              ¿Cómo es tu hogar?
+            </h2>
             <p className="question-subtitle">
-              Composición de tu unidad familiar
+              Cuenta a todas las personas que conviven contigo, incluido tú
             </p>
           </div>
         </header>
+
         <div className="question-content">
           <div className="household-inputs">
             <div className="input-group">
-              <label className="household-label">Mayores de 14 años</label>
+              <label className="household-label" htmlFor="adults-select">
+                Mayores de 14 años
+              </label>
               <Select
+                inputId="adults-select"
+                aria-label="Mayores de 14 años"
                 value={{ value: adults, label: adults.toString() }}
-                onChange={(opt) => onAdultsChange(opt?.value || 1)}
+                onChange={(opt) => onAdultsChange(opt?.value ?? 1)}
                 options={adultOptions}
                 isSearchable={false}
                 styles={compactSelectStyles}
@@ -65,10 +73,14 @@ export default function HouseholdStep({
               />
             </div>
             <div className="input-group">
-              <label className="household-label">Menores de 14 años</label>
+              <label className="household-label" htmlFor="children-select">
+                Menores de 14 años
+              </label>
               <Select
+                inputId="children-select"
+                aria-label="Menores de 14 años"
                 value={{ value: children, label: children.toString() }}
-                onChange={(opt) => onChildrenChange(opt?.value || 0)}
+                onChange={(opt) => onChildrenChange(opt?.value ?? 0)}
                 options={childrenOptions}
                 isSearchable={false}
                 styles={compactSelectStyles}
@@ -78,24 +90,28 @@ export default function HouseholdStep({
               />
             </div>
           </div>
+          <p className="help-text">
+            Usamos la escala de la OCDE para comparar hogares de distinto tamaño.
+          </p>
         </div>
+
         <div className="button-wrapper">
-          <button onClick={onPrev} className="btn-nav prev-btn">
+          <button type="button" onClick={onPrev} className="btn btn--secondary">
             <i
-              className="fas fa-arrow-left btn-icon-left"
+              className="fas fa-arrow-left btn__icon btn__icon--left"
               aria-hidden="true"
             ></i>
             Anterior
           </button>
-          <button onClick={onNext} className="btn-nav next-btn">
+          <button type="button" onClick={onNext} className="btn btn--primary">
             Siguiente
             <i
-              className="fas fa-arrow-right btn-icon-right"
+              className="fas fa-arrow-right btn__icon btn__icon--right"
               aria-hidden="true"
             ></i>
           </button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

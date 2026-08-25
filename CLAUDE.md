@@ -88,8 +88,8 @@ npm run build
 src/
 ├── app/
 │   ├── page.tsx              # 4-state machine: landing → questions → loading → results
-│   ├── layout.tsx            # Metadata, font + CSS imports
-│   ├── globals.css           # Re-exports public/css/*
+│   ├── layout.tsx            # Metadata, next/font (Fraunces + Hanken Grotesk), CSS links
+│   ├── globals.css           # Minimal reset only — real styles live in public/css/
 │   └── api/appendResponse/
 │       └── route.ts          # Server-side Google Sheets append (POST)
 ├── components/
@@ -159,8 +159,11 @@ All math lives in [src/lib/calculations.ts](src/lib/calculations.ts) and must st
 
 ## Conventions
 
-- **CSS tokens live in [public/css/styles.css](public/css/styles.css)** under `:root`. TypeScript code that needs the same values (chart palette, motion durations) must read them from `src/lib/charts/theme.ts`, which mirrors the CSS variables. If you change a token in CSS, update `theme.ts`.
-- **No CSS-in-JS or Tailwind.** Components use plain class names from the four `public/css/*.css` files. New styles go in `styles.css` (general) or `styles_results.css` (results screen only) — not in component `style={...}` props.
+- **CSS tokens live in [public/css/styles.css](public/css/styles.css)** under `:root`. TypeScript code that needs the same values (chart palette, motion durations) must read them from `src/lib/charts/theme.ts`, which mirrors the CSS variables. If you change a token in CSS, update `theme.ts` — [tests/designContract.test.ts](tests/designContract.test.ts) fails when they drift.
+- **Typography.** Two families, self-hosted via `next/font/google` in [layout.tsx](src/app/layout.tsx): **Fraunces** (variable serif, `opsz`/`SOFT`/`WONK` axes) for display — landing headline, question titles, the percentile hero, stat values, modal headings — and **Hanken Grotesk** for UI/body. They arrive on `<html>` as `--font-fraunces` / `--font-hanken`; always reference them through `var(--font-display)` / `var(--font-ui)` (defined in `styles.css`), never by family name. Highcharts gets the resolved family via `resolveChartFont()` in `theme.ts`. Don't reintroduce Inter (the contract test checks).
+- **Buttons.** One system: `.btn` + variant (`.btn--primary` | `.btn--secondary` | `.btn--ghost`) + optional size (`.btn--sm` | `.btn--xl`), icons via `.btn__icon` (`--left` / `--right` / `--chip`). The results view toggle is `.seg` / `.seg__btn.is-active`. Every `<button>` declares `type=`. Don't add per-component button classes.
+- **Layout is centered.** Question cards, the results hero, stats row and action rows are centered stacks; keep new UI on that axis.
+- **No CSS-in-JS or Tailwind.** Components use plain class names from the four `public/css/*.css` files (see the file map at the top of `styles.css`). New styles go in `styles.css` (general), `custom-components.css` (widgets), `styles_results.css` (results screen) or `help-modal.css` — not in component `style={...}` props. A class used in JSX must exist in one of those files (the contract test enumerates every `className`).
 - **Spanish UI strings.** All user-facing text is `es-ES`. Currency formatting uses `Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })`.
 - **Apache Arrow loading is synchronous-after-fetch.** `tableFromIPC()` is fast but blocks the main thread — keep arrow files small (<5 MB each). The largest is `density_curve_mun/mun_*.arrow` at ~1–2 MB per province.
 
@@ -173,7 +176,19 @@ npm run dev      # Next.js dev server on :3000
 npm run build    # production build (must pass with zero TS errors)
 npm run start    # serve production build
 npm run lint     # next lint
+npm test         # vitest (jsdom) — run before every commit
 ```
+
+### Tests
+
+[tests/](tests/) is a Vitest + Testing Library suite. Fixtures live in [tests/helpers/mockData.ts](tests/helpers/mockData.ts). Coverage, by layer:
+
+- **Pure logic** — `calculations`, `validation`, `chartFormatters`, `chartOptions`, `sheetLogger`, `useCountUp`, `useQuestionFlow`.
+- **Components** — one file per screen/step (`LandingPage`, `ProgressHeader`, `MunicipalityStep`, `IncomeStep`, `HouseholdStep`, `PerceivedStep`, `ResultsView`, `StatsCards`, `HelpModal`, `CookieBanner`, `ErrorBoundary`). Highcharts is stubbed (it cannot render in jsdom); `dataLoader` is mocked.
+- **Flows** — `QuestionFlow.test.tsx` walks all four steps with mocked Arrow data and asserts the resolved percentiles; `page.test.tsx` covers the landing → questions → loading → results/error state machine.
+- **Contract** — `designContract.test.ts` reads the source tree: every JSX class exists in CSS, `theme.ts` mirrors `:root`, no Inter, every `<button>` has a `type`.
+
+`npm run build` needs network access the first time (next/font downloads Fraunces + Hanken Grotesk at build time; Vercel has it).
 
 ### Required environment variables
 

@@ -1,6 +1,6 @@
 import type Highcharts from 'highcharts'
 import type { ViewType } from '@/types'
-import { chartTheme as t } from './theme'
+import { chartTheme as t, resolveChartFont } from './theme'
 import { formatAxisEuros, formatEuros } from './formatters'
 
 export interface DistributionOptionsInput {
@@ -19,20 +19,6 @@ const seriesNameByView: Record<ViewType, string> = {
   municipal: 'Distribución municipal',
 }
 
-const labelStyle = {
-  fontFamily: t.fontFamily,
-  fontSize: '12px',
-  fontWeight: '500',
-  color: t.textMuted,
-}
-
-const titleStyle = {
-  fontFamily: t.fontFamily,
-  fontSize: '14px',
-  fontWeight: '600',
-  color: t.text,
-}
-
 export function buildDistributionOptions(
   input: DistributionOptionsInput
 ): Highcharts.Options {
@@ -45,6 +31,22 @@ export function buildDistributionOptions(
     currentPercentile,
     perceivedPercentile,
   } = input
+
+  const fontFamily = resolveChartFont()
+
+  const labelStyle = {
+    fontFamily,
+    fontSize: '12px',
+    fontWeight: '500',
+    color: t.textMuted,
+  }
+
+  const titleStyle = {
+    fontFamily,
+    fontSize: '13px',
+    fontWeight: '600',
+    color: t.text,
+  }
 
   const yMax = Math.max(...density.map((d) => d.y)) * 1.15
   const seriesData = density.map((d) => [d.x, d.y])
@@ -132,7 +134,7 @@ export function buildDistributionOptions(
 
   return {
     chart: {
-      style: { fontFamily: t.fontFamily },
+      style: { fontFamily },
       animation: { duration: t.motionSlow, easing: 'easeOutCubic' },
       backgroundColor: 'transparent',
       spacing: [16, 12, 16, 12],
@@ -168,7 +170,7 @@ export function buildDistributionOptions(
       softMin: 0,
     },
     legend: {
-      align: 'left',
+      align: 'center',
       verticalAlign: 'top',
       layout: 'horizontal',
       itemStyle: { ...labelStyle, fontWeight: '600', color: t.text },
@@ -185,7 +187,7 @@ export function buildDistributionOptions(
       backgroundColor: 'rgba(255, 255, 255, 0.97)',
       borderColor: t.axisLine,
       borderWidth: 1,
-      borderRadius: 10,
+      borderRadius: 12,
       shadow: false,
       style: { ...labelStyle, color: t.text, fontSize: '13px' },
       padding: 10,

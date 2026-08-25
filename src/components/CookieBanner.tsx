@@ -31,24 +31,34 @@ export default function CookieBanner() {
   if (!mounted || !showBanner) return null
 
   return (
-    <div id="cookieConsent" className="cookie-banner">
+    <div
+      id="cookieConsent"
+      className="cookie-banner"
+      role="dialog"
+      aria-label="Consentimiento de cookies"
+    >
       <div className="cookie-banner__inner">
+        <span className="cookie-banner__icon" aria-hidden="true">
+          <i className="fas fa-cookie-bite"></i>
+        </span>
         <p className="cookie-banner__text">
-          Utilizamos cookies para mejorar tu experiencia y guardamos las
-          respuestas de forma anónima con fines de investigación académica.
+          Usamos cookies para mejorar tu experiencia y guardamos tus respuestas
+          de forma anónima con fines de investigación académica.
         </p>
         <div className="cookie-banner__buttons">
           <button
-            onClick={handleAccept}
-            className="cookie-btn cookie-btn--accept"
-          >
-            Aceptar
-          </button>
-          <button
+            type="button"
             onClick={handleReject}
-            className="cookie-btn cookie-btn--reject"
+            className="btn btn--ghost btn--sm"
           >
             Rechazar
+          </button>
+          <button
+            type="button"
+            onClick={handleAccept}
+            className="btn btn--primary btn--sm"
+          >
+            Aceptar
           </button>
         </div>
       </div>

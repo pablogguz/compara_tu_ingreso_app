@@ -25,9 +25,11 @@ A serverless, client-side web application that helps users compare their househo
 │   │   ├── density_curve_mun/
 │   │   │   └── mun_*.arrow
 │   │   └── municipality_stats.arrow
-│   └── css/               # Styles from old app
-│       ├── styles.css
-│       └── styles_results.css
+│   └── css/               # Design system (tokens in styles.css :root)
+│       ├── styles.css             # tokens · base · landing · question card · forms · .btn system
+│       ├── custom-components.css  # slider · pagas toggle · stat cards · cookie card
+│       ├── styles_results.css     # results hero · segmented control · chart · stats row
+│       └── help-modal.css         # help FAB + FAQ modal
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx

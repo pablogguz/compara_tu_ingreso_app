@@ -26,29 +26,38 @@ export default function IncomeStep({
   const canAdvance = validation.state === 'valid' || validation.state === 'warning'
 
   return (
-    <div className="question-step">
+    <section className="question-step" aria-labelledby="q-income">
       <div className="question-content-wrapper">
         <header className="question-header">
           <span className="question-icon" aria-hidden="true">
             <i className="fas fa-euro-sign"></i>
           </span>
           <div className="question-header__text">
-            <h2 className="question-title">
+            <h2 className="question-title" id="q-income">
               ¿Cuáles fueron los ingresos netos{' '}
-              <strong className="accent-text">mensuales</strong> de tu hogar en
-              2024?
+              <em className="accent-text">mensuales</em> de tu hogar en 2024?
             </h2>
             <p className="question-subtitle">
-              Introduce los ingresos netos{' '}
-              <strong className="accent-text">mensuales</strong> de tu hogar en
-              2024
+              Suma los ingresos netos de todas las personas del hogar en un mes
+              típico
             </p>
           </div>
         </header>
+
         <div className="question-content">
-          <div className="input-centered">
+          <div className="input-adorned">
+            <span className="input-adorned__prefix" aria-hidden="true">
+              €
+            </span>
             <input
+              id="income-input"
               type="number"
+              inputMode="decimal"
+              aria-label="Ingresos netos mensuales del hogar en euros"
+              aria-invalid={isInvalid || undefined}
+              aria-describedby={
+                isInvalid || isWarning ? 'income-message' : undefined
+              }
               value={value}
               onChange={(e) => {
                 const raw = e.target.value
@@ -59,66 +68,72 @@ export default function IncomeStep({
               max={50000}
               placeholder="Ejemplo: 2500"
             />
+            <span className="input-adorned__suffix" aria-hidden="true">
+              / mes
+            </span>
+          </div>
+
+          {(isInvalid || isWarning) && (
+            <div
+              id="income-message"
+              role={isInvalid ? 'alert' : 'status'}
+              className={`field-message ${isInvalid ? 'field-message--error' : 'field-message--warning'}`}
+            >
+              {validation.message}
+            </div>
+          )}
+
+          <div className="payment-periods">
+            <div className="payment-periods__label" id="pagas-label">
+              ¿Cuántas pagas recibes al año?
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={paymentPeriods === 14}
+              aria-labelledby="pagas-label"
+              onClick={() =>
+                onPaymentPeriodsChange(paymentPeriods === 12 ? 14 : 12)
+              }
+              className={`pagas-toggle pagas-toggle--${paymentPeriods}`}
+            >
+              <span className="pagas-toggle__thumb" aria-hidden="true" />
+              <span
+                className={`pagas-toggle__option ${paymentPeriods === 12 ? 'is-active' : ''}`}
+              >
+                12 pagas
+              </span>
+              <span
+                className={`pagas-toggle__option ${paymentPeriods === 14 ? 'is-active' : ''}`}
+              >
+                14 pagas
+              </span>
+            </button>
           </div>
         </div>
-
-        <div className="payment-periods">
-          <div className="payment-periods__label">¿Cuántas pagas recibes al año?</div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={paymentPeriods === 14}
-            onClick={() =>
-              onPaymentPeriodsChange(paymentPeriods === 12 ? 14 : 12)
-            }
-            className={`pagas-toggle pagas-toggle--${paymentPeriods}`}
-          >
-            <span className="pagas-toggle__thumb" aria-hidden="true" />
-            <span
-              className={`pagas-toggle__option ${paymentPeriods === 12 ? 'is-active' : ''}`}
-            >
-              12 pagas
-            </span>
-            <span
-              className={`pagas-toggle__option ${paymentPeriods === 14 ? 'is-active' : ''}`}
-            >
-              14 pagas
-            </span>
-          </button>
-        </div>
-
-        {isInvalid && (
-          <div className="field-message field-message--error">
-            {validation.message}
-          </div>
-        )}
-        {isWarning && (
-          <div className="field-message field-message--warning">
-            {validation.message}
-          </div>
-        )}
 
         <div className="button-wrapper">
-          <button onClick={onPrev} className="btn-nav prev-btn">
+          <button type="button" onClick={onPrev} className="btn btn--secondary">
             <i
-              className="fas fa-arrow-left btn-icon-left"
+              className="fas fa-arrow-left btn__icon btn__icon--left"
               aria-hidden="true"
             ></i>
             Anterior
           </button>
           <button
+            type="button"
             onClick={onNext}
-            className="btn-nav next-btn"
+            className="btn btn--primary"
             disabled={!canAdvance}
           >
             Siguiente
             <i
-              className="fas fa-arrow-right btn-icon-right"
+              className="fas fa-arrow-right btn__icon btn__icon--right"
               aria-hidden="true"
             ></i>
           </button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

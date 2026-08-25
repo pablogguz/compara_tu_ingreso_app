@@ -1,5 +1,26 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { Fraunces, Hanken_Grotesk } from 'next/font/google'
 import './globals.css'
+
+// Typography — self-hosted through next/font so there is no runtime request
+// to Google and no layout shift. The two families are exposed as CSS custom
+// properties on <html>; public/css/styles.css builds --font-display and
+// --font-ui on top of them (with plain fallbacks for environments where the
+// variables are absent, e.g. tests).
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  axes: ['opsz', 'SOFT', 'WONK'],
+  variable: '--font-fraunces',
+  display: 'swap',
+})
+
+const hanken = Hanken_Grotesk({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-hanken',
+  display: 'swap',
+})
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://comparatuingreso.es'
 
@@ -34,25 +55,21 @@ export const metadata: Metadata = {
   },
 }
 
+export const viewport: Viewport = {
+  themeColor: '#f7f9fc',
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${fraunces.variable} ${hanken.variable}`}>
       <head>
         <link rel="icon" type="image/svg+xml" href="/distribution-icon.svg" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"

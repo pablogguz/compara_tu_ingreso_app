@@ -1,9 +1,12 @@
 // Mirror of the CSS tokens used in Highcharts. Keep in sync with :root in
 // public/css/styles.css — chart visuals must match the surrounding UI.
+// tests/designContract.test.ts fails if the two drift apart.
 
 export const chartTheme = {
+  // Static fallback; resolveChartFont() swaps in the live --font-ui value
+  // (which carries the self-hosted next/font family name) at render time.
   fontFamily:
-    "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif",
+    "'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
 
   // Palette
   primary: '#58a2ec',
@@ -27,3 +30,21 @@ export const chartTheme = {
 } as const
 
 export type ChartTheme = typeof chartTheme
+
+// Highcharts writes font-family inline on every SVG <text>, so it needs a real
+// family list rather than a var() reference. Read the computed --font-ui token
+// from <html> when running in a browser; fall back to the static stack.
+export function resolveChartFont(): string {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return chartTheme.fontFamily
+  }
+  try {
+    const value = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-ui')
+      .trim()
+    return value || chartTheme.fontFamily
+  } catch {
+    return chartTheme.fontFamily
+  }
+}

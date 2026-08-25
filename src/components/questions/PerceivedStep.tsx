@@ -21,27 +21,34 @@ export default function PerceivedStep({
   } as React.CSSProperties
 
   return (
-    <div className="question-step">
+    <section className="question-step" aria-labelledby="q-perceived">
       <div className="question-content-wrapper">
         <header className="question-header">
           <span className="question-icon" aria-hidden="true">
             <i className="fas fa-bullseye"></i>
           </span>
           <div className="question-header__text">
-            <h2 className="question-title">¿Dónde crees que te sitúas?</h2>
+            <h2 className="question-title" id="q-perceived">
+              ¿Dónde crees que te sitúas?
+            </h2>
             <p className="question-subtitle">
-              Tu percepción en la distribución de ingresos a nivel nacional
+              Tu percepción dentro de la distribución de ingresos de España
             </p>
           </div>
         </header>
+
         <div className="question-content">
-          <div className="input-centered-perception">
-            <div className="slider-labels">
-              <div className="label-left">Más pobre</div>
-              <div className="label-right">Más rico</div>
+          <div className="slider-field">
+            <div className="slider-labels" aria-hidden="true">
+              <span>Más pobre</span>
+              <span>Más rico</span>
             </div>
             <div className="slider-wrap" style={wrapStyle}>
-              <output className="slider-bubble" htmlFor="perceived-slider">
+              <output
+                className="slider-bubble"
+                htmlFor="perceived-slider"
+                aria-hidden="true"
+              >
                 {value}
               </output>
               <input
@@ -52,34 +59,54 @@ export default function PerceivedStep({
                 value={value}
                 onChange={(e) => onChange(Number(e.target.value))}
                 className="custom-slider"
+                aria-label="Percentil en el que crees que se sitúa tu hogar"
+                aria-valuetext={`Percentil ${value}`}
               />
             </div>
-            <p className="help-text">
-              1 representa el 1% de hogares con menos ingresos y 99 el 1% con
-              más ingresos.
-            </p>
           </div>
+          <p className="help-text">
+            1 representa al 1% de hogares con menos ingresos y 99 al 1% con
+            más ingresos.
+          </p>
         </div>
+
         <div className="button-wrapper">
-          <button onClick={onPrev} className="btn-nav prev-btn">
-            <i className="fas fa-arrow-left btn-icon-left" aria-hidden="true"></i>
+          <button
+            type="button"
+            onClick={onPrev}
+            className="btn btn--secondary"
+            disabled={isCalculating}
+          >
+            <i
+              className="fas fa-arrow-left btn__icon btn__icon--left"
+              aria-hidden="true"
+            ></i>
             Anterior
           </button>
           <button
+            type="button"
             onClick={onCalculate}
-            className="btn-nav calculate-btn"
+            className="btn btn--primary"
             disabled={isCalculating}
+            aria-busy={isCalculating || undefined}
           >
-            {isCalculating ? 'Calculando…' : 'Calcular'}
-            {!isCalculating && (
-              <i
-                className="fas fa-arrow-right btn-icon-right"
-                aria-hidden="true"
-              ></i>
+            {isCalculating ? (
+              <>
+                <span className="btn__spinner" aria-hidden="true" />
+                Calculando…
+              </>
+            ) : (
+              <>
+                Calcular
+                <i
+                  className="fas fa-arrow-right btn__icon btn__icon--right"
+                  aria-hidden="true"
+                ></i>
+              </>
             )}
           </button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

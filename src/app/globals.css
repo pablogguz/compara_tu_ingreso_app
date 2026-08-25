@@ -1,9 +1,10 @@
-/* Import the original CSS from the Shiny app */
-@import url('/css/styles.css');
-@import url('/css/styles_results.css');
+/* Minimal reset. Everything else — tokens, components, typography — lives in
+   public/css/*.css (linked from layout.tsx) so the stylesheets stay plain CSS
+   and can be read without a build step. */
 
-/* Global styles */
-* {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -12,7 +13,6 @@
 html,
 body {
   height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 #__next {

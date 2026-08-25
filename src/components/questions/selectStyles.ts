@@ -1,10 +1,11 @@
 import type { StylesConfig } from 'react-select'
 
-// react-select uses CSS-in-JS internally, so colors must be duplicated here
-// from the :root tokens in public/css/styles.css. Keep them in sync.
+// react-select uses CSS-in-JS internally, so colours must be duplicated here
+// from the :root tokens in public/css/styles.css. Keep them in sync
+// (tests/designContract.test.ts checks the ones that matter).
 //
-// The aesthetic mirrors the question card: aggressive glass surface, soft
-// inner highlight, primary-tinted hover, accent bar on selected option.
+// The aesthetic mirrors the question card: glass surface, soft inner
+// highlight, primary-tinted hover, accent bar on the selected option.
 
 const PRIMARY = '#3b82f6'
 const PRIMARY_SOFT = '#58a2ec'
@@ -19,15 +20,20 @@ const INK = '#0a1628'
 const INK_SOFT = '#475569'
 const PLACEHOLDER = '#94a3b8'
 
-const FONT_STACK =
-  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif"
+// Resolved from the :root token so the select always matches the UI font,
+// including the self-hosted next/font family name.
+const FONT_STACK = 'var(--font-ui)'
 
 const ease = 'cubic-bezier(0.4, 0, 0.2, 1)'
 
 export const baseSelectStyles: StylesConfig<any, false> = {
+  container: (base) => ({
+    ...base,
+    width: '100%',
+  }),
   control: (base, state) => ({
     ...base,
-    minHeight: '56px',
+    minHeight: '3.6rem',
     width: '100%',
     fontFamily: FONT_STACK,
     fontSize: '1rem',
@@ -36,7 +42,7 @@ export const baseSelectStyles: StylesConfig<any, false> = {
     borderColor: state.isFocused || state.menuIsOpen ? PRIMARY_SOFT : BORDER,
     borderWidth: '1.5px',
     borderStyle: 'solid',
-    borderRadius: '14px',
+    borderRadius: '18px',
     boxShadow:
       state.isFocused || state.menuIsOpen
         ? `0 0 0 4px ${PRIMARY_RING}, 0 1px 2px rgba(15, 23, 42, 0.04)`
@@ -50,17 +56,19 @@ export const baseSelectStyles: StylesConfig<any, false> = {
   valueContainer: (base) => ({
     ...base,
     padding: '2px 18px',
+    justifyContent: 'center',
   }),
   placeholder: (base) => ({
     ...base,
     color: PLACEHOLDER,
-    fontSize: '0.95rem',
+    fontSize: '1rem',
     fontWeight: 400,
+    textAlign: 'center',
   }),
   input: (base) => ({
     ...base,
     fontFamily: FONT_STACK,
-    fontSize: '0.95rem',
+    fontSize: '1rem',
     color: INK,
     margin: 0,
   }),
@@ -85,7 +93,7 @@ export const baseSelectStyles: StylesConfig<any, false> = {
     ...base,
     zIndex: 9999,
     marginTop: 8,
-    borderRadius: '16px',
+    borderRadius: '18px',
     overflow: 'hidden',
     backgroundColor: SURFACE_GLASS,
     backdropFilter: 'blur(28px) saturate(180%)',
@@ -119,11 +127,16 @@ export const baseSelectStyles: StylesConfig<any, false> = {
     cursor: 'pointer',
     padding: '9px 12px 9px 18px',
     margin: '1px 0',
-    borderRadius: '8px',
+    borderRadius: '10px',
     minHeight: 38,
     height: 38,
-    display: 'flex',
-    alignItems: 'center',
+    lineHeight: '20px',
+    display: 'block',
+    // rows are a fixed 40px in the virtualized list — never let a long
+    // "Madrigal de las Altas Torres (Ávila)" wrap into its neighbour
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     position: 'relative',
     transition: `background-color 120ms ${ease}, color 120ms ${ease}`,
     '&::before': state.isSelected
@@ -145,9 +158,10 @@ export const baseSelectStyles: StylesConfig<any, false> = {
   singleValue: (base) => ({
     ...base,
     fontFamily: FONT_STACK,
-    fontSize: '1rem',
-    fontWeight: 500,
+    fontSize: '1.05rem',
+    fontWeight: 600,
     color: INK,
+    textAlign: 'center',
   }),
   noOptionsMessage: (base) => ({
     ...base,
@@ -176,12 +190,18 @@ export const compactSelectStyles: StylesConfig<any, false> = {
   ...baseSelectStyles,
   control: (base, state) => ({
     ...(baseSelectStyles.control as any)(base, state),
-    minWidth: 140,
-    width: 140,
+    minWidth: 150,
+    width: 150,
+    minHeight: '3.4rem',
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: '2px 8px 2px 18px',
+    justifyContent: 'center',
   }),
   menu: (base) => ({
     ...(baseSelectStyles.menu as any)(base),
-    minWidth: 140,
+    minWidth: 150,
   }),
   menuList: (base) => ({ ...base, padding: 6, maxHeight: 220 }),
   option: (base, state) => ({
@@ -189,16 +209,18 @@ export const compactSelectStyles: StylesConfig<any, false> = {
     fontSize: '1rem',
     minHeight: 38,
     height: 38,
-    justifyContent: 'center',
-    paddingLeft: 14,
+    textAlign: 'center',
+    padding: '9px 14px',
     '&::before': undefined,
   }),
   singleValue: (base) => ({
     ...base,
     fontFamily: FONT_STACK,
-    fontSize: '1.1rem',
-    fontWeight: 700,
+    fontSize: '1.25rem',
+    fontWeight: 600,
     color: INK,
     letterSpacing: '-0.01em',
+    textAlign: 'center',
+    fontVariantNumeric: 'tabular-nums',
   }),
 }

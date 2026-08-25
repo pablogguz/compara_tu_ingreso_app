@@ -36,7 +36,7 @@ export default function Home() {
     } catch (error) {
       console.error('Calculation error:', error)
       setStage('questions')
-      alert('Error calculating results. Please try again.')
+      alert('No se pudieron calcular los resultados. Inténtalo de nuevo.')
     }
   }
 
@@ -62,6 +62,9 @@ export default function Home() {
             <div className="loading-ring__core" />
           </div>
           <p className="loading-text">Calculando tus resultados</p>
+          <p className="loading-hint">
+            Comparando tu hogar con millones de declaraciones
+          </p>
           <div className="loading-dots" aria-hidden="true">
             <span />
             <span />
@@ -83,7 +86,11 @@ export default function Home() {
       {stage !== 'landing' && <HelpModal />}
 
       <div className="app-credit">
-        hecho con <span className="app-credit__heart" aria-hidden="true">❤️</span> por pablo garcía guzmán
+        hecho con{' '}
+        <span className="app-credit__heart" aria-hidden="true">
+          ❤️
+        </span>{' '}
+        por pablo garcía guzmán
       </div>
 
       <Analytics />

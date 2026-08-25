@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, lazy, Suspense } from 'react'
+import { useCallback, useEffect, useState, lazy, Suspense } from 'react'
 
 // Lazy load tab content components
 const DatosTab = lazy(() => import('@/components/HelpModal/DatosTab'))
@@ -10,96 +10,115 @@ const MetodologiaTab = lazy(() => import('@/components/HelpModal/MetodologiaTab'
 const GraficaTab = lazy(() => import('@/components/HelpModal/GraficaTab'))
 const AutorTab = lazy(() => import('@/components/HelpModal/AutorTab'))
 
+type TabId = 'datos' | 'ingresos' | 'hogar' | 'metodologia' | 'grafica' | 'autor'
+
+const TABS: Array<{ id: TabId; label: string }> = [
+  { id: 'datos', label: 'Datos' },
+  { id: 'ingresos', label: '¿Qué ingresos incluyo?' },
+  { id: 'hogar', label: 'Hogar' },
+  { id: 'metodologia', label: 'Metodología' },
+  { id: 'grafica', label: 'Gráfica' },
+  { id: 'autor', label: 'Sobre el autor' },
+]
+
+const TAB_CONTENT: Record<TabId, React.LazyExoticComponent<() => JSX.Element>> = {
+  datos: DatosTab,
+  ingresos: IngresosTab,
+  hogar: HogarTab,
+  metodologia: MetodologiaTab,
+  grafica: GraficaTab,
+  autor: AutorTab,
+}
+
 export default function HelpModal() {
   const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('datos')
+  const [activeTab, setActiveTab] = useState<TabId>('datos')
 
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="help-btn"
-        aria-label="Ayuda"
-      >
-        <i className="fas fa-question-circle"></i>
-      </button>
-    )
-  }
+  const close = useCallback(() => setIsOpen(false), [])
+
+  // Escape closes; body scroll is locked while open.
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close()
+    }
+    document.addEventListener('keydown', onKey)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isOpen, close])
+
+  const ActiveContent = TAB_CONTENT[activeTab]
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
         className="help-btn"
         aria-label="Ayuda"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
       >
-        <i className="fas fa-question-circle"></i>
+        <i className="fas fa-question-circle" aria-hidden="true"></i>
       </button>
 
-      <div className="modal-overlay" onClick={() => setIsOpen(false)}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>Instrucciones y dudas frecuentes</h2>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="modal-close"
-              aria-label="Cerrar"
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
+      {isOpen && (
+        <div className="modal-overlay" onClick={close}>
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="help-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2 id="help-modal-title">Instrucciones y dudas frecuentes</h2>
+              <button
+                type="button"
+                onClick={close}
+                className="modal-close"
+                aria-label="Cerrar"
+              >
+                <i className="fas fa-times" aria-hidden="true"></i>
+              </button>
+            </div>
 
-          <div className="modal-tabs">
-            <button
-              className={`tab-btn ${activeTab === 'datos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('datos')}
-            >
-              Datos
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'ingresos' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ingresos')}
-            >
-              ¿Qué ingresos debo incluir?
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'hogar' ? 'active' : ''}`}
-              onClick={() => setActiveTab('hogar')}
-            >
-              Hogar
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'metodologia' ? 'active' : ''}`}
-              onClick={() => setActiveTab('metodologia')}
-            >
-              Metodología
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'grafica' ? 'active' : ''}`}
-              onClick={() => setActiveTab('grafica')}
-            >
-              Gráfica
-            </button>
-            <button
-              className={`tab-btn ${activeTab === 'autor' ? 'active' : ''}`}
-              onClick={() => setActiveTab('autor')}
-            >
-              Sobre el autor
-            </button>
-          </div>
+            <div className="modal-tabs" role="tablist" aria-label="Secciones de ayuda">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={`help-tab-${tab.id}`}
+                  aria-selected={activeTab === tab.id}
+                  aria-controls="help-tabpanel"
+                  className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-          <div className="modal-body">
-            <Suspense fallback={<div className="loading-spinner">Cargando...</div>}>
-              {activeTab === 'datos' && <DatosTab />}
-              {activeTab === 'ingresos' && <IngresosTab />}
-              {activeTab === 'hogar' && <HogarTab />}
-              {activeTab === 'metodologia' && <MetodologiaTab />}
-              {activeTab === 'grafica' && <GraficaTab />}
-              {activeTab === 'autor' && <AutorTab />}
-            </Suspense>
+            <div
+              className="modal-body"
+              role="tabpanel"
+              id="help-tabpanel"
+              aria-labelledby={`help-tab-${activeTab}`}
+            >
+              <Suspense
+                fallback={<div className="loading-spinner">Cargando…</div>}
+              >
+                <ActiveContent />
+              </Suspense>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   )
 }

@@ -17,11 +17,32 @@ function isImputed(flag: number | undefined): boolean {
 
 function StatsSkeleton() {
   return (
-    <div className="stats-skeleton">
+    <div className="stats-skeleton" aria-busy="true" aria-label="Cargando estadísticas">
       <div className="stat-card stat-card--skeleton" />
       <div className="stat-card stat-card--skeleton" />
       <div className="stat-card stat-card--skeleton" />
     </div>
+  )
+}
+
+interface StatCardProps {
+  variant: 'income' | 'education' | 'foreign'
+  icon: string
+  value: string
+  label: string
+}
+
+function StatCard({ variant, icon, value, label }: StatCardProps) {
+  return (
+    <article className={`stat-card stat-card--${variant}`}>
+      <span className="stat-card__icon" aria-hidden="true">
+        <i className={`fas ${icon}`}></i>
+      </span>
+      <div className="stat-card__body">
+        <h4 className="stat-card__value">{value}</h4>
+        <p className="stat-card__label">{label}</p>
+      </div>
+    </article>
   )
 }
 
@@ -55,63 +76,44 @@ export default function StatsCards({ municipality }: StatsCardsProps) {
   if (loading) return <StatsSkeleton />
 
   if (error) {
-    return <div className="field-message field-message--error">Error: {error}</div>
+    return (
+      <div className="field-message field-message--error" role="alert">
+        Error: {error}
+      </div>
+    )
   }
 
   if (!stats) {
     return (
-      <div className="field-message field-message--warning">
+      <div className="field-message field-message--warning" role="status">
         No se encontraron datos para este municipio
       </div>
     )
   }
 
+  const provincial = (flag: number | undefined) =>
+    isImputed(flag) ? ', media provincial' : ''
+
   return (
     <div className="stat-cards">
-      <article className="stat-card stat-card--income">
-        <header className="stat-card__header">
-          <i className="fas fa-euro-sign stat-card__icon" aria-hidden="true"></i>
-          <h3 className="stat-card__value">
-            {formatCurrency(stats.net_income_equiv)}
-          </h3>
-        </header>
-        <p className="stat-card__label">
-          Ingreso medio equivalente (2024
-          {isImputed(stats.net_income_equiv_is_imputed) ? ', media provincial' : ''})
-        </p>
-      </article>
-
-      <article className="stat-card stat-card--education">
-        <header className="stat-card__header">
-          <i className="fas fa-graduation-cap stat-card__icon" aria-hidden="true"></i>
-          <h3 className="stat-card__value">
-            {formatPercentage(stats.pct_higher_ed_completed)}
-          </h3>
-        </header>
-        <p className="stat-card__label">
-          Población de 15 y más años con estudios superiores (2023
-          {isImputed(stats.pct_higher_ed_completed_is_imputed)
-            ? ', media provincial'
-            : ''}
-          )
-        </p>
-      </article>
-
-      <article className="stat-card stat-card--foreign">
-        <header className="stat-card__header">
-          <i className="fas fa-globe stat-card__icon" aria-hidden="true"></i>
-          <h3 className="stat-card__value">
-            {formatPercentage(stats.pct_foreign_born)}
-          </h3>
-        </header>
-        <p className="stat-card__label">
-          Población nacida en el extranjero (2024
-          {isImputed(stats.pct_foreign_born_is_imputed)
-            ? ', media provincial'
-            : ''}
-          )
-        </p>
-      </article>
+      <StatCard
+        variant="income"
+        icon="fa-euro-sign"
+        value={formatCurrency(stats.net_income_equiv)}
+        label={`Ingreso medio equivalente (2024${provincial(stats.net_income_equiv_is_imputed)})`}
+      />
+      <StatCard
+        variant="education"
+        icon="fa-graduation-cap"
+        value={formatPercentage(stats.pct_higher_ed_completed)}
+        label={`Población de 15 y más años con estudios superiores (2023${provincial(stats.pct_higher_ed_completed_is_imputed)})`}
+      />
+      <StatCard
+        variant="foreign"
+        icon="fa-globe"
+        value={formatPercentage(stats.pct_foreign_born)}
+        label={`Población nacida en el extranjero (2024${provincial(stats.pct_foreign_born_is_imputed)})`}
+      />
     </div>
   )
 }

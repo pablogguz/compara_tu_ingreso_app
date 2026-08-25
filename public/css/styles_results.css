@@ -1,487 +1,322 @@
-/* Modern Results Stylesheet - Glassmorphism Design */
+/* =============================================================================
+   Results screen — hero (percentile), segmented view toggle, chart, stats row.
+   Tokens live in styles.css :root.
+   ============================================================================= */
 
 .results-container {
-  max-width: 75rem;
+  width: 100%;
+  max-width: 68rem;
   margin: 0 auto;
-  padding: var(--spacing-xl);
-}
-
-/* Main Results Section */
-.main-results-section {
-  margin-bottom: var(--spacing-lg);
-}
-
-/* Hero Section (legacy class — kept for compatibility) */
-.results-hero {
-  background: var(--card);
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border);
-}
-
-/* Result Header - Clean horizontal layout */
-.result-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xl);
-  margin-bottom: 0 !important;
-  position: relative;
-  z-index: 1;
-}
-
-.percentile-display {
-  flex-shrink: 0;
-  position: relative;
-  display: inline-flex;
-  align-items: baseline;
-}
-
-.percentile-display::before {
-  content: '';
-  position: absolute;
-  inset: -20%;
-  background: radial-gradient(
-    circle at center,
-    rgba(88, 162, 236, 0.18) 0%,
-    rgba(88, 162, 236, 0) 70%
-  );
-  pointer-events: none;
-  filter: blur(8px);
-  z-index: -1;
-}
-
-.percentile-number {
-  font-family: var(--font-sans);
-  font-size: clamp(3.5rem, 10vw, 5.5rem);
-  font-weight: 800;
-  background: linear-gradient(
-    135deg,
-    var(--ink) 0%,
-    var(--primary) 65%,
-    var(--accent-cyan) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  font-variant-numeric: tabular-nums;
-  display: inline-block;
-  /* gradient-text rendering needs a hair of right-side padding so the last
-     glyph (the "9") doesn't get clipped by background-clip:text. */
-  padding-right: 0.06em;
-}
-
-.percentile-symbol {
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  color: var(--primary);
-  margin-left: 0.2rem;
-  font-weight: 600;
-}
-
-.result-text-block {
+  padding: 2.5rem 1.5rem 7rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  min-width: 0;
-}
-
-.result-eyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted-foreground);
-}
-
-.result-text {
-  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
-  color: var(--foreground);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-
-.result-meta {
-  display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.85rem;
-  background: rgba(88, 162, 236, 0.08);
-  border: 1px solid rgba(88, 162, 236, 0.22);
-  border-radius: 100px;
-  font-size: 0.82rem;
-  color: var(--muted-foreground);
-  width: fit-content;
+  gap: 1.5rem;
 }
 
-.result-meta strong {
-  color: var(--foreground);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-left: 0.15rem;
-}
-
-.result-meta i {
-  color: var(--primary);
-  font-size: 0.8rem;
-}
-
-/* Income Comparison - Modern badge */
-.income-comparison {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  padding: var(--spacing) var(--spacing-md);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-}
-
-.comparison-value {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.comparison-value .fa-arrow-up {
-  color: var(--success);
-}
-
-.comparison-value .fa-arrow-down {
-  color: var(--destructive);
-}
-
-/* Distribution Section — glass card */
-.distribution-container {
+/* ----------------------- Hero card ----------------------------------------- */
+.results-hero {
   position: relative;
-  background: rgba(255, 255, 255, 0.78);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  backdrop-filter: blur(24px) saturate(140%);
-  border-radius: var(--radius-2xl);
-  padding: var(--spacing-xl) var(--spacing-2xl);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 16px 40px -12px rgba(15, 23, 42, 0.12),
-    0 4px 12px -4px rgba(15, 23, 42, 0.05),
-    0 0 0 1px rgba(15, 23, 42, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  width: 100%;
+  padding: 2.75rem 2.5rem 2rem;
+  text-align: center;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
-  animation: resultsContainerIn 600ms var(--ease-spring) both;
+  animation: resultsIn 600ms var(--ease-spring) both;
 }
 
-.distribution-container::before {
+.results-hero::before {
   content: '';
   position: absolute;
   top: 0;
   left: 12%;
   right: 12%;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.95),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
   pointer-events: none;
 }
 
-@keyframes resultsContainerIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes resultsIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.distribution-header {
+.result-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: var(--spacing-md);
 }
 
-.chart-section {
-  margin: calc(-1 * var(--spacing));
-}
-
-/* Stats Dashboard */
-.stats-container {
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  border: none;
-  margin-top: var(--spacing-xl);
-  animation: statsContainerIn 600ms var(--ease-spring) 200ms both;
-}
-
-@keyframes statsContainerIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Distribution toggle buttons (Nacional / Provincial / Municipal) */
-.nav-button {
+.result-eyebrow {
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.result-eyebrow strong {
+  color: var(--primary-deep);
+  font-weight: 700;
+}
+
+.percentile-display {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
   justify-content: center;
-  border: 1px solid var(--border);
-  padding: 0.6rem 1.1rem;
-  margin: 0.2rem;
-  border-radius: 100px;
+  margin: 0.4rem 0 0.35rem;
+}
+
+.percentile-display::before {
+  content: '';
+  position: absolute;
+  inset: -18% -30%;
+  background: radial-gradient(circle at center, rgba(88, 162, 236, 0.2) 0%, rgba(88, 162, 236, 0) 70%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.percentile-number {
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 13vw, 7.75rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  font-variation-settings: 'SOFT' 30;
+  background: linear-gradient(150deg, var(--ink) 0%, var(--primary-ink) 45%, var(--primary) 80%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* background-clip:text needs a hair of right padding so the last glyph
+     isn't clipped */
+  padding-right: 0.04em;
+}
+
+.percentile-symbol {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  color: var(--primary);
+  margin-left: 0.15rem;
+  font-variation-settings: 'SOFT' 60, 'WONK' 1;
+}
+
+.result-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  max-width: 32ch;
+  margin: 0.25rem auto 1rem;
+  font-variation-settings: 'SOFT' 40;
+  text-wrap: balance;
+}
+
+.result-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.05rem;
+  background: var(--primary-tint);
+  border: 1px solid rgba(88, 162, 236, 0.24);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.result-meta i {
+  color: var(--primary-deep);
+  font-size: 0.8rem;
+}
+
+.result-meta strong {
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.results-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.09), transparent);
+  margin: 1.75rem 0 1.35rem;
+}
+
+/* ----------------------- Segmented control --------------------------------- */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.3rem;
+  background: rgba(241, 245, 249, 0.72);
+  border: 1px solid rgba(226, 232, 240, 0.75);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.seg__btn {
+  min-height: 2.35rem;
+  padding: 0 1.15rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-family: var(--font-ui);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--muted-foreground);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   cursor: pointer;
-  min-height: 2.5rem;
-  font-family: inherit;
-  position: relative;
-  overflow: hidden;
-}
-
-.nav-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  transition: left 600ms ease;
-  pointer-events: none;
-}
-
-.nav-button:hover {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--foreground);
-  border-color: rgba(88, 162, 236, 0.4);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.08);
-}
-
-.nav-button:hover::before {
-  left: 100%;
-}
-
-.nav-button.active {
-  background: var(--btn-grad);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow:
-    0 4px 12px -2px rgba(59, 130, 246, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
-  transform: translateY(-1px);
-}
-
-.nav-button.active::before {
-  display: none;
-}
-
-.nav-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-/* Results-specific layout */
-.results-divider {
-  height: 1px;
-  background: var(--border);
-  margin: var(--spacing-md) 0;
-}
-
-.view-toggles {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.3rem;
-  background: rgba(241, 245, 249, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 100px;
-  margin-bottom: -2rem;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.view-toggles .nav-button {
-  margin: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  min-height: 2.25rem;
-  padding: 0.5rem 1rem;
-}
-
-.view-toggles .nav-button:hover {
-  background: rgba(255, 255, 255, 0.7);
-  border-color: transparent;
-  transform: none;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-}
-
-.view-toggles .nav-button.active {
-  background: var(--btn-grad);
-  color: #ffffff;
-  box-shadow:
-    0 4px 12px -2px rgba(59, 130, 246, 0.4),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset;
-  transform: none;
-}
-
-.results-actions {
-  display: flex;
-  justify-content: flex-start;
-  margin-top: var(--spacing-md);
-  padding-left: var(--spacing-xs);
-}
-
-.btn-recalculate {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--muted-foreground);
-  background: rgba(255, 255, 255, 0.7);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  -webkit-tap-highlight-color: transparent;
   transition:
-    background var(--motion-fast) var(--ease),
-    border-color var(--motion-fast) var(--ease),
+    background-color var(--motion-fast) var(--ease),
     color var(--motion-fast) var(--ease),
     box-shadow var(--motion-fast) var(--ease),
     transform var(--motion-fast) var(--ease-spring);
 }
 
-.btn-recalculate:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(88, 162, 236, 0.4);
-  color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px -2px rgba(15, 23, 42, 0.08);
+.seg__btn:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink);
 }
 
-.btn-recalculate:active {
-  transform: translateY(0) scale(0.985);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+.seg__btn:active {
+  transform: scale(0.97);
 }
 
-.btn-recalculate i {
-  transition: transform var(--motion-base, 400ms) var(--ease-spring);
+.seg__btn.is-active {
+  background: var(--btn-grad);
+  color: #ffffff;
+  box-shadow:
+    0 4px 12px -3px rgba(59, 130, 246, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-.btn-recalculate:hover i {
+.seg__btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ----------------------- Chart ------------------------------------------------ */
+.chart-section {
+  /* bleed slightly past the hero padding so the plot area reads wider */
+  width: calc(100% + var(--space-4));
+  margin: 1.25rem calc(-1 * var(--space-2)) 0;
+}
+
+.chart-caption {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+/* ----------------------- Stats row ------------------------------------------ */
+.stats-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: resultsIn 600ms var(--ease-spring) 180ms both;
+}
+
+.stats-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  font-variation-settings: 'SOFT' 40;
+  text-align: center;
+}
+
+.stats-title i {
+  color: var(--primary-deep);
+  font-size: 0.9rem;
+}
+
+.stats-title em {
+  font-style: italic;
+  font-variation-settings: 'SOFT' 80, 'WONK' 1;
+}
+
+/* ----------------------- Actions ------------------------------------------- */
+.results-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.results-actions .btn__icon {
+  transition: transform var(--motion-base) var(--ease-spring);
+}
+
+.results-actions .btn:hover .btn__icon {
   transform: rotate(-90deg);
 }
 
-.btn-recalculate i {
-  font-size: 0.85rem;
-}
-
-
-/* Mobile Responsiveness */
+/* ----------------------- Responsive ---------------------------------------- */
 @media (max-width: 768px) {
   .results-container {
-    padding: var(--spacing);
-    display: flex;
-    flex-direction: column;
+    padding: 1.25rem 0.85rem 7.5rem;
+    gap: 1rem;
   }
 
   .results-hero {
-    padding: var(--spacing-lg);
-  }
-
-  .main-results-section {
-    order: 1;
-  }
-
-  .distribution-container {
-    order: 2;
-    padding: var(--spacing-lg);
-  }
-
-  .stats-dashboard {
-    order: 3;
-  }
-
-  .result-header {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    text-align: center;
-    margin-bottom: 0 !important;
-  }
-
-  .percentile-display {
-    padding: var(--spacing);
+    padding: 2rem 1.15rem 1.4rem;
+    border-radius: var(--radius-lg);
   }
 
   .percentile-number {
-    font-size: clamp(2.5rem, 12vw, 3.5rem);
+    font-size: clamp(3.75rem, 20vw, 5.5rem);
   }
 
   .result-text {
-    font-size: clamp(var(--text-base), 4vw, var(--text-lg));
+    font-size: clamp(1.05rem, 4.2vw, 1.25rem);
   }
 
-  .income-comparison {
-    justify-content: center;
-    width: 100%;
+  .result-meta {
+    font-size: 0.8rem;
+    padding: 0.45rem 0.9rem;
   }
 
-  .distribution-header {
-    flex-direction: column;
-    gap: var(--spacing);
+  .results-divider {
+    margin: 1.25rem 0 1rem;
   }
 
-  .nav-button {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--text-xs);
-    margin: var(--spacing-xs);
+  .seg__btn {
+    padding: 0 0.9rem;
+    font-size: 0.82rem;
   }
 
-  .results-hero,
-  .distribution-container,
-  .stats-container {
-    border-radius: var(--radius-lg);
+  .chart-section {
+    margin: 1rem calc(-1 * var(--space-3)) 0;
+    width: calc(100% + var(--space-5));
+  }
+
+  .stats-title {
+    font-size: 1.15rem;
   }
 }
-

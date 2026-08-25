@@ -15,10 +15,18 @@ interface ResultsViewProps {
   onRecalculate: () => void
 }
 
+const VIEWS: ViewType[] = ['national', 'provincial', 'municipal']
+
 const viewLabels: Record<ViewType, string> = {
   national: 'Nacional',
   provincial: 'Provincial',
   municipal: 'Municipal',
+}
+
+export function buildHeadline(percentile: number, placeName: string): string {
+  return percentile <= 1
+    ? `Tu hogar estuvo entre el 1% más pobre de ${placeName}`
+    : `Tu hogar ingresó más que el ${percentile}% de la población en ${placeName}`
 }
 
 export default function ResultsView({
@@ -54,73 +62,80 @@ export default function ResultsView({
         ? provinceName
         : municipalityName
 
-  const headline =
-    displayPercentile <= 1
-      ? `Tu hogar estuvo entre el 1% más pobre de ${placeName}`
-      : `Tu hogar ingresó más que el ${displayPercentile}% de la población en ${placeName}`
+  const headline = buildHeadline(displayPercentile, placeName)
 
   return (
     <div className="results-container">
-      <div className="main-results-section">
-        <div className="distribution-container">
-          <div className="result-header">
-            <div className="percentile-display">
-              <span className="percentile-number">{animatedPercentile}</span>
-              <span className="percentile-symbol">%</span>
-            </div>
-            <div className="result-text-block">
-              <div className="result-eyebrow">En 2024</div>
-              <div className="result-text">{headline}</div>
-              <div className="result-meta">
-                <i className="fas fa-coins"></i>
-                Ingresos anuales equivalentes&nbsp;
-                <strong>{formatCurrency(results.equiv_income)}</strong>
-              </div>
-            </div>
+      <section className="results-hero" aria-labelledby="results-headline">
+        <div className="result-header">
+          <div className="result-eyebrow">
+            Tu hogar en 2024 · <strong>{placeName}</strong>
           </div>
-
-          <div className="results-divider" />
-
-          <div className="view-toggles">
-            {(['national', 'provincial', 'municipal'] as ViewType[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setViewType(v)}
-                className={`nav-button ${viewType === v ? 'active' : ''}`}
-              >
-                {viewLabels[v]}
-              </button>
-            ))}
+          <div className="percentile-display" aria-hidden="true">
+            <span className="percentile-number">{animatedPercentile}</span>
+            <span className="percentile-symbol">%</span>
           </div>
-
-          <div className="chart-controls-container">
-            <div className="chart-container">
-              <ErrorBoundary label="DistributionChart">
-                <DistributionChart
-                  viewType={viewType}
-                  userInput={userInput}
-                  results={results}
-                />
-              </ErrorBoundary>
-            </div>
-            <div className="stats-container">
-              <div className="stats-title">
-                <i className="fas fa-chart-bar"></i>
-                <span>&nbsp;Estadísticas de {municipalityName}</span>
-              </div>
-              <ErrorBoundary label="StatsCards">
-                <StatsCards municipality={userInput.municipality} />
-              </ErrorBoundary>
-            </div>
-          </div>
-
-          <div className="results-actions">
-            <button onClick={onRecalculate} className="btn-recalculate">
-              <i className="fas fa-rotate-left"></i>
-              Volver a calcular
-            </button>
+          <h2 className="result-text" id="results-headline">
+            {headline}
+          </h2>
+          <div className="result-meta">
+            <i className="fas fa-coins" aria-hidden="true"></i>
+            <span>Ingresos anuales equivalentes</span>
+            <strong>{formatCurrency(results.equiv_income)}</strong>
           </div>
         </div>
+
+        <div className="results-divider" />
+
+        <div className="seg" role="group" aria-label="Nivel de comparación">
+          {VIEWS.map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setViewType(v)}
+              className={`seg__btn ${viewType === v ? 'is-active' : ''}`}
+              aria-pressed={viewType === v}
+            >
+              {viewLabels[v]}
+            </button>
+          ))}
+        </div>
+
+        <div className="chart-section">
+          <ErrorBoundary label="DistributionChart">
+            <DistributionChart
+              viewType={viewType}
+              userInput={userInput}
+              results={results}
+            />
+          </ErrorBoundary>
+        </div>
+      </section>
+
+      <section className="stats-section" aria-labelledby="stats-title">
+        <h3 className="stats-title" id="stats-title">
+          <i className="fas fa-chart-bar" aria-hidden="true"></i>
+          <span>
+            Así es <em>{municipalityName}</em>
+          </span>
+        </h3>
+        <ErrorBoundary label="StatsCards">
+          <StatsCards municipality={userInput.municipality} />
+        </ErrorBoundary>
+      </section>
+
+      <div className="results-actions">
+        <button
+          type="button"
+          onClick={onRecalculate}
+          className="btn btn--secondary"
+        >
+          <i
+            className="fas fa-rotate-left btn__icon"
+            aria-hidden="true"
+          ></i>
+          Volver a calcular
+        </button>
       </div>
     </div>
   )

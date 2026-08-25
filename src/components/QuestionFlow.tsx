@@ -92,7 +92,7 @@ export default function QuestionFlow({ onCalculate }: QuestionFlowProps) {
   return (
     <div id="main-form">
       <ProgressHeader step={state.step} total={TOTAL_STEPS} />
-      <div className="container-fluid">
+      <div className="question-stage">
         {state.step === 1 && (
           <MunicipalityStep
             value={state.municipality}
