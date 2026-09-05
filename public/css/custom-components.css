@@ -43,9 +43,14 @@
 .pagas-toggle {
   position: relative;
   display: inline-flex;
+  align-items: stretch;
+  appearance: none;
+  -webkit-appearance: none;
   width: 210px;
   height: 44px;
   padding: 4px;
+  line-height: 1;
+  text-align: center;
   border-radius: var(--radius-pill);
   cursor: pointer;
   background: rgba(241, 245, 249, 0.75);
@@ -85,13 +90,19 @@
 }
 
 .pagas-toggle__option {
-  flex: 1;
-  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
+  /* Optical centring: the descenders in "pagas" pull the ink below the
+     geometric centre, so nudge the label up by half the extra padding. */
+  padding-bottom: 2px;
   position: relative;
   z-index: 1;
   font-size: 0.84rem;
+  line-height: 1;
   font-weight: 600;
   letter-spacing: -0.005em;
   color: var(--muted-foreground);
