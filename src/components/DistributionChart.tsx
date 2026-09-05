@@ -52,6 +52,10 @@ async function loadDataForView(
   return { density, percentiles }
 }
 
+// Hoisted: HighchartsReact re-runs chart.update() whenever this prop's
+// identity changes, and ResultsView re-renders on every count-up frame.
+const CONTAINER_PROPS = { className: 'chart-canvas' }
+
 function ChartSkeleton() {
   return <div className="chart-skeleton" aria-busy="true" aria-label="Cargando gráfico" />
 }
@@ -104,5 +108,11 @@ export default function DistributionChart({
 
   if (!options) return <ChartSkeleton />
 
-  return <HighchartsReact highcharts={Highcharts} options={options} />
+  return (
+    <HighchartsReact
+      highcharts={Highcharts}
+      options={options}
+      containerProps={CONTAINER_PROPS}
+    />
+  )
 }

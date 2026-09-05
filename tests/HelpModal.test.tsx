@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import HelpModal from '@/components/HelpModal'
 
 afterEach(cleanup)
@@ -13,7 +13,7 @@ describe('<HelpModal />', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('opens the dialog with the first tab active and lazy-loads its content', async () => {
+  it('opens the dialog with the first tab active and its content already rendered', () => {
     render(<HelpModal />)
     fireEvent.click(fab())
     const dialog = screen.getByRole('dialog')
@@ -23,23 +23,21 @@ describe('<HelpModal />', () => {
       'aria-selected',
       'true'
     )
-    expect(await screen.findByRole('heading', { level: 4 })).toHaveTextContent(
+    // no lazy boundary: the content is in the DOM on the same tick
+    expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent(
       /de dónde vienen los datos/i
     )
   })
 
-  it('switches tabs', async () => {
+  it('switches tabs synchronously', () => {
     render(<HelpModal />)
     fireEvent.click(fab())
-    await screen.findByRole('heading', { level: 4 })
     fireEvent.click(screen.getByRole('tab', { name: 'Sobre el autor' }))
     expect(screen.getByRole('tab', { name: 'Sobre el autor' })).toHaveAttribute(
       'aria-selected',
       'true'
     )
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent(/sobre el autor/i)
-    )
+    expect(screen.getByRole('heading', { level: 4 })).toHaveTextContent(/sobre el autor/i)
   })
 
   it('closes with the close button, the backdrop and Escape', () => {

@@ -1,14 +1,16 @@
 'use client'
 
-import { useCallback, useEffect, useState, lazy, Suspense } from 'react'
-
-// Lazy load tab content components
-const DatosTab = lazy(() => import('@/components/HelpModal/DatosTab'))
-const IngresosTab = lazy(() => import('@/components/HelpModal/IngresosTab'))
-const HogarTab = lazy(() => import('@/components/HelpModal/HogarTab'))
-const MetodologiaTab = lazy(() => import('@/components/HelpModal/MetodologiaTab'))
-const GraficaTab = lazy(() => import('@/components/HelpModal/GraficaTab'))
-const AutorTab = lazy(() => import('@/components/HelpModal/AutorTab'))
+import { useCallback, useEffect, useState } from 'react'
+// The tabs are static text (~15 KB of JSX, no dependencies). They used to be
+// lazy-loaded, which meant a chunk round-trip and a "Cargando…" flash on the
+// first click of every tab; bundling them costs nothing and makes the modal
+// respond instantly.
+import DatosTab from '@/components/HelpModal/DatosTab'
+import IngresosTab from '@/components/HelpModal/IngresosTab'
+import HogarTab from '@/components/HelpModal/HogarTab'
+import MetodologiaTab from '@/components/HelpModal/MetodologiaTab'
+import GraficaTab from '@/components/HelpModal/GraficaTab'
+import AutorTab from '@/components/HelpModal/AutorTab'
 
 type TabId = 'datos' | 'ingresos' | 'hogar' | 'metodologia' | 'grafica' | 'autor'
 
@@ -21,7 +23,7 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'autor', label: 'Sobre el autor' },
 ]
 
-const TAB_CONTENT: Record<TabId, React.LazyExoticComponent<() => JSX.Element>> = {
+const TAB_CONTENT: Record<TabId, () => JSX.Element> = {
   datos: DatosTab,
   ingresos: IngresosTab,
   hogar: HogarTab,
@@ -110,11 +112,7 @@ export default function HelpModal() {
               id="help-tabpanel"
               aria-labelledby={`help-tab-${activeTab}`}
             >
-              <Suspense
-                fallback={<div className="loading-spinner">Cargando…</div>}
-              >
-                <ActiveContent />
-              </Suspense>
+              <ActiveContent />
             </div>
           </div>
         </div>

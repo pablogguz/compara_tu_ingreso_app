@@ -13,6 +13,20 @@ export interface DistributionOptionsInput {
   perceivedPercentile: number
 }
 
+// Passed as a function, not a name. Highcharts resolves string easings against
+// Math.<name> by mutating the animation object it is handed — which for
+// chart.animation is the live chart.options object — and a chart.update()
+// that lands mid-animation re-merges the string over the resolved function
+// and crashes the running tween. A function survives the merge.
+export const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
+
+// Class hooks for the intro choreography in styles_results.css: the guess line
+// and the position line drop in (CSS keyframes) after the curve has drawn.
+export const SERIES_CLASS = {
+  guess: 'series-guess',
+  position: 'series-position',
+} as const
+
 const seriesNameByView: Record<ViewType, string> = {
   national: 'Distribución nacional',
   provincial: 'Distribución provincial',
@@ -51,11 +65,26 @@ export function buildDistributionOptions(
   const yMax = Math.max(...density.map((d) => d.y)) * 1.15
   const seriesData = density.map((d) => [d.x, d.y])
 
+  // Vertical marker lines as two identified points. On a view change
+  // Highcharts matches points by id and updates them in place, so the line
+  // slides to its new x (and the top marker to the new yMax) instead of being
+  // torn down and redrawn.
+  const verticalLine = (key: string, x: number) => [
+    { id: `${key}-lo`, x, y: 0 },
+    { id: `${key}-hi`, x, y: yMax },
+  ]
+
   const series: Highcharts.SeriesOptionsType[] = [
     {
       type: 'area',
       name: seriesNameByView[viewType],
       data: seriesData,
+      // The density grid has 1,000 points and the x axis stops at p99, so
+      // with the default threshold (300) Highcharts crops the series — and
+      // a cropped series is re-created on every update instead of having
+      // its points updated in place. Above the point count, the curve morphs
+      // between national / provincial / municipal.
+      cropThreshold: 10000,
       color: t.areaLine,
       lineWidth: 2,
       fillColor: {
@@ -72,10 +101,11 @@ export function buildDistributionOptions(
     {
       type: 'line',
       name: 'Tu posición',
-      data: [
-        [userValueOnAxis, 0],
-        [userValueOnAxis, yMax],
-      ],
+      className: SERIES_CLASS.position,
+      // Entrance is choreographed in CSS (lineDrop); Highcharts' own
+      // left-to-right clip reveal would make a vertical line pop instantly.
+      animation: false,
+      data: verticalLine('position', userValueOnAxis),
       color: t.primaryDeep,
       dashStyle: 'ShortDash',
       lineWidth: 2.5,
@@ -101,13 +131,9 @@ export function buildDistributionOptions(
     {
       type: 'line',
       name: 'Tu predicción',
-      data:
-        viewType === 'national'
-          ? [
-              [predictedValue, 0],
-              [predictedValue, yMax],
-            ]
-          : [],
+      className: SERIES_CLASS.guess,
+      animation: false,
+      data: viewType === 'national' ? verticalLine('guess', predictedValue) : [],
       color: t.prediction,
       dashStyle: 'Dot',
       lineWidth: 2.5,
@@ -135,9 +161,9 @@ export function buildDistributionOptions(
   return {
     chart: {
       style: { fontFamily },
-      animation: { duration: t.motionSlow, easing: 'easeOutCubic' },
+      animation: { duration: t.motionSlow, easing: easeOutCubic },
       backgroundColor: 'transparent',
-      spacing: [16, 12, 16, 12],
+      spacing: [8, 12, 6, 12],
     },
     title: { text: '' },
     xAxis: {
@@ -146,7 +172,7 @@ export function buildDistributionOptions(
       title: {
         text: 'Ingresos anuales equivalentes',
         style: titleStyle,
-        margin: 12,
+        margin: 8,
       },
       labels: {
         formatter: function () {
@@ -175,7 +201,7 @@ export function buildDistributionOptions(
       layout: 'horizontal',
       itemStyle: { ...labelStyle, fontWeight: '600', color: t.text },
       itemHoverStyle: { color: t.primary },
-      itemMarginBottom: 8,
+      itemMarginBottom: 4,
       symbolRadius: 6,
       symbolHeight: 10,
       symbolWidth: 10,
@@ -207,13 +233,14 @@ export function buildDistributionOptions(
     },
     plotOptions: {
       series: {
-        animation: { duration: t.motionSlow, easing: 'easeOutCubic' },
+        animation: { duration: t.motionSlow, easing: easeOutCubic },
       },
       area: {
-        animation: { duration: t.motionSlow, easing: 'easeOutCubic' },
+        // the curve draws left→right over a slow beat
+        animation: { duration: t.motionSlow * 1.4, easing: easeOutCubic },
       },
       line: {
-        animation: { duration: t.motionBase, easing: 'easeOutCubic' },
+        animation: false,
       },
     },
     series,

@@ -65,3 +65,68 @@ describe('useCountUp', () => {
     expect(result.current).toBe(0)
   })
 })
+
+describe('useCountUp — subsequent targets and delay', () => {
+  let now = 0
+  let rafCallbacks: Array<(t: number) => void> = []
+
+  beforeEach(() => {
+    now = 0
+    rafCallbacks = []
+    vi.spyOn(performance, 'now').mockImplementation(() => now)
+    vi.stubGlobal('requestAnimationFrame', (cb: (t: number) => void) => {
+      rafCallbacks.push(cb)
+      return rafCallbacks.length
+    })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  function tick(advanceMs: number) {
+    now += advanceMs
+    const cbs = rafCallbacks
+    rafCallbacks = []
+    cbs.forEach((cb) => cb(now))
+  }
+
+  it('holds at 0 during the initial delay, then counts', () => {
+    const { result } = renderHook(() => useCountUp(80, 100, { delay: 50 }))
+    act(() => tick(25))
+    expect(result.current).toBe(0)
+    act(() => {
+      tick(25)
+      tick(50)
+      tick(50)
+      tick(10)
+    })
+    expect(result.current).toBe(80)
+  })
+
+  it('counts from the current value when the target changes', () => {
+    const { result, rerender } = renderHook(
+      ({ target }) => useCountUp(target, 100, { updateDuration: 100 }),
+      { initialProps: { target: 80 } }
+    )
+    act(() => {
+      tick(50)
+      tick(50)
+      tick(10)
+    })
+    expect(result.current).toBe(80)
+
+    rerender({ target: 20 })
+    act(() => tick(20))
+    // on the way down, not restarting from 0
+    expect(result.current).toBeLessThan(80)
+    expect(result.current).toBeGreaterThan(20)
+    act(() => {
+      tick(50)
+      tick(50)
+    })
+    expect(result.current).toBe(20)
+  })
+})

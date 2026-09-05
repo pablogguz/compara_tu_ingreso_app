@@ -23,10 +23,20 @@ describe('buildDistributionOptions', () => {
     expect(s.map((x) => x.type)).toEqual(['area', 'line', 'line'])
     expect(s[0].name).toBe('Distribución nacional')
     expect(s[1].name).toBe('Tu posición')
-    expect(s[1].data[0][0]).toBe(30000)
+    expect(s[1].data[0].x).toBe(30000)
     expect(s[2].name).toBe('Tu predicción')
     expect(s[2].visible).toBe(true)
-    expect(s[2].data[0][0]).toBe(42000)
+    expect(s[2].data[0].x).toBe(42000)
+  })
+
+  it('keeps the curve un-cropped and ids the marker points so view changes morph', () => {
+    const s = seriesOf(buildDistributionOptions({ ...base, viewType: 'national' }))
+    // real density curves carry 1,000 points; Highcharts only updates points
+    // in place (and animates the path) when the series is not cropped
+    expect(s[0].cropThreshold).toBeGreaterThan(1000)
+    expect(s[1].data.map((p: any) => p.id)).toEqual(['position-lo', 'position-hi'])
+    expect(s[2].data.map((p: any) => p.id)).toEqual(['guess-lo', 'guess-hi'])
+    expect(s[1].data[1].y).toBeGreaterThan(0)
   })
 
   it('hides the prediction line outside the national view', () => {

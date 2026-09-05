@@ -285,17 +285,20 @@
 .stat-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
   width: 100%;
 }
 
+/* Compact row: icon left, value + label right. Keeps the three cards to one
+   short band so the results screen fits a laptop viewport. */
 .stat-card {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  text-align: center;
-  padding: 1.5rem 1.1rem 1.35rem;
+  text-align: left;
+  gap: 0.85rem;
+  padding: 0.85rem 1.05rem;
   background: var(--glass-bg-strong);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
@@ -309,16 +312,16 @@
   transition:
     transform var(--motion-fast) var(--ease),
     box-shadow var(--motion-fast) var(--ease);
-  animation: statCardIn 600ms var(--ease-spring) both;
+  animation: statCardIn 680ms var(--ease-spring) backwards;
 }
 
-.stat-card:nth-child(1) { animation-delay: 80ms; }
-.stat-card:nth-child(2) { animation-delay: 180ms; }
-.stat-card:nth-child(3) { animation-delay: 280ms; }
+.stat-card:nth-child(1) { animation-delay: 120ms; }
+.stat-card:nth-child(2) { animation-delay: 260ms; }
+.stat-card:nth-child(3) { animation-delay: 400ms; }
 
 @keyframes statCardIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .stat-card::before {
@@ -364,7 +367,7 @@
   background: var(--stat-accent-tint, rgba(88, 162, 236, 0.12));
   color: var(--stat-accent, var(--primary-deep));
   font-size: 0.95rem;
-  margin-bottom: 0.85rem;
+  flex-shrink: 0;
 }
 
 .stat-card__body {
@@ -372,7 +375,7 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
 }
 
@@ -380,7 +383,7 @@
   position: relative;
   z-index: 1;
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 2.4vw, 1.95rem);
+  font-size: clamp(1.35rem, 2vw, 1.6rem);
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.05;
@@ -393,19 +396,42 @@
 .stat-card__label {
   position: relative;
   z-index: 1;
-  font-size: 0.8rem;
-  line-height: 1.45;
+  font-size: 0.74rem;
+  line-height: 1.35;
   color: var(--muted-foreground);
-  margin: 0.45rem 0 0;
-  max-width: 20ch;
+  margin: 0.2rem 0 0;
   text-wrap: balance;
+}
+
+/* Laptop and up: the cards stack in the results sidebar (see the grid in
+   styles_results.css). */
+@media (min-width: 1024px) {
+  .stat-cards,
+  .stats-skeleton {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .stat-card {
+    padding: 1.1rem 1.15rem;
+    gap: 1rem;
+  }
+
+  .stat-card__value {
+    font-size: clamp(1.5rem, 2.4vh, 1.8rem);
+  }
+
+  .stat-card__label {
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+  }
 }
 
 /* Skeletons */
 .stats-skeleton {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.85rem;
   width: 100%;
 }
 
@@ -419,7 +445,7 @@
 }
 
 .stat-card--skeleton {
-  height: 128px;
+  height: 84px;
   padding: 0;
   box-shadow: none;
 }
@@ -430,7 +456,17 @@
 
 .chart-skeleton {
   width: 100%;
-  height: 380px;
+  height: var(--chart-h, 400px);
+  /* held invisible for a beat: the density curve is prefetched during the
+     intro, so on a warm cache the chart replaces this before it ever shows */
+  opacity: 0;
+  animation:
+    skeletonShimmer 1.4s var(--ease) infinite,
+    skeletonAppear 300ms var(--ease) 350ms forwards;
+}
+
+@keyframes skeletonAppear {
+  to { opacity: 1; }
 }
 
 @keyframes skeletonShimmer {
@@ -569,34 +605,8 @@
   }
 
   .stat-card {
-    flex-direction: row;
-    text-align: left;
-    align-items: center;
     gap: 1rem;
     padding: 1rem 1.1rem;
-  }
-
-  .stat-card__icon {
-    margin-bottom: 0;
-  }
-
-  .stat-card__body {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .stat-card__label {
-    max-width: none;
-    margin-top: 0.2rem;
-  }
-
-  .stat-card--skeleton {
-    height: 84px;
-  }
-
-  .chart-skeleton {
-    height: 300px;
   }
 
   .cookie-banner {

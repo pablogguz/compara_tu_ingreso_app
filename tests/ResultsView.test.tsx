@@ -28,6 +28,7 @@ vi.mock('@/lib/dataLoader', async () => {
   const { MADRID_STATS } = await import('./helpers/mockData')
   return {
     loadMunicipalityStats: vi.fn().mockResolvedValue(MADRID_STATS),
+    loadNationalDensity: vi.fn().mockResolvedValue([]),
   }
 })
 
@@ -35,6 +36,13 @@ vi.mock('@/lib/dataLoader', async () => {
 vi.mock('@/hooks/useCountUp', () => ({
   useCountUp: (target: number) => target,
 }))
+
+// Skip the intro clock: every act is mounted from the first render. The
+// sequencing itself is covered in useRevealSequence.test.tsx.
+vi.mock('@/hooks/useRevealSequence', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/hooks/useRevealSequence')>()
+  return { ...actual, useRevealSequence: () => 'done' as const }
+})
 
 afterEach(cleanup)
 
@@ -102,6 +110,18 @@ describe('<ResultsView />', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Municipal' }))
     expect(screen.getByText('55')).toHaveClass('percentile-number')
     expect(screen.getByTestId('chart')).toHaveAttribute('data-view', 'municipal')
+  })
+
+  it('marks the hero as landed once the count matches the target', () => {
+    setup()
+    expect(screen.getByRole('region', { name: /más que el 73%/ })).toHaveClass('is-landed')
+  })
+
+  it('crossfades the headline when the view changes', () => {
+    setup()
+    expect(screen.getByRole('heading', { level: 2 })).not.toHaveClass('result-text--swap')
+    fireEvent.click(screen.getByRole('button', { name: 'Provincial' }))
+    expect(screen.getByRole('heading', { level: 2 })).toHaveClass('result-text--swap')
   })
 
   it('caps the displayed percentile at 99', () => {
