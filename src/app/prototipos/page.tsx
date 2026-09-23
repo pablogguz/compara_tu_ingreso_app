@@ -20,6 +20,12 @@ const PROTOTYPES = [
     name: 'Cien',
     desc: 'Si España fuera 100 personas, ¿cuál serías tú? Una pregunta por pantalla y tu cuadrado entre cien.',
   },
+  {
+    letter: 'D',
+    href: '/prototipos/ensayo/',
+    name: 'Ensayo',
+    desc: 'Una explicación interactiva, sobria y académica: tus cien cuadrados se convierten en la curva de la renta mientras bajas por la página.',
+  },
 ]
 
 export default function PrototiposIndex() {
@@ -27,9 +33,9 @@ export default function PrototiposIndex() {
     <main className={s.root}>
       <div className={s.inner}>
         <p className={s.eyebrow}>Compara tu ingreso · prototipos</p>
-        <h1 className={s.title}>Tres formas de contar lo mismo</h1>
+        <h1 className={s.title}>Cuatro formas de contar lo mismo</h1>
         <p className={s.lede}>
-          Tres rediseños completos de la app, con los datos y el cálculo reales. No guardan
+          Cuatro rediseños completos de la app, con los datos y el cálculo reales. No guardan
           ninguna respuesta ni cargan analítica.
         </p>
         <ul className={s.grid}>

@@ -1,0 +1,525 @@
+/* D · Ensayo — Figure 2, the sticky figure of the story: a hundred squares
+   that become a histogram, then the income curve. Everything on the stage is
+   absolutely positioned; only transform and opacity animate. */
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ---- header: figure number, caption, readout ---- */
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--hair);
+  min-height: 64px;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.figNum {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.captionText {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 440;
+  font-variation-settings: 'SOFT' 30, 'WONK' 0;
+  line-height: 1.2;
+  color: var(--ink);
+  animation: captionIn 520ms var(--ease) both;
+}
+
+@keyframes captionIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.readout {
+  display: flex;
+  gap: 22px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.read {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  animation: captionIn 420ms var(--ease) both;
+}
+
+.readLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.readMark {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
+}
+
+.readGuess {
+  border: 1.5px dashed var(--guess);
+}
+
+.readYou {
+  background: var(--you);
+}
+
+.readValue {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 460;
+  font-variation-settings: 'SOFT' 20, 'WONK' 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.readValueYou {
+  color: var(--you);
+}
+
+.readValueGuess {
+  color: var(--guess);
+}
+
+/* ---- the stage ---- */
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 14px;
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.back {
+  z-index: 0;
+}
+
+.front {
+  z-index: 2;
+}
+
+.squares {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.sq {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  border-radius: 1.5px;
+  background-color: var(--above);
+  outline: calc(2px * var(--inv, 1)) dashed transparent;
+  outline-offset: calc(2px * var(--inv, 1));
+  backface-visibility: hidden;
+}
+
+.live .sq {
+  transition:
+    transform 950ms var(--ease-fly) calc(var(--i) * 4ms),
+    background-color 520ms ease calc(var(--i) * 6ms),
+    opacity 700ms ease calc(var(--i) * 3ms),
+    outline-color 300ms ease;
+}
+
+.sqAbove {
+  background-color: var(--above);
+}
+
+.sqBelow {
+  background-color: var(--below);
+}
+
+.sqYou {
+  background-color: var(--you);
+}
+
+.sqRamp {
+  background-color: var(--ramp);
+}
+
+.sqGuess {
+  outline-color: var(--guess);
+}
+
+/* grid labels: "1 · menos ingresos" / "más ingresos · 100" */
+.gridLabel {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.gridLabelEnd {
+  text-align: right;
+}
+
+.on {
+  opacity: 1;
+}
+
+/* ---- curves and lines ---- */
+
+.area {
+  fill: var(--area);
+  opacity: 0;
+  transition: opacity 700ms ease 450ms;
+}
+
+.areaLeft {
+  fill: var(--area-left);
+  opacity: 0;
+  transition: opacity 700ms ease 250ms;
+}
+
+.area.on,
+.areaLeft.on {
+  opacity: 1;
+}
+
+.curve {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 1600ms var(--ease) 150ms,
+    opacity 250ms ease;
+}
+
+.curve.drawn {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+.ghost {
+  fill: none;
+  stroke: #8d96a3;
+  stroke-width: 1.1;
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.ghost.on {
+  opacity: 1;
+}
+
+.medianLine,
+.guessLine,
+.youLine {
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.medianLine {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.guessLine {
+  stroke: var(--guess);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.youLine {
+  stroke: var(--you);
+  stroke-width: 2;
+  transition-delay: 150ms;
+}
+
+.youDot {
+  fill: var(--you);
+  stroke: var(--paper);
+  stroke-width: 2;
+  opacity: 0;
+  transition: opacity 400ms ease 400ms;
+}
+
+.medianLine.on,
+.guessLine.on,
+.youLine.on,
+.youDot.on {
+  opacity: 1;
+}
+
+/* labels over the plot */
+.lineLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  padding: 0 3px;
+  margin-left: -3px;
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    opacity 450ms ease,
+    transform 600ms var(--ease);
+}
+
+.lineLabel.on {
+  opacity: 1;
+}
+
+.lineLabelYou {
+  color: var(--you);
+}
+
+.lineLabelGuess {
+  color: var(--guess);
+}
+
+/* ---- the axis ---- */
+
+.axis {
+  opacity: 0;
+  transition: opacity 600ms ease 300ms;
+}
+
+.axis.on {
+  opacity: 1;
+}
+
+.axisLine {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+
+.axisLabels {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 600ms ease 300ms;
+}
+
+.axisLabels.on {
+  opacity: 1;
+}
+
+.tickLabel {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tickFirst {
+  transform: none;
+}
+
+.tickLast {
+  transform: none;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.tickLast.on {
+  opacity: 1;
+}
+
+.axisTitle {
+  position: absolute;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ---- key for the last two steps ---- */
+
+.key {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  min-height: 18px;
+  margin-top: 8px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-3);
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.key.on {
+  opacity: 1;
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.keyLine {
+  display: inline-block;
+  width: 20px;
+  height: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.keyGhost {
+  display: inline-block;
+  width: 20px;
+  height: 0;
+  border-top: 1.5px dashed #8d96a3;
+}
+
+/* ---- narrow screens ---- */
+
+@media (max-width: 899px) {
+  .head {
+    min-height: 50px;
+    padding-bottom: 8px;
+    gap: 10px;
+  }
+
+  .captionText {
+    font-size: 16px;
+  }
+
+  .figNum {
+    font-size: 10px;
+  }
+
+  .readout {
+    gap: 14px;
+  }
+
+  .readLabel {
+    font-size: 10px;
+    gap: 5px;
+  }
+
+  .readValue {
+    font-size: 26px;
+  }
+
+  .stage {
+    margin-top: 8px;
+  }
+
+  .lineLabel {
+    font-size: 11.5px;
+    line-height: 15px;
+  }
+
+  .tickLabel,
+  .axisTitle,
+  .gridLabel {
+    font-size: 11px;
+  }
+
+  .key {
+    margin-top: 4px;
+    font-size: 11px;
+  }
+}
+
+/* ---- reduced motion: cross-fades, nothing flies ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .live .sq {
+    transition:
+      background-color 300ms ease,
+      opacity 300ms ease,
+      outline-color 300ms ease;
+  }
+
+  .squares {
+    animation: fadeIn 450ms ease both;
+  }
+
+  .curve {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    transition: opacity 450ms ease;
+  }
+
+  .captionText,
+  .read {
+    animation: fadeIn 300ms ease both;
+  }
+
+  .lineLabel {
+    transition: opacity 300ms ease;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}

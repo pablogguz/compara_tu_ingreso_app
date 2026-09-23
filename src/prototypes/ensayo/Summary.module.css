@@ -1,0 +1,306 @@
+/* D · Ensayo — Act III: your summary. Three small multiples on one scale,
+   the municipality in three figures, and the actions. */
+
+.lead {
+  font-size: clamp(19px, 0.95rem + 0.5vw, 22px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--ink);
+  font-variant-numeric: lining-nums;
+  text-wrap: pretty;
+}
+
+.figure {
+  margin-top: 34px;
+}
+
+.minis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.mini {
+  min-width: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--ink);
+}
+
+.miniTitle {
+  min-height: 2.9em;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  line-height: 1.45;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.miniFigure {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.miniNum {
+  font-family: var(--serif);
+  font-size: 62px;
+  font-weight: 440;
+  font-variation-settings: 'SOFT' 20, 'WONK' 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--you);
+}
+
+.miniSentence {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 3px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.miniMedian {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.plot {
+  position: relative;
+  height: 128px;
+  margin-top: 26px;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
+.svg {
+  display: block;
+  overflow: visible;
+}
+
+.area {
+  fill: var(--area);
+}
+
+.areaLeft {
+  fill: var(--area-left);
+}
+
+.curve {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.median {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.you {
+  stroke: var(--you);
+  stroke-width: 2;
+}
+
+.axis {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+
+.probe {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.youLabel {
+  position: absolute;
+  transform: translateX(5px);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 16px;
+  color: var(--you);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.youLabelLeft {
+  transform: translateX(calc(-100% - 5px));
+}
+
+.probeLabel {
+  position: absolute;
+  top: 26px;
+  z-index: 1;
+  padding: 1px 5px;
+  transform: translateX(6px);
+  background: var(--paper);
+  border: 1px solid var(--hair-2);
+  border-radius: 2px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.probeLabelLeft {
+  transform: translateX(calc(-100% - 6px));
+}
+
+.ticks {
+  position: relative;
+  height: 18px;
+  margin-top: 5px;
+}
+
+.tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tick:first-child {
+  transform: none;
+}
+
+.tick:last-child {
+  transform: translateX(-100%);
+}
+
+.caption {
+  max-width: 660px;
+  margin-top: 18px;
+}
+
+/* ---- Así es <municipio> ---- */
+
+.facts {
+  margin-top: 60px;
+}
+
+.h3 {
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 460;
+  font-variation-settings: 'SOFT' 40, 'WONK' 0;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.factList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+  border-top: 1px solid var(--hair);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 16px 18px 4px 0;
+}
+
+.fact + .fact {
+  padding-left: 18px;
+  border-left: 1px solid var(--hair);
+}
+
+.factValue {
+  font-family: var(--serif);
+  font-size: 38px;
+  font-weight: 430;
+  font-variation-settings: 'SOFT' 20, 'WONK' 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.factLabel {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  margin-top: 48px;
+}
+
+.shared {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 719px) {
+  .minis {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+  }
+
+  .miniTitle {
+    min-height: 0;
+  }
+
+  .plot {
+    height: 112px;
+    margin-top: 22px;
+  }
+
+  .factList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fact,
+  .fact + .fact {
+    display: grid;
+    grid-template-columns: 126px minmax(0, 1fr);
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 0;
+    border-left: 0;
+  }
+
+  .factValue {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .factLabel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .fact + .fact {
+    border-top: 1px solid var(--hair);
+  }
+
+  .factValue {
+    font-size: 28px;
+  }
+}

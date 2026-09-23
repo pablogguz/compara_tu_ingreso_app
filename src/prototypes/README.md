@@ -1,14 +1,15 @@
 # Prototypes
 
-Three complete redesigns of the app, one per folder, served at `/prototipos/<name>/`:
+Four complete redesigns of the app, one per folder, served at `/prototipos/<name>/`:
 
 | Folder | Route | Direction |
 |---|---|---|
 | `portada/` | `/prototipos/portada/` | A · Portada: a newspaper front page; the questionnaire is one sentence with blanks |
 | `formulario/` | `/prototipos/formulario/` | B · Formulario: an official tax form; numbered boxes; a stamped receipt ("justificante") with your position |
 | `cien/` | `/prototipos/cien/` | C · Cien: "if Spain were 100 people"; one question per screen; your square among 100 |
+| `ensayo/` | `/prototipos/ensayo/` | D · Ensayo: an academic explorable essay; matte version of the current look; scrollytelling from 100 squares to the income curve |
 
-Each prototype is self-contained: its `App.tsx` (the entry, a client component) plus whatever components and **CSS modules** it needs, all inside its own folder. The route files in `src/app/prototipos/<name>/` only load the fonts (next/font, exposed as CSS variables) and render `App`.
+Each prototype is self-contained: its `App.tsx` (the entry, a client component) plus whatever components and **CSS modules** it needs, all inside its own folder. The route files in `src/app/prototipos/<name>/` only load the fonts (next/font, exposed as CSS variables) and render `App`; Ensayo reuses the site's own Fraunces + Hanken Grotesk from the root layout.
 
 They use the real data and the real calculation, but never write to the research sheet or load analytics.
 

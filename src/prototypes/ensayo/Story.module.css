@@ -1,0 +1,188 @@
+/* D · Ensayo — Act II, the scrollytelling. Wide screens: the figure sticks on
+   the left, the steps scroll on the right. Phones: the figure sticks to the top
+   and the steps, as paper cards, slide up beneath it. */
+
+.story {
+  padding-top: clamp(56px, 8vw, 96px);
+}
+
+.head {
+  scroll-margin-top: 24px;
+}
+
+.intro {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink-3);
+}
+
+.skip {
+  white-space: nowrap;
+}
+
+.scrolly {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 62fr) minmax(0, 34fr);
+  column-gap: 4%;
+  width: 100%;
+  max-width: 1280px;
+  margin: 12px auto 0;
+  padding: 0 var(--gutter);
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: 28px 0;
+}
+
+.figureBox {
+  width: 100%;
+  height: min(840px, 100%);
+}
+
+.steps {
+  list-style: none;
+  padding: 34vh 0 48vh;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  min-height: 86vh;
+  opacity: 0.28;
+  transition: opacity 450ms ease;
+}
+
+.stepActive {
+  opacity: 1;
+}
+
+.card {
+  max-width: 400px;
+}
+
+.stepNum {
+  margin-bottom: 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.stepTitle {
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 460;
+  font-variation-settings: 'SOFT' 40, 'WONK' 0;
+  line-height: 1.2;
+  letter-spacing: -0.008em;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.stepText {
+  margin-top: 12px;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.stepMore {
+  margin-top: 10px;
+}
+
+.guessNum,
+.youNum {
+  font-variant-numeric: lining-nums;
+  font-weight: 540;
+}
+
+.guessNum {
+  color: var(--guess);
+  text-decoration: underline dashed var(--guess);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.16em;
+}
+
+.youNum {
+  color: var(--you);
+}
+
+/* ---- phones and narrow windows ---- */
+
+@media (max-width: 899px) {
+  .scrolly {
+    display: block;
+    padding: 0;
+    margin-top: 18px;
+  }
+
+  .sticky {
+    z-index: 3;
+    height: 58vh;
+    height: 58svh;
+    padding: 12px var(--gutter) 10px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .figureBox {
+    height: 100%;
+  }
+
+  .steps {
+    position: relative;
+    z-index: 1;
+    padding: 5svh var(--gutter) 42svh;
+  }
+
+  .step {
+    align-items: flex-start;
+    min-height: 54vh;
+    min-height: 54svh;
+    opacity: 0.5;
+  }
+
+  .stepActive {
+    opacity: 1;
+  }
+
+  .card {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 14px 16px 16px;
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 3px;
+  }
+
+  .stepNum {
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .stepTitle {
+    font-size: 21px;
+  }
+
+  .stepText {
+    margin-top: 7px;
+    font-size: 16.5px;
+    line-height: 1.48;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step {
+    transition: none;
+  }
+}
