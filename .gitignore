@@ -42,3 +42,9 @@ next-env.d.ts
 .Rhistory
 .RData
 .Rproj.user
+
+# Credentials — never commit (the Sheets key lives in Vercel env vars)
+*.pem
+data/*.json
+*service-account*.json
+.env*.local

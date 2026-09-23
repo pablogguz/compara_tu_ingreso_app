@@ -67,7 +67,7 @@ export default function MetodologiaTab() {
         <ul>
           <li>Para secciones censales donde el INE no proporciona el índice de Gini (aproximadamente un 5% de los casos), se estima mediante técnicas de aprendizaje automático usando variables sociodemográficas como predictores.</li>
           <li>Los municipios con menos de 3.000 habitantes generalmente tienen sólo una sección censal. Estos municipios con sección censal única representan un 6% de la población a nivel nacional. En estos casos, la distribución municipal coincide con la distribución de la sección censal.</li>
-          <li>Los datos de renta del Atlas corresponden a 2023. Para actualizarlos a 2024, escalamos la renta de cada sección censal por el crecimiento de la renta media por unidad de consumo de su comunidad autónoma según la ECV del INE, reescalado de forma que el crecimiento medio nacional coincida exactamente con el de la ECV. Como este ajuste multiplica todos los ingresos de un área por un mismo factor, la desigualdad interna (el Gini) no varía: solo se actualiza el nivel.</li>
+          <li>Los datos de renta del Atlas corresponden a 2023. Para actualizarlos a 2024, comparamos año a año el crecimiento de la renta media por unidad de consumo en España según el Atlas y según la Encuesta de Condiciones de Vida (ECV) del INE, lo que nos dice cuánto sobrestima o infraestima la ECV el crecimiento real. Aplicamos esa corrección al crecimiento que mide la ECV para 2024 y escalamos la renta de todas las secciones censales por el resultado. Como este ajuste multiplica todos los ingresos por un mismo factor, la desigualdad interna (el Gini) no varía: solo se actualiza el nivel.</li>
         </ul>
       </div>
     </div>

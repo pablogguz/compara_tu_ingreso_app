@@ -23,9 +23,11 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
 ```
 ~/Documents/GitHub/compara_tu_ingreso_validation/code   (R pipeline — separate repo)
         │
+        ├── 0d. ecv_nowcast.r           # national nowcast factor, ADRH year → current year (ECV)
         ├── 1. predict_gini_ml.r        # XGBoost imputes missing tract-level Gini
-        ├── 2. prep_lognormal.r         # log-normal mixture per tract → percentiles + density
-        ├── 3a. mun_stats.r             # municipality demographics (income, edu, foreign-born)
+        ├── 2. prep_lognormal.r         # log-normal mixture per tract → percentiles + density (nowcast)
+        ├── 3a. mun_stats.r             # municipality demographics (income, edu, foreign-born), base year
+        ├── 3c. apply_nowcast_mun_stats.r  # nowcasts the municipal income stat
         └── 3b. tract_stats.r           # tract-level outputs (NOT consumed by this app)
         │
         └── data/*.fst                  # FST output
@@ -38,6 +40,7 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
 ### Sources
 
 - **ADRH** (INE *Atlas de Distribución de Renta de los Hogares*, 2023) — net household and equivalised income, Gini, at census-tract / municipal / provincial level. Loaded via the `ineAtlas` R package.
+- **ECV** (INE *Encuesta de Condiciones de Vida*, table 9947) — national mean equivalised income, used only for the nowcast.
 - **Census 2021** (INE) — demographics (population, age, household composition, employment, education, foreign-born share). Loaded via `ineAtlas::get_census()`.
 - **wikibarrio** — supplementary education + foreign-born share at municipal level (filled in for missing rows in `mun_stats.r`).
 
@@ -46,7 +49,8 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
 1. For each of ~37k census tracts: fit a log-normal whose mean comes from ADRH equivalised income and whose σ comes from the tract Gini via `σ = √2 · Φ⁻¹((G + 1) / 2)`.
 2. ~5.5% of tracts are missing Gini; impute with an XGBoost on `(log income_equiv, dependency ratio, mean age, % single-person households, household size, population, province FE)`.
 3. Population-weight the per-tract log-normals into a national / per-province / per-municipality mixture. Evaluate density on a 1,000-point grid up to €160k. Solve numerically for the 1st–99th percentiles at each level.
-4. Outputs are written as FST and converted to Arrow by [scripts/convert-data.R](scripts/convert-data.R).
+4. **Nowcast to 2024:** ρ = Σ ADRH national growth / Σ ECV national growth over the years both cover (2016–2023); 2024 growth = ρ × ECV growth (currently 0.935 × 5.44% = 5.09%). Every tract's income is scaled by that one factor (shifts μ, leaves σ), and the municipal income stat likewise.
+5. Outputs are written as FST and converted to Arrow by [scripts/convert-data.R](scripts/convert-data.R). The municipality lookup only contains municipalities with an estimated distribution (ADRH suppresses income for a few dozen tiny ones), so every selectable municipality has percentiles.
 
 For the published methodology note, see the validation repo's `tex/note.pdf`.
 
@@ -69,9 +73,11 @@ When the validation repo produces new outputs:
 
 ```bash
 # from the validation repo
-Rscript code/predict_gini_ml.r
-Rscript code/prep_lognormal.r
-Rscript code/mun_stats.r
+Rscript "code/0d. ecv_nowcast.r"
+Rscript "code/1. predict_gini_ml.r"
+Rscript "code/2. prep_lognormal.r"
+Rscript "code/3a. mun_stats.r"            # needs the local wikibarrio CSVs
+Rscript "code/3c. apply_nowcast_mun_stats.r"
 
 # copy fresh data/ into this repo's data/, then from this repo:
 Rscript scripts/convert-data.R     # writes public/data/*.arrow
