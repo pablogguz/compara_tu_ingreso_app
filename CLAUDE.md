@@ -18,10 +18,10 @@ It is read-only with a single optional side-effect: with cookie consent, the inp
 
 ## Data pipeline (where the numbers come from)
 
-The frontend ships pre-computed Apache Arrow files in [public/data/](public/data/). Those files are produced by a **separate R repository** that this app is deliberately decoupled from:
+The frontend ships pre-computed Apache Arrow files in [public/data/](public/data/). Those files are produced by the R pipeline in [methodology/](methodology/) (scripts run from that folder; `methodology/run_pipeline.sh` runs the whole chain):
 
 ```
-~/Documents/GitHub/compara_tu_ingreso_validation/code   (R pipeline — separate repo)
+methodology/code/   (R pipeline)
         │
         ├── 0d. ecv_nowcast.r           # national nowcast factor, ADRH year → current year (ECV)
         ├── 1. predict_gini_ml.r        # XGBoost imputes missing tract-level Gini
@@ -30,9 +30,9 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
         ├── 3c. apply_nowcast_mun_stats.r  # nowcasts the municipal income stat
         └── 3b. tract_stats.r           # tract-level outputs (NOT consumed by this app)
         │
-        └── data/*.fst                  # FST output
+        └── methodology/data/*.fst      # FST output (gitignored, regenerated)
                 │
-                └── (this repo) scripts/convert-data.R
+                └── scripts/convert-data.R
                         │
                         └── public/data/*.arrow         # Feather v2, no compression
 ```
@@ -42,7 +42,7 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
 - **ADRH** (INE *Atlas de Distribución de Renta de los Hogares*, 2023) — net household and equivalised income, Gini, at census-tract / municipal / provincial level. Loaded via the `ineAtlas` R package.
 - **ECV** (INE *Encuesta de Condiciones de Vida*, table 9947) — national mean equivalised income, used only for the nowcast.
 - **Census 2021** (INE) — demographics (population, age, household composition, employment, education, foreign-born share). Loaded via `ineAtlas::get_census()`.
-- **wikibarrio** — supplementary education + foreign-born share at municipal level (filled in for missing rows in `mun_stats.r`).
+- **INE tract tables** (CSV exports, population by place of birth and by educational attainment) — education + foreign-born share for `3a. mun_stats.r`; the folder is passed as `TRACT_TABLES_DIR`. `3a` writes the base-year file `methodology/data-raw/municipality_stats_2023.fst`, which is kept in git so the rest of the pipeline runs without those CSVs.
 
 ### Method (in 30 seconds)
 
@@ -52,7 +52,7 @@ The frontend ships pre-computed Apache Arrow files in [public/data/](public/data
 4. **Nowcast to 2024:** ρ = Σ ADRH national growth / Σ ECV national growth over the years both cover (2016–2023); 2024 growth = ρ × ECV growth (currently 0.935 × 5.44% = 5.09%). Every tract's income is scaled by that one factor (shifts μ, leaves σ), and the municipal income stat likewise.
 5. Outputs are written as FST and converted to Arrow by [scripts/convert-data.R](scripts/convert-data.R). The municipality lookup only contains municipalities with an estimated distribution (ADRH suppresses income for a few dozen tiny ones), so every selectable municipality has percentiles.
 
-For the published methodology note, see the validation repo's `tex/note.pdf`.
+For the published methodology note, see [methodology/tex/note.pdf](methodology/tex/note.pdf) (rebuild with `bash methodology/tex/build_note.sh`).
 
 ### Files in [public/data/](public/data/)
 
@@ -69,20 +69,14 @@ For the published methodology note, see the validation repo's `tex/note.pdf`.
 
 ### Updating the data
 
-When the validation repo produces new outputs:
-
 ```bash
-# from the validation repo
-Rscript "code/0d. ecv_nowcast.r"
-Rscript "code/1. predict_gini_ml.r"
-Rscript "code/2. prep_lognormal.r"
-Rscript "code/3a. mun_stats.r"            # needs the local wikibarrio CSVs
-Rscript "code/3c. apply_nowcast_mun_stats.r"
-
-# copy fresh data/ into this repo's data/, then from this repo:
-Rscript scripts/convert-data.R     # writes public/data/*.arrow
-npm run build
+bash methodology/run_pipeline.sh   # 0d → 2 → 3c, then scripts/convert-data.R → public/data/*.arrow
+# RUN_GINI_MODEL=1 also re-fits 1. predict_gini_ml.r
+# TRACT_TABLES_DIR=/path also rebuilds the base year with 3a. mun_stats.r
+npm test && npm run build
 ```
+
+When the ADRH or ECV publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOME_YEAR` in `0d`, the `year == 2023` filters in `1`, `2` and `3a`, the reference year in the UI copy, and the nowcast paragraph of the note.
 
 `scripts/convert-data.R` writes uncompressed Feather v2 — required because the browser-side `apache-arrow` IPC reader does not handle LZ4/ZSTD frames.
 
@@ -163,7 +157,7 @@ src/
 
 ## Calculation logic (read this before changing percentile math)
 
-All math lives in [src/lib/calculations.ts](src/lib/calculations.ts) and must stay byte-identical to the validation repo's expectations.
+All math lives in [src/lib/calculations.ts](src/lib/calculations.ts) and must stay byte-identical to the methodology in [methodology/](methodology/) (the note and the R pipeline).
 
 - **Equivalence scale (modified OECD):** `scale = 1 + max(0, adults - 1) · 0.5 + children · 0.3`. `equiv_income = (monthlyIncome · 12) / scale`.
 - **Pagas (annualisation):** Spanish payroll splits the annual amount across 12 or 14 monthly payments. If the user picks `14 pagas`, the entered "monthly" figure is one of those 14 — so the displayed annual is `monthlyIncome · 14`. We multiply by `14/12` before applying the equivalence scale, so the equivalence math stays in the same 12-month frame.
@@ -223,7 +217,7 @@ If sheets credentials are missing, the POST returns 500 but the user-facing flow
 
 ## What NOT to change without thinking
 
-- **Equivalence scale and percentile lookup logic** — must match the validation repo's published methodology. Any change to [src/lib/calculations.ts](src/lib/calculations.ts) needs to round-trip through the methodology note.
+- **Equivalence scale and percentile lookup logic** — must match the published methodology ([methodology/tex/note.pdf](methodology/tex/note.pdf)). Any change to [src/lib/calculations.ts](src/lib/calculations.ts) needs to round-trip through the methodology note.
 - **Arrow column names** — they are the schema contract with `convert-data.R`. Renaming `mun_code` → `municipality_id` here would silently break the next data refresh.
 - **`'unsafe-inline'` in the CSP** ([next.config.js](next.config.js)) — required because Highcharts injects inline `<style>` for every chart redraw. Removing it breaks the chart.
 - **Cookie banner default = no consent.** GA only loads after explicit accept. Don't pre-load `gtag.js`.

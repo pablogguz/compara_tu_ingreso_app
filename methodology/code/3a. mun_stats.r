@@ -50,9 +50,15 @@ atlas_income_sources <- get_atlas(
 
 # ---------------------------- Census ------------------------------- #
 
-path_wikibarrio <- paste0("C:/Users/pablo/Documents/GitHub/wikibarrio/data-raw/")
+# INE tract-level tables (population by place of birth; population by
+# educational attainment), exported as CSV. Set TRACT_TABLES_DIR to the folder
+# holding tract_foreign_raw.csv and tract_educ_raw.csv.
+path_tract_tables <- Sys.getenv("TRACT_TABLES_DIR")
+if (!nzchar(path_tract_tables) || !dir.exists(path_tract_tables)) {
+  stop("Set TRACT_TABLES_DIR to the folder with tract_foreign_raw.csv and tract_educ_raw.csv")
+}
 
-foreign <- fread(paste0(path_wikibarrio, "/tract_foreign_raw.csv")) %>%
+foreign <- fread(file.path(path_tract_tables, "tract_foreign_raw.csv")) %>%
   filter(`Municipios` != "" & `Secciones` == "") %>%
   mutate(
     mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
@@ -73,7 +79,7 @@ foreign <- fread(paste0(path_wikibarrio, "/tract_foreign_raw.csv")) %>%
   select(pct_foreign_born, mun_code) %>%
   ungroup()
 
-educ <- fread(paste0(path_wikibarrio, "/tract_educ_raw.csv")) %>%
+educ <- fread(file.path(path_tract_tables, "tract_educ_raw.csv")) %>%
   filter(`Municipios` != "" & `Secciones` == "") %>%
   mutate(
     mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),

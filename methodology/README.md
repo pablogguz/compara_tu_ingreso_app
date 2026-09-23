@@ -1,11 +1,11 @@
-# Methodology note for [comparatuingreso.es](https://comparatuingreso.es/)
+# Methodology for [comparatuingreso.es](https://comparatuingreso.es/)
 
 > [!NOTE]  
 > [🇪🇸] La nota metodológica está disponible en inglés para facilitar la colaboración con otros investigadores y la reutilización de los scripts. ¡Gracias por tu interés!
 
-<!-- [🇪🇸] Este repositorio contiene los scripts y documentación metodológica utilizados para validar las estimaciones de distribución de ingresos presentadas en [comparatuingreso.es](https://comparatuingreso.es/). El objetivo es garantizar la transparencia y rigor metodológico en la estimación de la posición relativa en la distribución de ingresos de España.  -->
+<!-- [🇪🇸] Esta carpeta contiene los scripts y documentación metodológica utilizados para validar las estimaciones de distribución de ingresos presentadas en [comparatuingreso.es](https://comparatuingreso.es/). El objetivo es garantizar la transparencia y rigor metodológico en la estimación de la posición relativa en la distribución de ingresos de España.  -->
 
-This repository contains the scripts and methodological documentation used to validate the income distribution estimates presented at [comparatuingreso.es](https://comparatuingreso.es/), a publicly available web platform that enables Spanish households to calculate their relative position within the income distribution.
+This folder contains the scripts that build the income distributions used by [comparatuingreso.es](https://comparatuingreso.es/), a publicly available web platform that enables Spanish households to calculate their relative position within the income distribution, together with the methodological note that documents and validates them. The web app itself lives at the root of this repository.
 
 ## Data
 
@@ -28,6 +28,14 @@ This repository contains the scripts and methodological documentation used to va
 | `3b. tract_stats.r` | Processes tract-level statistics | ADRH tract data, Census tract data | Tract-level statistics |
 | `4a. variance_decomp.r` | Calculates hierarchical variance decomposition | ADRH data | `output/variance_decomp.png` |
 | `4b. variance_decomp_all.r` | Calculates hierarchical variance decomposition (national level) | ADRH data | Figures for the text in the methodological note |
+
+Scripts are run from this folder (paths such as `data/` and `data-raw/` are relative to it). To rebuild everything the app uses, run from anywhere:
+
+```bash
+bash methodology/run_pipeline.sh
+```
+
+which runs `0d`, `2` and `3c`, then converts the outputs in `data/` to the Arrow files in `../public/data/`. Set `RUN_GINI_MODEL=1` to also re-fit the Gini model (`1`), and `TRACT_TABLES_DIR` to the folder with the INE tract tables (`tract_foreign_raw.csv`, `tract_educ_raw.csv`) to also rebuild the base-year municipal statistics (`3a`). Generated outputs in `data/` are not kept in the repository.
 
 All necessary packages will be installed automatically when running the R scripts. 
 

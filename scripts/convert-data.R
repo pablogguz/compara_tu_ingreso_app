@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
-# Convert FST files to Apache Arrow (Feather v2) format
-# This script preserves all column names and data types from the original Shiny app
+# Convert the pipeline's FST outputs (methodology/data) to Apache Arrow
+# (Feather v2) for the app (public/data). Run from the repository root after
+# methodology/run_pipeline.sh -- or let that script call it.
 
 library(fst)
 library(arrow)
@@ -10,7 +11,7 @@ library(dplyr)
 cat("Converting FST files to Arrow format...\n\n")
 
 # Input and output directories
-input_dir <- "data"
+input_dir <- "methodology/data"
 output_dir <- "public/data"
 
 # Create output directory if it doesn't exist

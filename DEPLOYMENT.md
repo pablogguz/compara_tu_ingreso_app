@@ -23,7 +23,7 @@
    - `private_key`
 
 #### Share Google Sheet:
-1. Open your Google Sheet: `REDACTED_SHEET_ID`
+1. Open the Google Sheet that will receive the responses (its ID is the long string in its URL, between `/d/` and `/edit`)
 2. Click **Share**
 3. Add the `client_email` from service account with **Editor** access
 4. The sheet should have columns: `timestamp, municipality, monthly_income, adults, children, perceived_percentile, actual_percentile, equiv_income`
@@ -43,7 +43,7 @@
 1. **Import Project**:
    - Go to [vercel.com/new](https://vercel.com/new)
    - Click **Import Git Repository**
-   - Select your `compara_tu_ingreso_app` repository
+   - Select this repository
 
 2. **Configure Project**:
    - Framework Preset: **Next.js** (auto-detected)
@@ -62,10 +62,10 @@
    YOUR_PRIVATE_KEY_HERE_WITH_NEWLINES
    -----END PRIVATE KEY-----
    
-   GOOGLE_SHEET_ID=REDACTED_SHEET_ID
+   GOOGLE_SHEET_ID=your-google-sheet-id
    
    # Optional for Analytics
-   NEXT_PUBLIC_GA_MEASUREMENT_ID=G-Y8KGPP8Z00
+   NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
    ```
 
    **Important Notes**:

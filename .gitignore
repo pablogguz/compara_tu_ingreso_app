@@ -48,3 +48,16 @@ next-env.d.ts
 data/*.json
 *service-account*.json
 .env*.local
+
+# Methodology pipeline: generated outputs are rebuilt by
+# methodology/run_pipeline.sh; the app ships public/data/*.arrow
+methodology/data/
+methodology/data-raw/*.dta
+methodology/tex/*.aux
+methodology/tex/*.log
+methodology/tex/*.bbl
+methodology/tex/*.blg
+methodology/tex/*.out
+.Rhistory
+.RData
+.Rproj.user/

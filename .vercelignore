@@ -1,0 +1,3 @@
+# The site only needs the Next.js app; the R pipeline and the LaTeX note are
+# not part of the deployment.
+methodology/
