@@ -184,6 +184,16 @@
   overscroll-behavior: contain;
 }
 
+/* Tab panels fade up when swapped (keyed by tab id). */
+.help-panel {
+  animation: helpPanelIn 360ms var(--ease-spring) backwards;
+}
+
+@keyframes helpPanelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Lazy tab spinner */
 .loading-spinner {
   display: flex;

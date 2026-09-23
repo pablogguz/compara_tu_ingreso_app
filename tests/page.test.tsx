@@ -58,6 +58,7 @@ vi.mock('@/components/ResultsView', () => ({
 }))
 
 import Home from '@/app/page'
+import App, { MIN_LOADING_MS } from '@/components/App'
 
 const RESULTS: CalculatedResults = {
   equiv_income: 30000,
@@ -100,7 +101,11 @@ describe('<Home /> stage machine', () => {
       resolve(RESULTS)
       await pendingPromise
     })
-    expect(screen.getByText('stub-resultados 42')).toBeInTheDocument()
+    // the loading beat holds for MIN_LOADING_MS even when the data is ready
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(
+      await screen.findByText('stub-resultados 42', {}, { timeout: MIN_LOADING_MS + 1500 })
+    ).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /stub-volver/i }))
     expect(screen.getByRole('button', { name: /stub-calcular/i })).toBeInTheDocument()
@@ -123,5 +128,31 @@ describe('<Home /> stage machine', () => {
       expect.stringMatching(/no se pudieron calcular/i)
     )
     expect(screen.getByRole('button', { name: /stub-calcular/i })).toBeInTheDocument()
+  })
+
+  it('boots straight into any stage (the /mocks screens)', () => {
+    render(<App boot={{ stage: 'loading' }} mock />)
+    expect(screen.getByRole('status')).toHaveTextContent(/calculando tus resultados/i)
+    expect(screen.queryByRole('button', { name: /comenzar/i })).toBeNull()
+  })
+
+  it('boots into results with the given numbers', () => {
+    render(
+      <App
+        boot={{
+          stage: 'results',
+          results: RESULTS,
+          userInput: {
+            municipality: MUNICIPALITIES[2].mun_code,
+            monthlyIncome: 2500,
+            adults: 1,
+            children: 0,
+            perceivedPercentile: 50,
+          },
+        }}
+        mock
+      />
+    )
+    expect(screen.getByText('stub-resultados 42')).toBeInTheDocument()
   })
 })

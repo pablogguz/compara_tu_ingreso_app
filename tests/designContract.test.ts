@@ -92,6 +92,7 @@ describe('CSS ↔ component contract', () => {
       'invalid',
       'field-message--error',
       'field-message--warning',
+      'is-collapsed',
     ]) {
       expect(definedClasses.has(cls), `.${cls} missing from CSS`).toBe(true)
     }
@@ -118,6 +119,9 @@ describe('theme.ts mirrors styles.css tokens', () => {
     ['grid', '--chart-grid'],
     ['areaTop', '--chart-area-top'],
     ['areaBottom', '--chart-area-bottom'],
+    ['areaDimTop', '--chart-area-dim-top'],
+    ['areaDimBottom', '--chart-area-dim-bottom'],
+    ['areaDimLine', '--chart-area-dim-line'],
     ['areaLine', '--primary'],
     ['text', '--foreground'],
     ['textMuted', '--muted-foreground'],

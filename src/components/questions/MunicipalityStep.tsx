@@ -179,6 +179,8 @@ export default function MunicipalityStep({
         <div className="question-content">
           <div className="select-field">
             <Select<MunicipalityOption, false>
+            // stable ids so server- and client-rendered markup match
+            instanceId="municipality"
             inputId="municipality-select"
             aria-label="Municipio de residencia"
             value={options.find((o) => o.value === value) || null}

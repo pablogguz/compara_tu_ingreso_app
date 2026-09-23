@@ -18,10 +18,14 @@ export const chartTheme = {
   axisLine: '#e2e8f0',
   surface: '#ffffff',
 
-  // Area-curve gradient stops
+  // Area-curve gradient stops: full up to the household's position, paler
+  // beyond it
   areaTop: 'rgba(88, 162, 236, 0.32)',
   areaBottom: 'rgba(88, 162, 236, 0.02)',
   areaLine: '#58a2ec',
+  areaDimTop: 'rgba(88, 162, 236, 0.1)',
+  areaDimBottom: 'rgba(88, 162, 236, 0.01)',
+  areaDimLine: 'rgba(88, 162, 236, 0.45)',
 
   // Motion
   motionFast: 200,

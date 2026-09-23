@@ -24,8 +24,13 @@ const initial: QuestionFlowState = {
   perceivedPercentile: 50,
 }
 
-export function useQuestionFlow() {
-  const [state, setState] = useState<QuestionFlowState>(initial)
+export function useQuestionFlow(initialState: Partial<QuestionFlowState> = {}) {
+  // `initialState` only seeds the first render (the /mocks screens start the
+  // questionnaire on any step with answers already filled in).
+  const [state, setState] = useState<QuestionFlowState>(() => ({
+    ...initial,
+    ...initialState,
+  }))
 
   const update = <K extends keyof QuestionFlowState>(
     key: K,

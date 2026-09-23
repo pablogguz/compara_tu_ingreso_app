@@ -96,10 +96,15 @@
   --motion-slow: 800ms;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* ---- Chart palette (mirror in src/lib/charts/theme.ts) ---- */
   --chart-area-top: rgba(88, 162, 236, 0.32);
   --chart-area-bottom: rgba(88, 162, 236, 0.02);
+  /* the stretch of the curve beyond the household's position */
+  --chart-area-dim-top: rgba(88, 162, 236, 0.1);
+  --chart-area-dim-bottom: rgba(88, 162, 236, 0.01);
+  --chart-area-dim-line: rgba(88, 162, 236, 0.45);
   --chart-position: #155494;
   --chart-prediction: #dc6356;
   --chart-grid: rgba(15, 23, 42, 0.06);
@@ -258,6 +263,83 @@ button {
   animation: riseIn 520ms var(--ease-spring) both;
 }
 
+/* Rise with a soft focus pull: used for text that arrives with a screen. */
+@keyframes focusIn {
+  from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* ----------------------------------------------------------------------------
+   Screen + step transitions
+   Screens (landing → questions → loading → results) and question steps change
+   inside document.startViewTransition (src/lib/viewTransition.ts). The old
+   frame fades out with a slight soft focus while the new one plays its own
+   entrance; <html data-vt> says which kind of change is running, <html
+   data-nav> which way it goes. Browsers without the API swap instantly.
+   ---------------------------------------------------------------------------- */
+.stage {
+  min-height: 100vh;
+  min-height: 100dvh;
+  view-transition-name: stage;
+}
+
+::view-transition-group(stage) {
+  animation-duration: 0s;
+}
+
+html[data-vt='stage']::view-transition-old(stage) {
+  animation: stageOut 360ms var(--ease-soft) both;
+}
+
+html[data-vt='stage']::view-transition-new(stage) {
+  animation: none;
+}
+
+@keyframes stageOut {
+  to { opacity: 0; transform: scale(0.99); filter: blur(6px); }
+}
+
+html[data-vt='step']::view-transition-old(stage),
+html[data-vt='step']::view-transition-new(stage) {
+  animation-duration: 280ms;
+}
+
+::view-transition-group(step) {
+  animation-duration: 520ms;
+  animation-timing-function: var(--ease-spring);
+}
+
+::view-transition-old(step) {
+  animation: stepOut 300ms var(--ease-soft) both;
+}
+
+html[data-nav='back']::view-transition-old(step) {
+  animation-name: stepOutBack;
+}
+
+::view-transition-new(step) {
+  animation: none;
+}
+
+@keyframes stepOut {
+  to { opacity: 0; transform: translateX(-20px); filter: blur(4px); }
+}
+
+@keyframes stepOutBack {
+  to { opacity: 0; transform: translateX(20px); filter: blur(4px); }
+}
+
+/* The header is the same element on both sides of a step change: show only
+   the live one, so the thread glides instead of cross-dissolving. */
+html[data-vt='step']::view-transition-old(progress) {
+  display: none;
+}
+
+html[data-vt='step']::view-transition-new(progress),
+html[data-vt='step']::view-transition-group(progress) {
+  animation: none;
+}
+
 /* ----------------------------------------------------------------------------
    Progress header (question flow)
    ---------------------------------------------------------------------------- */
@@ -272,6 +354,7 @@ button {
   position: sticky;
   top: 0;
   z-index: 80;
+  view-transition-name: progress;
   width: 100%;
   padding: 0.95rem 1.25rem;
   background: rgba(255, 255, 255, 0.72);
@@ -340,10 +423,27 @@ button {
 }
 
 .progress-header__thread-fill {
+  position: relative;
   height: 100%;
   background: linear-gradient(90deg, var(--primary) 0%, var(--accent-cyan) 100%);
   box-shadow: 0 0 10px rgba(88, 162, 236, 0.5);
-  transition: width 520ms var(--ease-spring);
+  transition: width 800ms var(--ease-spring);
+}
+
+/* a soft bead of light at the head of the thread */
+.progress-header__thread-fill::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 0 0 2px rgba(6, 182, 212, 0.35),
+    0 0 10px 2px rgba(6, 182, 212, 0.55);
 }
 
 .question-stage {
@@ -390,6 +490,28 @@ button {
   width: 100%;
   height: 100%;
   overflow: visible;
+  filter: drop-shadow(0 8px 18px rgba(59, 130, 246, 0.18));
+}
+
+/* Once the curve has drawn, a short bright dash glides along it every few
+   seconds, like light catching a wire (pathLength = 1000). */
+.curve-glint {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 60 1000;
+  stroke-dashoffset: 60;
+  opacity: 0;
+  animation: curveGlint 7s var(--ease) 3.2s infinite;
+}
+
+@keyframes curveGlint {
+  0% { stroke-dashoffset: 60; opacity: 0; }
+  6% { opacity: 0.95; }
+  38% { opacity: 0.95; }
+  45% { stroke-dashoffset: -1000; opacity: 0; }
+  100% { stroke-dashoffset: -1000; opacity: 0; }
 }
 
 .curve-path {
@@ -443,7 +565,7 @@ button {
   text-transform: uppercase;
   color: var(--ink-soft);
   margin-bottom: 1.6rem;
-  animation: riseIn 900ms var(--ease-spring) both;
+  animation: focusIn 1000ms var(--ease-spring) 80ms backwards;
 }
 
 .landing-eyebrow__dot {
@@ -473,7 +595,7 @@ button {
   margin: 0 0 1.4rem;
   font-variation-settings: 'SOFT' 40;
   text-wrap: balance;
-  animation: riseIn 900ms var(--ease-spring) 80ms both;
+  animation: focusIn 1100ms var(--ease-spring) 180ms backwards;
 }
 
 .landing-title__accent {
@@ -498,7 +620,7 @@ button {
   line-height: 1.65;
   margin: 0 0 2.2rem;
   text-wrap: pretty;
-  animation: riseIn 900ms var(--ease-spring) 160ms both;
+  animation: focusIn 1100ms var(--ease-spring) 320ms backwards;
 }
 
 .landing-cta {
@@ -508,7 +630,7 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 1.1rem;
-  animation: riseIn 900ms var(--ease-spring) 240ms both;
+  animation: focusIn 1100ms var(--ease-spring) 440ms backwards;
 }
 
 .landing-facts {
@@ -642,7 +764,12 @@ button {
   box-shadow: var(--glass-shadow);
   /* overflow:visible so react-select menus can extend past the card edge */
   overflow: visible;
-  animation: questionStepIn 600ms var(--ease-spring) both;
+  view-transition-name: step;
+  animation: questionStepIn 640ms var(--ease-spring) both;
+}
+
+html[data-nav='back'] .question-step {
+  animation-name: questionStepInBack;
 }
 
 .question-step::before {
@@ -657,8 +784,26 @@ button {
 }
 
 @keyframes questionStepIn {
-  from { opacity: 0; transform: translateY(16px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translate(16px, 10px) scale(0.985); }
+  to { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+
+@keyframes questionStepInBack {
+  from { opacity: 0; transform: translate(-16px, 10px) scale(0.985); }
+  to { opacity: 1; transform: translate(0, 0) scale(1); }
+}
+
+/* the card's contents follow it in, one beat apart */
+.question-step .question-header {
+  animation: focusIn 620ms var(--ease-spring) 40ms backwards;
+}
+
+.question-step .question-content {
+  animation: focusIn 620ms var(--ease-spring) 100ms backwards;
+}
+
+.question-step .button-wrapper {
+  animation: focusIn 620ms var(--ease-spring) 160ms backwards;
 }
 
 .question-content-wrapper {

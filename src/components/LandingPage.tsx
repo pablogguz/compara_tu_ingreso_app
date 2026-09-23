@@ -39,6 +39,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             fill="none"
             stroke="url(#curveStroke)"
           />
+          <path className="curve-glint" d={CURVE} pathLength={1000} />
         </svg>
       </div>
 

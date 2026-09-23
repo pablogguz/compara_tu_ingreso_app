@@ -70,4 +70,14 @@ describe('buildDistributionOptions', () => {
     const opts = buildDistributionOptions({ ...base, viewType: 'national' })
     expect(opts.credits?.enabled).toBe(false)
   })
+
+  it('keeps the curve full-colour up to your position and paler beyond', () => {
+    const s = seriesOf(buildDistributionOptions({ ...base, viewType: 'national' }))
+    expect(s[0].zoneAxis).toBe('x')
+    expect(s[0].zones).toHaveLength(2)
+    // first zone inherits the series colour and fill
+    expect(s[0].zones[0]).toEqual({ value: 30000 })
+    expect(s[0].zones[1].value).toBeUndefined()
+    expect(s[0].zones[1].color).toBe(chartTheme.areaDimLine)
+  })
 })

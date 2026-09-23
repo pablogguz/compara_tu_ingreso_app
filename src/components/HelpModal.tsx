@@ -12,9 +12,10 @@ import MetodologiaTab from '@/components/HelpModal/MetodologiaTab'
 import GraficaTab from '@/components/HelpModal/GraficaTab'
 import AutorTab from '@/components/HelpModal/AutorTab'
 
-type TabId = 'datos' | 'ingresos' | 'hogar' | 'metodologia' | 'grafica' | 'autor'
+export type HelpTabId = 'datos' | 'ingresos' | 'hogar' | 'metodologia' | 'grafica' | 'autor'
+type TabId = HelpTabId
 
-const TABS: Array<{ id: TabId; label: string }> = [
+export const HELP_TABS: Array<{ id: TabId; label: string }> = [
   { id: 'datos', label: 'Datos' },
   { id: 'ingresos', label: '¿Qué ingresos incluyo?' },
   { id: 'hogar', label: 'Hogar' },
@@ -32,9 +33,15 @@ const TAB_CONTENT: Record<TabId, () => JSX.Element> = {
   autor: AutorTab,
 }
 
-export default function HelpModal() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<TabId>('datos')
+interface HelpModalProps {
+  /** Start with the dialog open (used by the /mocks screens). */
+  defaultOpen?: boolean
+  defaultTab?: TabId
+}
+
+export default function HelpModal({ defaultOpen = false, defaultTab = 'datos' }: HelpModalProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const [activeTab, setActiveTab] = useState<TabId>(defaultTab)
 
   const close = useCallback(() => setIsOpen(false), [])
 
@@ -90,7 +97,7 @@ export default function HelpModal() {
             </div>
 
             <div className="modal-tabs" role="tablist" aria-label="Secciones de ayuda">
-              {TABS.map((tab) => (
+              {HELP_TABS.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
@@ -112,7 +119,10 @@ export default function HelpModal() {
               id="help-tabpanel"
               aria-labelledby={`help-tab-${activeTab}`}
             >
-              <ActiveContent />
+              {/* keyed so each tab switch fades its panel in */}
+              <div key={activeTab} className="help-panel">
+                <ActiveContent />
+              </div>
             </div>
           </div>
         </div>

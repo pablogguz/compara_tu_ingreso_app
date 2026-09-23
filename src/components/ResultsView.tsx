@@ -15,6 +15,8 @@ interface ResultsViewProps {
   userInput: UserInput
   results: CalculatedResults
   onRecalculate: () => void
+  /** Level shown first (the /mocks screens open on any of the three). */
+  initialView?: ViewType
 }
 
 const VIEWS: ViewType[] = ['national', 'provincial', 'municipal']
@@ -49,8 +51,9 @@ export default function ResultsView({
   userInput,
   results,
   onRecalculate,
+  initialView = 'national',
 }: ResultsViewProps) {
-  const [viewType, setViewType] = useState<ViewType>('national')
+  const [viewType, setViewType] = useState<ViewType>(initialView)
   // Bumped on every view change so the wording can crossfade via `key`.
   // Stays 0 through the intro so the first render never gets the swap class.
   const [swapKey, setSwapKey] = useState(0)
@@ -141,7 +144,13 @@ export default function ResultsView({
 
         <div className="results-divider" />
 
-        <div className="seg" role="group" aria-label="Nivel de comparación">
+        <div
+          className="seg"
+          role="group"
+          aria-label="Nivel de comparación"
+          style={{ '--seg-i': VIEWS.indexOf(viewType) } as React.CSSProperties}
+        >
+          <span className="seg__thumb" aria-hidden="true" />
           {VIEWS.map((v) => (
             <button
               key={v}

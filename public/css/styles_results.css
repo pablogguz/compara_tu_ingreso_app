@@ -283,10 +283,12 @@
 
 /* ----------------------- Segmented control --------------------------------- */
 .seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2rem;
+  /* three equal cells and one gradient thumb that glides to the active cell
+     (--seg-i is the active index, set inline) */
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
   padding: 0.3rem;
   background: rgba(241, 245, 249, 0.72);
   border: 1px solid rgba(226, 232, 240, 0.75);
@@ -297,7 +299,25 @@
   animation: revealRiseFlat 520ms var(--ease-spring) calc(var(--t-land) + 500ms) backwards;
 }
 
+.seg__thumb {
+  position: absolute;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  left: 0.3rem;
+  width: calc((100% - 0.6rem) / 3);
+  border-radius: var(--radius-pill);
+  background: var(--btn-grad);
+  box-shadow:
+    0 4px 12px -3px rgba(59, 130, 246, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateX(calc(var(--seg-i, 0) * 100%));
+  transition: transform 520ms var(--ease-spring);
+  pointer-events: none;
+}
+
 .seg__btn {
+  position: relative;
+  z-index: 1;
   min-height: 2.2rem;
   padding: 0 1.15rem;
   border: 0;
@@ -312,8 +332,7 @@
   -webkit-tap-highlight-color: transparent;
   transition:
     background-color var(--motion-fast) var(--ease),
-    color var(--motion-fast) var(--ease),
-    box-shadow var(--motion-fast) var(--ease),
+    color 320ms var(--ease),
     transform var(--motion-fast) var(--ease-spring);
 }
 
@@ -327,11 +346,7 @@
 }
 
 .seg__btn.is-active {
-  background: var(--btn-grad);
   color: #ffffff;
-  box-shadow:
-    0 4px 12px -3px rgba(59, 130, 246, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .seg__btn:focus-visible {

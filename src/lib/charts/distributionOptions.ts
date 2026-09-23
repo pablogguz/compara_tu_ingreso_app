@@ -94,6 +94,23 @@ export function buildDistributionOptions(
           [1, t.areaBottom],
         ],
       },
+      // Full colour up to the household's position — the households it
+      // out-earns — and paler beyond, so the shaded area reads as the
+      // percentile.
+      zoneAxis: 'x',
+      zones: [
+        { value: userValueOnAxis },
+        {
+          color: t.areaDimLine,
+          fillColor: {
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+              [0, t.areaDimTop],
+              [1, t.areaDimBottom],
+            ],
+          },
+        },
+      ],
       enableMouseTracking: false,
       marker: { enabled: false },
       states: { hover: { lineWidth: 2 } },
@@ -109,6 +126,8 @@ export function buildDistributionOptions(
       color: t.primaryDeep,
       dashStyle: 'ShortDash',
       lineWidth: 2.5,
+      // a faint halo so the marker line lifts off the curve
+      shadow: { color: 'rgba(21, 84, 148, 0.28)', width: 6, offsetX: 0, offsetY: 0 },
       marker: {
         enabled: true,
         radius: 6,

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { validateMonthlyIncome } from '@/lib/validation'
+import { formatCurrency } from '@/lib/calculations'
 
 interface IncomeStepProps {
   value: number | ''
@@ -72,6 +73,13 @@ export default function IncomeStep({
               / mes
             </span>
           </div>
+
+          {canAdvance && typeof value === 'number' && (
+            <p className="help-text">
+              Al año: <strong>{formatCurrency(value * paymentPeriods)}</strong>{' '}
+              en {paymentPeriods} pagas
+            </p>
+          )}
 
           {(isInvalid || isWarning) && (
             <div

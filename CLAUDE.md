@@ -87,12 +87,14 @@ npm run build
 ```
 src/
 ├── app/
-│   ├── page.tsx              # 4-state machine: landing → questions → loading → results
+│   ├── page.tsx              # Renders <App /> (the whole site is one client state machine)
 │   ├── layout.tsx            # Metadata, next/font (Fraunces + Hanken Grotesk), CSS links
 │   ├── globals.css           # Minimal reset only — real styles live in public/css/
+│   ├── mocks/                # Dev/preview-only screen gallery (see "Mocks" below)
 │   └── api/appendResponse/
 │       └── route.ts          # Server-side Google Sheets append (POST)
 ├── components/
+│   ├── App.tsx               # 4-stage machine: landing → questions → loading → results; bootable at any stage
 │   ├── LandingPage.tsx       # Animated hero + start button
 │   ├── QuestionFlow.tsx      # Orchestrates the 4-step questionnaire
 │   ├── questions/            # One file per step (municipality / income / household / perceived)
@@ -101,16 +103,19 @@ src/
 │   ├── StatsCards.tsx        # Three small-box demographic cards
 │   ├── HelpModal.tsx         # FAQ modal with 6 lazy-loaded tabs
 │   ├── CookieBanner.tsx      # Top-of-page consent banner
-│   └── ErrorBoundary.tsx     # Class boundary used around chart + stats
+│   ├── ErrorBoundary.tsx     # Class boundary used around chart + stats
+│   └── mocks/                # MockScreen (control bar) + scenarios.ts (one entry per mock)
 ├── hooks/
 │   └── useQuestionFlow.ts    # Form state + step navigation
 ├── lib/
 │   ├── analytics.ts          # GA4 init + cookieConsent helpers
 │   ├── calculations.ts       # equiv income, percentile lookup, formatters
+│   ├── computeResults.ts     # answers → percentiles at 3 levels (questionnaire + mocks)
 │   ├── dataLoader.ts         # Arrow IPC loaders + in-memory cache
 │   ├── DataContext.tsx       # React context: shared municipality_lookup
 │   ├── sheetLogger.ts        # Fire-and-forget POST to /api/appendResponse
 │   ├── validation.ts         # Per-step validation predicates
+│   ├── viewTransition.ts     # runViewTransition(): screen/step changes via startViewTransition
 │   └── charts/
 │       ├── theme.ts          # Chart palette / fonts / motion (mirrors CSS tokens)
 │       ├── formatters.ts     # Euro / k€ formatters used by Highcharts
@@ -121,22 +126,26 @@ src/
 
 ### Page state machine
 
-[src/app/page.tsx](src/app/page.tsx) holds four mutually-exclusive booleans:
+[src/components/App.tsx](src/components/App.tsx) holds one `stage`:
 
 ```
-showLanding (true on mount)
+'landing' (on mount)
    │  user clicks "Comenzar"
    ▼
-showQuestions
+'questions'
    │  user clicks "Calcular" — handleCalculate awaits the calculation Promise
    ▼
-isLoading                           ← spinner stage
+'loading'                           ← spinner stage, held for at least MIN_LOADING_MS (800 ms)
    │  Promise resolves
    ▼
-showResults
+'results'
 ```
 
-`handleRecalculate()` returns to `showQuestions` and clears `userInput`/`results`. Every screen except landing renders the help button (top-right, fixed).
+`handleRecalculate()` returns to `'questions'` and clears `userInput`/`results`. Every screen except landing renders the help button (bottom-right, fixed). Stage changes and question steps run through `runViewTransition()` ([src/lib/viewTransition.ts](src/lib/viewTransition.ts)): where `document.startViewTransition` exists the old frame fades out with a soft focus while the new one plays its own CSS entrance; elsewhere (and in jsdom) the update is immediate. `App` takes an optional `boot` (start stage, pre-filled answers, results, help tab…) and a `mock` flag (no analytics, no sheet logging, no stored consent) — that is what the mocks use.
+
+### Mocks
+
+`/mocks/` lists every screen; `/mocks/<id>/` boots the real `App` straight into that state (21 scenarios in [src/components/mocks/scenarios.ts](src/components/mocks/scenarios.ts): landing, each questionnaire step and its validation states, loading, results at the three levels and at the extremes, help modal). Results mocks compute their numbers from the real Arrow data through `computeResults()`. On each mock: ← / → switch screens, R replays the entrance, H hides the control bar; append `?clean` to drop the bar entirely (screenshots). The route is `noindex` and 404s when built with `VERCEL_ENV=production`, so it exists locally and on Vercel preview deployments only. Add a scenario there when you add a screen or state.
 
 ### Data flow
 
@@ -183,9 +192,9 @@ npm test         # vitest (jsdom) — run before every commit
 
 [tests/](tests/) is a Vitest + Testing Library suite. Fixtures live in [tests/helpers/mockData.ts](tests/helpers/mockData.ts). Coverage, by layer:
 
-- **Pure logic** — `calculations`, `validation`, `chartFormatters`, `chartOptions`, `sheetLogger`, `useCountUp`, `useQuestionFlow`.
+- **Pure logic** — `calculations`, `validation`, `chartFormatters`, `chartOptions`, `sheetLogger`, `useCountUp`, `useQuestionFlow`, `viewTransition`, `mockScenarios`.
 - **Components** — one file per screen/step (`LandingPage`, `ProgressHeader`, `MunicipalityStep`, `IncomeStep`, `HouseholdStep`, `PerceivedStep`, `ResultsView`, `StatsCards`, `HelpModal`, `CookieBanner`, `ErrorBoundary`). Highcharts is stubbed (it cannot render in jsdom); `dataLoader` is mocked.
-- **Flows** — `QuestionFlow.test.tsx` walks all four steps with mocked Arrow data and asserts the resolved percentiles; `page.test.tsx` covers the landing → questions → loading → results/error state machine.
+- **Flows** — `QuestionFlow.test.tsx` walks all four steps with mocked Arrow data and asserts the resolved percentiles; `page.test.tsx` covers the landing → questions → loading → results/error state machine and booting `App` at a given stage.
 - **Contract** — `designContract.test.ts` reads the source tree: every JSX class exists in CSS, `theme.ts` mirrors `:root`, no Inter, every `<button>` has a `type`.
 
 `npm run build` needs network access the first time (next/font downloads Fraunces + Hanken Grotesk at build time; Vercel has it).

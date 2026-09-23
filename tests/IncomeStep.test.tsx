@@ -81,4 +81,14 @@ describe('<IncomeStep />', () => {
     fireEvent.click(screen.getByRole('button', { name: /anterior/i }))
     expect(onPrev).toHaveBeenCalledTimes(1)
   })
+
+  it('shows the yearly total for the chosen number of payments', () => {
+    setup({ value: 2000, paymentPeriods: 14 })
+    expect(screen.getByText('28.000 €').closest('p')).toHaveTextContent(/al año.*14 pagas/i)
+  })
+
+  it('hides the yearly total while the amount is empty or invalid', () => {
+    setup({ value: 60000 })
+    expect(screen.queryByText(/^al año:/i)).toBeNull()
+  })
 })

@@ -60,6 +60,7 @@ export default function HouseholdStep({
                 Mayores de 14 años
               </label>
               <Select
+                instanceId="adults"
                 inputId="adults-select"
                 aria-label="Mayores de 14 años"
                 value={{ value: adults, label: adults.toString() }}
@@ -77,6 +78,7 @@ export default function HouseholdStep({
                 Menores de 14 años
               </label>
               <Select
+                instanceId="children"
                 inputId="children-select"
                 aria-label="Menores de 14 años"
                 value={{ value: children, label: children.toString() }}
