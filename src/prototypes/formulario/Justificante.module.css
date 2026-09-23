@@ -1,0 +1,728 @@
+/* The justificante (mockups B3 desktop, B4 phone): box 10 and the stamp, the
+   liquidation, Anexo I (histogram), Anexo II (the municipality), the cut line
+   and the tear-off stub. */
+
+.long {
+  display: inline;
+}
+
+.short {
+  display: none;
+}
+
+.h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+/* ---- 10 · the result ------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.box10 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 24px;
+  border-right: 1.5px solid var(--ink);
+}
+
+.boxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.digits {
+  display: flex;
+  margin: 0;
+  /* the paper takes the blow when the stamp lands */
+  animation: thud 200ms ease-out 900ms both;
+}
+
+.digit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 128px;
+  height: 168px;
+  border: 1.5px solid var(--ink);
+  background: var(--field);
+  color: var(--typed);
+  font-family: var(--f-mono);
+  font-size: 138px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.digit + .digit {
+  border-left: 0;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 26px 290px 26px 30px;
+}
+
+.headline {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(30px, 1.2rem + 1.25vw, 40px);
+  font-weight: 600;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.gap {
+  max-width: 600px;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+.gapShort {
+  display: none;
+}
+
+.stamp {
+  position: absolute;
+  top: 30px;
+  right: 44px;
+}
+
+@keyframes thud {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(2px);
+  }
+}
+
+/* ---- Liquidación + Anexo I ------------------------------------------------- */
+
+.middle {
+  display: grid;
+  grid-template-columns: min(560px, 47%) minmax(0, 1fr);
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.liq {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 20px 24px;
+  border-right: 1.5px solid var(--ink);
+}
+
+.liq > .h2 {
+  margin-bottom: 8px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  align-items: last baseline;
+  gap: 8px;
+  min-height: 34px;
+}
+
+.term {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  align-items: last baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.rowBox {
+  flex: none;
+  width: 30px;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rowLabel {
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.leader {
+  flex: 1 1 20px;
+  min-width: 20px;
+  border-bottom: 1.5px dotted var(--rule-dash);
+  transform: translateY(-4px);
+}
+
+/* typed in, character by character, row after row: a strip of paper over the
+   value shrinks one character at a time (transform only; once it is done the
+   cover's base state is scaleX(0), so nothing can stay hidden) */
+.value {
+  position: relative;
+  flex: none;
+  margin: 0;
+  color: var(--typed);
+  font-family: var(--f-type);
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.value::after {
+  content: '';
+  position: absolute;
+  inset: -2px -2px -2px 0;
+  background: var(--paper);
+  transform: scaleX(0);
+  transform-origin: right;
+  animation-name: uncover;
+  animation-duration: calc(var(--n, 6) * 40ms);
+  animation-timing-function: steps(var(--n, 6), end);
+  animation-delay: calc(var(--i, 0) * 90ms + 480ms);
+  animation-fill-mode: backwards;
+}
+
+.rowStrong .rowLabel,
+.rowStrong .value {
+  font-weight: 700;
+}
+
+.valueRed {
+  color: var(--red);
+}
+
+.how {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+@keyframes uncover {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.anexo1 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 20px 24px;
+}
+
+.levels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  min-width: 0;
+  margin: -4px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.levelOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 15px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.levelText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Anexo II -------------------------------------------------------------- */
+
+.anexo2 {
+  display: grid;
+  grid-template-columns: 240px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.anexo2Title {
+  padding: 18px 24px;
+  border-right: 1.5px solid var(--ink);
+  line-height: 1.4;
+  overflow-wrap: break-word;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 16px 22px;
+  border-right: 1px solid var(--rule);
+}
+
+.fact:last-child {
+  border-right: 0;
+}
+
+.factValue {
+  color: var(--typed);
+  font-family: var(--f-type);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.factLabel {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* ---- Recorte y conserve ---------------------------------------------------- */
+
+.cut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  color: var(--ink-2);
+}
+
+.cutLine {
+  flex: 1;
+  border-top: 2px dashed var(--rule-dash);
+}
+
+.cutText {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ---- Resguardo ------------------------------------------------------------- */
+
+.stub {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) auto auto;
+  align-items: stretch;
+  border: 1.5px solid var(--ink);
+}
+
+.stubId {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 14px 18px;
+  border-right: 1.5px solid var(--ink);
+}
+
+.stubTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stubNumber {
+  color: var(--ink-2);
+  font-family: var(--f-mono);
+  font-size: 12px;
+}
+
+.stubNums {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px 22px;
+  font-family: var(--f-mono);
+}
+
+.stubNum {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-width: 48px;
+}
+
+.stubLabel {
+  max-width: 190px;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.stubValue {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.stubCode {
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 18px;
+}
+
+.stubActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-left: 1.5px solid var(--ink);
+}
+
+.action {
+  min-height: 48px;
+  padding: 0 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.actionPrint {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.actionPrint:hover {
+  background: var(--ink-deep);
+}
+
+.fine {
+  margin: 12px 0 0;
+  color: var(--ink-2);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* ---- Up to 1180 px: box 10 over the sentences, the stamp beside the digits -- */
+
+@media screen and (max-width: 1180px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .box10 {
+    padding: 20px 24px 6px;
+    border-right: 0;
+  }
+
+  .heroText {
+    padding: 12px 24px 24px;
+  }
+
+  .stamp {
+    top: 58px;
+    right: max(24px, calc(100% - 640px));
+  }
+
+  .middle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .liq {
+    border-right: 0;
+    border-bottom: 1.5px solid var(--ink);
+  }
+
+  .stub {
+    grid-template-columns: 200px minmax(0, 1fr) auto;
+  }
+
+  .stubActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    border-top: 1.5px solid var(--ink);
+    border-left: 0;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .anexo2 {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+  }
+
+  .anexo2Title {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .fact {
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .fact:last-child {
+    border-bottom: 0;
+  }
+
+  .stubCode {
+    display: none;
+  }
+
+  .stub {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+}
+
+/* ---- Phone (mockup B4) ----------------------------------------------------- */
+
+@media screen and (max-width: 600px) {
+  .long {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+
+  .h2 {
+    font-size: 13px;
+  }
+
+  .box10 {
+    gap: 12px;
+    padding: 16px 14px 0;
+  }
+
+  .boxLabel {
+    font-size: 12px;
+  }
+
+  .digit {
+    width: 92px;
+    height: 120px;
+    font-size: 96px;
+  }
+
+  .heroText {
+    gap: 12px;
+    padding: 12px 14px 16px;
+  }
+
+  .headline {
+    font-size: 25px;
+    line-height: 1.15;
+  }
+
+  .gap {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .gapLong {
+    display: none;
+  }
+
+  .gapShort {
+    display: inline;
+  }
+
+  .stamp {
+    top: 46px;
+    right: 16px;
+  }
+
+  .liq {
+    gap: 2px;
+    padding: 14px;
+  }
+
+  .liq > .h2 {
+    margin-bottom: 6px;
+  }
+
+  .rows {
+    gap: 2px;
+  }
+
+  .row {
+    gap: 6px;
+    min-height: 30px;
+  }
+
+  .term {
+    gap: 6px;
+  }
+
+  .rowBox {
+    width: 22px;
+    font-size: 12px;
+  }
+
+  .rowLabel {
+    font-size: 15px;
+  }
+
+  .value {
+    font-size: 17px;
+  }
+
+  .wideOnly {
+    display: none;
+  }
+
+  .anexo1 {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .levels {
+    gap: 0 18px;
+  }
+
+  .levelOption {
+    font-size: 14px;
+  }
+
+  .anexo2 {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .anexo2Title {
+    padding: 0;
+    border: 0;
+  }
+
+  .fact {
+    gap: 2px;
+    padding: 0;
+    border: 0;
+  }
+
+  .factValue {
+    font-size: 26px;
+  }
+
+  .cut {
+    margin: 14px 0;
+  }
+
+  .cutText {
+    display: none;
+  }
+
+  .stub {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .stubId {
+    display: none;
+  }
+
+  .stubNums {
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .stubNum:last-child {
+    align-items: flex-end;
+  }
+
+  .stubLabel {
+    max-width: 110px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .stubValue {
+    font-size: 28px;
+  }
+
+  .stubActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+  }
+
+  .action {
+    min-height: 50px;
+    font-size: 14px;
+  }
+
+  .actionPrint {
+    order: -2;
+  }
+
+  .actionShare {
+    order: -1;
+  }
+
+  .fine {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .digits,
+  .value::after {
+    animation: none;
+  }
+}
+
+@media print {
+  .middle {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .how,
+  .levels {
+    display: none;
+  }
+}

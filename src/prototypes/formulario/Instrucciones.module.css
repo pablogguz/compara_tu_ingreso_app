@@ -1,0 +1,165 @@
+/* The instructions sheet, laid over the page. */
+
+.dialog {
+  width: min(820px, calc(100% - 28px));
+  max-width: none;
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 8px 8px 0 rgba(29, 58, 42, 0.22);
+}
+
+.dialog[open] {
+  animation: open 280ms var(--ease) both;
+}
+
+.dialog::backdrop {
+  background: rgba(14, 34, 23, 0.55);
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-0.3deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 0 26px;
+  font-family: var(--f-print);
+}
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px 0 18px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.close:hover {
+  text-decoration: underline;
+}
+
+.close:focus-visible {
+  outline-color: var(--paper);
+  outline-offset: -4px;
+}
+
+.title {
+  margin: 8px clamp(18px, 4vw, 34px) 0;
+  font-size: clamp(24px, 1rem + 1.2vw, 30px);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.lead {
+  margin: 0 clamp(18px, 4vw, 34px);
+  color: var(--ink-2);
+  font-size: 16px;
+  font-style: italic;
+}
+
+.rules {
+  display: flex;
+  flex-direction: column;
+  margin: 4px clamp(18px, 4vw, 34px) 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.rules li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.num {
+  justify-self: start;
+  align-self: start;
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.rules p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.rules strong {
+  font-weight: 700;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 4px clamp(18px, 4vw, 34px) 0;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media screen and (max-width: 600px) {
+  .barLong {
+    display: none;
+  }
+
+  .rules li {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .rules p {
+    font-size: 15.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open] {
+    animation: none;
+  }
+}

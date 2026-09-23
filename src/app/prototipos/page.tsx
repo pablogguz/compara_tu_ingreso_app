@@ -9,16 +9,16 @@ const PROTOTYPES = [
     desc: 'La app como una portada de periódico: el cuestionario es una frase que completas y el resultado se lee como un reportaje.',
   },
   {
+    letter: 'B',
+    href: '/prototipos/formulario/',
+    name: 'Formulario',
+    desc: 'La app como un impreso oficial: rellenas las casillas de una declaración y recibes un justificante sellado con tu posición.',
+  },
+  {
     letter: 'C',
     href: '/prototipos/cien/',
     name: 'Cien',
     desc: 'Si España fuera 100 personas, ¿cuál serías tú? Una pregunta por pantalla y tu cuadrado entre cien.',
-  },
-  {
-    letter: 'D',
-    href: '/prototipos/linea/',
-    name: 'Línea',
-    desc: 'La renta como una línea de metro: sacas un billete y te decimos en qué parada te bajas, en tres líneas.',
   },
 ]
 

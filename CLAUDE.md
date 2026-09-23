@@ -149,7 +149,7 @@ src/
 
 ### Prototypes
 
-`/prototipos/` holds three complete redesigns, built to compare side by side: `portada` (A, a newspaper front page), `cien` (C, "if Spain were 100 people") and `linea` (D, a transit line). Each lives in its own folder, `src/prototypes/<name>/`, with CSS modules; its route `src/app/prototipos/<name>/` only loads the fonts. They share `src/prototypes/shared/`, which provides `useFlow` (answers and the real `computeResults`), `useLevels` (the three levels, curves, landmarks and stats), the `MunicipalitySearch` combobox, the Spanish sentences in `format.ts` and SVG geometry in `chart.ts`. Read `src/prototypes/README.md` before touching them. The prototypes never log answers or load analytics. They are public but unlisted and `noindex`. Once a direction is chosen, it replaces the main app and the other prototypes go.
+`/prototipos/` holds three complete redesigns, built to compare side by side: `portada` (A, a newspaper front page), `formulario` (B, an official tax form and its stamped receipt) and `cien` (C, "if Spain were 100 people"). Each lives in its own folder, `src/prototypes/<name>/`, with CSS modules; its route `src/app/prototipos/<name>/` only loads the fonts. They share `src/prototypes/shared/`, which provides `useFlow` (answers and the real `computeResults`), `useLevels` (the three levels, curves, landmarks and stats), the `MunicipalitySearch` combobox, the Spanish sentences in `format.ts` and SVG geometry in `chart.ts`. Read `src/prototypes/README.md` before touching them. The prototypes never log answers or load analytics. They are public but unlisted and `noindex`. Once a direction is chosen, it replaces the main app and the other prototypes go.
 
 ### Data flow
 

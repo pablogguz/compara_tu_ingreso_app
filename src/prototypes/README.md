@@ -5,8 +5,8 @@ Three complete redesigns of the app, one per folder, served at `/prototipos/<nam
 | Folder | Route | Direction |
 |---|---|---|
 | `portada/` | `/prototipos/portada/` | A · Portada: a newspaper front page; the questionnaire is one sentence with blanks |
+| `formulario/` | `/prototipos/formulario/` | B · Formulario: an official tax form; numbered boxes; a stamped receipt ("justificante") with your position |
 | `cien/` | `/prototipos/cien/` | C · Cien: "if Spain were 100 people"; one question per screen; your square among 100 |
-| `linea/` | `/prototipos/linea/` | D · Línea: incomes as a transit line; a ticket machine; "usted está aquí" on three lines |
 
 Each prototype is self-contained: its `App.tsx` (the entry, a client component) plus whatever components and **CSS modules** it needs, all inside its own folder. The route files in `src/app/prototipos/<name>/` only load the fonts (next/font, exposed as CSS variables) and render `App`.
 
