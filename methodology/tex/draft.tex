@@ -1,0 +1,91 @@
+\documentclass[letterpaper,11pt,leqno]{article}
+\usepackage{paper}
+\usepackage{natbib}
+\bibliographystyle{bibliography}
+
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{threeparttable}
+\usepackage{natbib}
+\usepackage{listings}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{makecell}
+\usepackage{booktabs}
+
+\definecolor{customblue}{rgb}{0,0.337,0.702}
+
+\hypersetup{
+    colorlinks   = true,
+    citecolor    = customblue,
+    linkcolor    = customblue,
+    urlcolor     = customblue
+}
+
+\newenvironment{fignotes}{\setstretch{1.2}\scriptsize}
+
+\newenvironment{fignotes2}{\begin{quote}\setstretch{1.2}\scriptsize}{\end{quote}}
+
+\def\dotfill#1{\cleaders\hbox to #1{.}\hfill}
+\makeatletter
+\def\myrulefill{\leavevmode\leaders\hrule height .7ex width 1ex depth -0.6ex\hfill\kern\z@}
+\makeatother
+
+\begin{document}
+
+\title{\Large \textsc{Estimating Spain's income distribution from neighborhood-level data}}
+
+\author{\href{https://pablogguz.github.io/}{\large{Pablo García-Guzmán}\thanks{Email: \href{mailto:pablo.garcia-guzman@ebrd.com}{garciagp@ebrd.com}. I thank Pedro Torres for his valuable feedback and comments. The views expressed in this methodology note are completely my own and do not reflect the views of the EBRD.}} \\ \normalsize{}}
+
+\date{\normalsize \today \\}
+
+% \textcolor{red}{Preliminary draft -- do not cite or circulate}
+
+\maketitle
+\begin{abstract}
+\onehalfspacing
+This methodology note develops a transparent and simple framework to estimate aggregate income distributions in Spain exploiting the availability of granular inequality metrics. Specifically, I leverage administrative tax records and demographic data at the census tract-level to reconstruct local income distributions assuming log-normality. National, regional and municipal income distributions can be subsequently derived as population-weighted mixtures of these tract-level distributions. This approach leverages well-documented regularities in how incomes are distributed within demographically homogeneous groups, and the resulting estimates closely match observed distributional statistics in validation tests. I implement this framework in \href{https://comparatuingreso.es/}{comparatuingreso.es}, a publicly available web platform that enables Spanish households to calculate their relative position within the income distribution. While the focus is on Spain, this approach can be readily adapted to other countries with comparable data available.
+\end{abstract}
+
+\thispagestyle{empty}
+
+\newpage
+
+\setcounter{page}{1}
+
+\section{Introduction}
+
+Understanding the income distribution is crucial for economic analysis and policy design, yet its measurement remains challenging. In this paper, I propose a transparent and simple method to estimate national-level income distributions when granular income and inequality measures are available. The approach builds on two key insights: first, that income distributions within demographically homogeneous areas tend to follow log-normal distributions; and second, that aggregate distributions can be effectively modeled as mixtures of these local distributions. Using detailed administrative data from over 36,000 Spanish census tracts, I demonstrate that local income distributions are well-approximated by log-normal distributions, with predicted statistics matching observed values within 5\% on average. This method provides a flexible parametric framework for estimating income distributions when individual data is unavailable.
+
+%Using detailed administrative data from Spain covering over 36,000 census tracts, I show that local income distributions are well-approximated by log-normal distributions, with predicted statistics matching observed values within 5\% on average. This sets the ground for estimating aggregate income distribution as a population-weighted mixture of tract-specific log-normals. The method provides a flexible framework for estimating income distributions when individual data is unavailable.
+
+The rest of this note is organized as follows. Section \ref{sec:data} describes the data sources, their coverage, and scope. Section \ref{sec:method} outlines the methodology, including the modeling of local income distributions, their aggregation and the calculation of the relevant validation metrics. Section \ref{sec:results} presents the results. Finally, Section \ref{sec:conc} concludes the note.
+
+\section{Data}\label{sec:data}
+
+\input{tex/1_data}
+
+\section{Methodology}\label{sec:method}
+
+\input{tex/2_method}
+
+\section{Results}\label{sec:results}
+
+\input{tex/3_results}
+
+\section{Conclusion}\label{sec:conc}
+
+This methodology note presents a simple framework for estimating income distributions in Spain, leveraging granular inequality metrics and administrative data at the census-tract level. Specifically, I model local income distributions as log-normal and derive national and regional distributions as population-weighted mixtures of tract-level estimates. Validation results show a high degree of accuracy, with predicted metrics closely matching observed distributional statistics across census tracts. Results from a hierarchical variance decomposition exercise show that within-tract variation explains the vast majority of income inequality in Spain.
+
+% However, results also suggest that the improvement offered by the tract-level mixture relative to assuming log-normality at the national level is very limited, suggesting that the latter can still serve as a reasonable approximation to estimate aggregate distributions in the Spanish context. Results from a hierarchical variance decomposition exercise rationalize this finding by showing that within-tract variation explains the vast majority of income inequality in Spain, and hence accounting for between-tract heterogeneity adds relatively little information to the overall pattern of income inequality at the national level.
+
+Looking ahead, the methodology offers opportunities for extension, such as explicitly addressing the deviations from log-normality at the tails of the distribution or adapting the framework for use in other countries with comparable data available. 
+
+%Bibliography
+\newpage
+\singlespacing
+\bibliographystyle{authordate3}
+\bibliography{bib.bib}
+
+\end{document}
