@@ -1,7 +1,7 @@
 import { normalizeText } from './validation'
 
-// Municipality search shared by the questionnaire's picker and the /prototipos
-// apps: one ranking, so every search box finds the same municipality first.
+// Municipality search shared by the questionnaire's picker and the redesign's
+// combobox: one ranking, so every search box finds the same municipality first.
 
 export interface MunicipalityOption {
   value: string
