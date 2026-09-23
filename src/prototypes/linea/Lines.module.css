@@ -1,0 +1,350 @@
+/* The line diagrams. Geometry here mirrors the constants in layout.ts:
+   horizontal track centre at y=71, "you" dot r=16 (+5 halo), stations r=10,
+   guess r=12, ring r=28. */
+
+/* =============================================================== horizontal */
+
+.h {
+  position: relative;
+  height: 128px;
+  margin: 0 10px;
+}
+
+.hTall {
+  height: 134px;
+}
+
+.hTrack,
+.hFill {
+  position: absolute;
+  top: 66px;
+  left: 0;
+  height: 10px;
+  border-radius: 5px;
+}
+
+.hTrack {
+  right: 0;
+  background: var(--tint);
+}
+
+.hFill {
+  background: var(--line);
+  border-radius: 5px 0 0 5px;
+  transition: width var(--travel) var(--ease-travel) var(--delay);
+}
+
+.hStation {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 100%;
+}
+
+.hName,
+.hValue,
+.hGuessLabel,
+.hFlagText {
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+}
+
+.hName {
+  top: 42px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 15px;
+}
+
+.hStop {
+  position: absolute;
+  top: 61px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 5px solid var(--tint);
+  transition: border-color 160ms linear;
+}
+
+.armed .hStop {
+  border-color: var(--line);
+}
+
+.hValue {
+  top: 86px;
+  padding: 1px 3px 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--ink-2);
+  background: #fff;
+  z-index: 1;
+}
+
+/* the guess: a dashed circle, or a dashed ring around the dot when it sits under it */
+.hGuess {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 320ms ease var(--arrive);
+}
+
+.armed .hGuess {
+  opacity: 1;
+}
+
+.hGuessMark {
+  position: absolute;
+  top: 59px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px dashed var(--navy);
+  z-index: 2;
+}
+
+.hGuessRing .hGuessMark {
+  top: 43px;
+  left: -28px;
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  z-index: 0;
+}
+
+.hGuessLabel {
+  top: 88px;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 18px;
+  padding: 0 3px;
+  background: #fff;
+  z-index: 2;
+}
+
+.hGuessBelow .hGuessLabel {
+  top: 112px;
+}
+
+.hLeader {
+  position: absolute;
+  top: 84px;
+  left: -1px;
+  height: 28px;
+  border-left: 2px dashed var(--navy);
+}
+
+.hGuessRing .hLeader {
+  top: 100px;
+  height: 12px;
+}
+
+/* you */
+.hUser {
+  position: absolute;
+  top: 55px;
+  width: 32px;
+  height: 32px;
+  margin-left: -16px;
+  border-radius: 50%;
+  background: var(--navy);
+  box-shadow: 0 0 0 5px var(--yellow);
+  z-index: 3;
+  transition: left var(--travel) var(--ease-travel) var(--delay);
+}
+
+.hFlag {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 52px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 260ms ease var(--arrive), transform 260ms var(--ease-out) var(--arrive);
+  z-index: 3;
+}
+
+.armed .hFlag {
+  opacity: 1;
+  transform: none;
+}
+
+.hFlagText {
+  top: 0;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 20px;
+}
+
+.hStem {
+  position: absolute;
+  top: 23px;
+  left: -1px;
+  width: 2px;
+  height: 27px;
+  background: var(--navy);
+}
+
+/* ================================================================= vertical */
+
+.v {
+  position: relative;
+}
+
+.vTrack,
+.vFill {
+  position: absolute;
+  left: 11px;
+  width: 10px;
+  transition: background-color 400ms ease;
+}
+
+.vTrack {
+  top: 0;
+  bottom: 0;
+  border-radius: 5px;
+  background: var(--tint);
+}
+
+.vFill {
+  bottom: 0;
+  border-radius: 0 0 5px 5px;
+  background: var(--line);
+  transition: top var(--travel) var(--ease-travel), background-color 400ms ease;
+}
+
+.vLabels {
+  position: absolute;
+  inset: 0;
+  animation: labelsIn 360ms var(--ease-out) both;
+}
+
+@keyframes labelsIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+}
+
+.vStation,
+.vGuess,
+.vUserLabel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+}
+
+.vStop,
+.vGuessMark {
+  position: absolute;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.vStop {
+  left: 5px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border: 5px solid var(--line);
+  transition: border-color 400ms ease;
+}
+
+.vGuessMark {
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border: 3px dashed var(--navy);
+  z-index: 2;
+}
+
+.vGuessRing .vGuessMark {
+  left: -12px;
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  z-index: 0;
+}
+
+.vLabel {
+  position: absolute;
+  left: 50px;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.vName {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.vGuessName {
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.vUserName {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.vValue {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.vUser {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  border-radius: 50%;
+  background: var(--navy);
+  box-shadow: 0 0 0 5px var(--yellow);
+  z-index: 3;
+  transition: top var(--travel) var(--ease-travel);
+}
+
+.vUserLabel {
+  opacity: 0;
+  transition: opacity 260ms ease var(--arrive), top var(--travel) var(--ease-travel);
+}
+
+.armed .vUserLabel {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hFill,
+  .hUser,
+  .hStop,
+  .hFlag,
+  .hGuess,
+  .vFill,
+  .vUser,
+  .vUserLabel {
+    transition: none;
+  }
+
+  .vLabels {
+    animation: none;
+  }
+}

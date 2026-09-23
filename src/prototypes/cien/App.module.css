@@ -1,0 +1,355 @@
+/* Cien · "Si España fuera 100 personas". Swiss poster: one grotesk (Archivo,
+   condensed through its wdth axis), off-white paper, black, one signal red,
+   a strict 12-column grid and 3px rules. */
+
+.root {
+  --paper: #eeebe4;
+  --ink: #111111;
+  --red: #d0311f;
+  /* the same red, a step darker, for red text under 19px (4.5:1 on paper) */
+  --red-text: #b3271a;
+  --grey: #cfcac0;
+  --mute: #545048;
+  --rule: 3px solid var(--ink);
+  --pad-x: clamp(20px, 4.45vw, 64px);
+  --pad-top: clamp(20px, 2.8vw, 40px);
+  --pad-bottom: clamp(28px, 3.05vw, 44px);
+  --gap: clamp(14px, 1.67vw, 24px);
+  --snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --land: cubic-bezier(0.16, 1, 0.3, 1);
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-archivo), 'Archivo', 'Arial Narrow', Arial, sans-serif;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 400;
+  font-variation-settings: 'wdth' 100;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* the site's globals (blue links, blue focus ring, blue selection) stop here */
+.root a {
+  color: var(--ink);
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+
+.root a:hover {
+  color: var(--red-text);
+}
+
+.root :focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 3px;
+}
+
+.root ::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+:where(.root) button {
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* zero-specificity, so every component class still wins */
+:where(.root) input {
+  font: inherit;
+  font-variation-settings: inherit;
+  color: inherit;
+  border-radius: 0;
+}
+
+/* ---- the poster frame every screen sits in ---- */
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: var(--pad-top) var(--pad-x) var(--pad-bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: var(--rule);
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.topNote {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.topLinks {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.root .topLink {
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.root .topLink:hover {
+  color: var(--red-text);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+}
+
+/* ---- buttons: black slab, outline slab, bare link ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 0 30px;
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 120ms linear,
+    border-color 120ms linear,
+    color 120ms linear;
+}
+
+.root .btn {
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.root .btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--paper);
+}
+
+.root .btnOutline {
+  background: transparent;
+  color: var(--ink);
+}
+
+.root .btnOutline:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.btnIcon {
+  flex: none;
+  transition: transform 160ms var(--snap);
+}
+
+.btn:hover .btnIcon {
+  transform: translateX(4px);
+}
+
+.onlyNarrow {
+  display: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- loading: the hundred fill in order ---- */
+.loadBody {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  align-items: center;
+  padding: 40px 0;
+}
+
+.loadTitle {
+  grid-column: 1 / span 6;
+  margin: 0;
+  font-size: clamp(52px, 7.2vw, 104px);
+  font-weight: 800;
+  font-variation-settings: 'wdth' 68;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.loadGrid {
+  grid-column: 8 / span 5;
+  justify-self: end;
+  width: min(100%, 514px);
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: clamp(4px, 0.42vw, 6px);
+}
+
+.loadSq {
+  aspect-ratio: 1;
+  background: var(--grey);
+  animation: fillWave 1700ms steps(1, end) infinite both;
+  animation-delay: calc(var(--i) * 8ms);
+}
+
+@keyframes fillWave {
+  0% {
+    background: var(--grey);
+  }
+  1% {
+    background: var(--ink);
+  }
+  52% {
+    background: var(--ink);
+  }
+  53%,
+  100% {
+    background: var(--grey);
+  }
+}
+
+/* ---- error ---- */
+.errorBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 40px 0;
+  max-width: 900px;
+}
+
+.errorTitle {
+  margin: 0;
+  font-size: clamp(52px, 7.2vw, 104px);
+  font-weight: 800;
+  font-variation-settings: 'wdth' 68;
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.errorTitle:focus {
+  outline: none;
+}
+
+.errorText {
+  margin: 0;
+  font-size: 22px;
+  color: var(--mute);
+}
+
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@media (max-width: 1023px) {
+  .loadBody {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 40px;
+    align-content: center;
+  }
+  .loadTitle,
+  .loadGrid {
+    grid-column: 1;
+  }
+  .loadGrid {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 699px) {
+  .root {
+    font-size: 17px;
+  }
+  .brand {
+    font-size: 13px;
+  }
+  .topbar {
+    padding-bottom: 12px;
+  }
+  .topNote {
+    font-size: 13px;
+  }
+  .topLinks {
+    gap: 18px;
+  }
+  .root .topLink {
+    font-size: 14px;
+  }
+  .onlyWide {
+    display: none;
+  }
+  .onlyNarrow {
+    display: inline;
+  }
+  .btn {
+    min-height: 56px;
+    padding: 0 22px;
+    font-size: 17px;
+  }
+  .loadTitle,
+  .errorTitle {
+    font-size: 13vw;
+  }
+  .errorText {
+    font-size: 18px;
+  }
+  .errorActions > * {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loadSq {
+    animation: none;
+    background: var(--ink);
+  }
+  .btnIcon {
+    transition: none;
+  }
+}

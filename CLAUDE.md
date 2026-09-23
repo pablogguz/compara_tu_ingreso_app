@@ -147,6 +147,10 @@ src/
 
 `/mocks/` lists every screen; `/mocks/<id>/` boots the real `App` straight into that state (21 scenarios in [src/components/mocks/scenarios.ts](src/components/mocks/scenarios.ts): landing, each questionnaire step and its validation states, loading, results at the three levels and at the extremes, help modal). Results mocks compute their numbers from the real Arrow data through `computeResults()`. On each mock: ← / → switch screens, R replays the entrance, H hides the control bar; append `?clean` to drop the bar entirely (screenshots). The route is `noindex` and 404s when built with `VERCEL_ENV=production`, so it exists locally and on Vercel preview deployments only. Add a scenario there when you add a screen or state.
 
+### Prototypes
+
+`/prototipos/` holds three complete redesigns, built to compare side by side: `portada` (A, a newspaper front page), `cien` (C, "if Spain were 100 people") and `linea` (D, a transit line). Each lives in its own folder, `src/prototypes/<name>/`, with CSS modules; its route `src/app/prototipos/<name>/` only loads the fonts. They share `src/prototypes/shared/`, which provides `useFlow` (answers and the real `computeResults`), `useLevels` (the three levels, curves, landmarks and stats), the `MunicipalitySearch` combobox, the Spanish sentences in `format.ts` and SVG geometry in `chart.ts`. Read `src/prototypes/README.md` before touching them. The prototypes never log answers or load analytics. They are public but unlisted and `noindex`. Once a direction is chosen, it replaces the main app and the other prototypes go.
+
 ### Data flow
 
 1. **On mount of `<QuestionFlow>`**: `municipality_lookup` is fetched once via `useMunicipalityLookup()` (DataContext). All four downstream consumers (`QuestionFlow`, `ResultsView`, `StatsCards`, `DistributionChart`) read from the same context — no duplicate fetches.

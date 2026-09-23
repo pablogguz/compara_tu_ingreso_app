@@ -1,0 +1,90 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  border-radius: 7px;
+}
+
+.mark > span {
+  display: block;
+  border-radius: 2px;
+}
+
+.bar1 {
+  background: var(--l1-mark);
+}
+
+.bar2 {
+  background: var(--l2-mark);
+}
+
+.bar3 {
+  background: var(--l3-mark);
+}
+
+.name {
+  font-weight: 800;
+  line-height: 1;
+  padding-top: 0.12em;
+}
+
+/* sizes */
+.lg .mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.lg .mark > span {
+  width: 4px;
+  height: 20px;
+}
+
+.lg .name {
+  font-size: 19px;
+}
+
+.md .mark {
+  width: 34px;
+  height: 34px;
+  gap: 3px;
+}
+
+.md .mark > span {
+  width: 3px;
+  height: 16px;
+}
+
+.md .name {
+  font-size: 17px;
+}
+
+.sm {
+  gap: 10px;
+}
+
+.sm .mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  gap: 3px;
+}
+
+.sm .mark > span {
+  width: 3px;
+  height: 13px;
+}
+
+.sm .name {
+  font-size: 15px;
+}

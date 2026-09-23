@@ -1,15 +1,22 @@
 // Core calculation functions matching the Shiny app logic
 
 /**
- * Calculate equivalised annual income
+ * Modified OECD equivalence scale (consumption units of the household)
  * Scale: 1 + max(0, adults-1)*0.5 + children*0.3
+ */
+export function equivalenceScale(adults: number, children: number): number {
+  return 1 + Math.max(0, adults - 1) * 0.5 + children * 0.3;
+}
+
+/**
+ * Calculate equivalised annual income
  */
 export function calculateEquivIncome(
   monthlyIncome: number,
   adults: number,
   children: number
 ): number {
-  const equivScale = 1 + Math.max(0, adults - 1) * 0.5 + children * 0.3;
+  const equivScale = equivalenceScale(adults, children);
   return (monthlyIncome * 12) / equivScale;
 }
 
