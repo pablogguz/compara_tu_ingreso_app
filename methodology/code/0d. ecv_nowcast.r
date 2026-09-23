@@ -1,18 +1,17 @@
 #-------------------------------------------------------------
 #* Author: Pablo Garcia Guzman
 #* Project: validation metrics for www.comparatuingreso.es
-#* This script: builds CCAA-level income growth factors to nowcast
-#*   the 2023 ADRH equivalised income to 2024, using the growth in
-#*   mean equivalised income by CCAA from the Living Conditions
-#*   Survey (ECV / EU-SILC).
+#* This script: builds the factor that nowcasts ADRH equivalised
+#*   income from the latest ADRH year (2023) to 2024.
 #*
-#* Method: raw ECV CCAA growth in "renta media por unidad de consumo"
-#*   (income year 2023 -> 2024), rescaled by a single national constant
-#*   so that the ADRH population-income-weighted national growth equals
-#*   the ECV national growth exactly ("calibrated"). No shrinkage.
+#* Method: national mean equivalised income, year-on-year growth,
+#*   in the ADRH and in the Living Conditions Survey (ECV / EU-SILC).
+#*   rho = sum(ADRH growth) / sum(ECV growth) over the years both
+#*   cover measures how much the ECV over- or understates growth in
+#*   the administrative data; the nowcast is rho * ECV growth for the
+#*   target year, applied to every tract and municipality.
 #*
-#* Output: data-raw/ccaa_growth.fst -- one row per province with the
-#*   growth factor to apply to every tract/municipality in that province.
+#* Output: data-raw/nowcast_factor.fst -- one row with the factor.
 #-------------------------------------------------------------
 
 packages_to_load <- c("tidyverse", "data.table", "ineapir", "ineAtlas", "fst")
@@ -28,118 +27,83 @@ package.check <- lapply(
 lapply(packages_to_load, require, character = TRUE)
 #-------------------------------------------------------------------
 
-# Income reference years: survey year N of the ECV refers to income of N-1.
-#   survey 2024 -> income 2023 ; survey 2025 -> income 2024.
-BASE_INCOME_YEAR <- 2023   # ADRH income year we start from
+# Income reference years: ECV survey wave N reports income earned in N-1.
+BASE_INCOME_YEAR <- 2023   # latest ADRH income year
 TARGET_INCOME_YEAR <- 2024 # income year we nowcast to
-BASE_SURVEY   <- BASE_INCOME_YEAR + 1
-TARGET_SURVEY <- TARGET_INCOME_YEAR + 1
 
 #-------------------------------------------------------------
-# 1. ECV mean equivalised income by CCAA (table 9947)
+# 1. ADRH: national mean equivalised income, year-on-year growth
+#    Population-weighted mean across municipalities observed in both
+#    years, so changes in ADRH coverage do not register as growth.
 #-------------------------------------------------------------
-print("Downloading ECV income by CCAA (table 9947)...")
+print("Loading ADRH municipal income and population...")
+
+adrh <- merge(
+  as.data.table(ineAtlas::get_atlas("income", "municipality"))[, .(mun_code, year, y = net_income_equiv)],
+  as.data.table(ineAtlas::get_atlas("demographics", "municipality"))[, .(mun_code, year, pop = population)],
+  by = c("mun_code", "year")
+)[!is.na(y) & !is.na(pop) & pop > 0]
+
+adrh_years <- sort(unique(adrh$year))
+adrh_growth <- rbindlist(lapply(adrh_years[-1], function(t) {
+  m <- merge(adrh[year == t - 1], adrh[year == t], by = "mun_code", suffixes = c("_0", "_1"))
+  data.table(
+    year = t,
+    g_adrh = weighted.mean(m$y_1, m$pop_1) / weighted.mean(m$y_0, m$pop_0) - 1
+  )
+}))
+
+#-------------------------------------------------------------
+# 2. ECV: national mean equivalised income (table 9947,
+#    "Renta media por unidad de consumo", without imputed rent)
+#-------------------------------------------------------------
+print("Downloading ECV national income (table 9947)...")
 
 ecv <- as.data.table(
-  get_data_table(idTable = 9947, nlast = 3, unnest = TRUE, tip = "A")
+  get_data_table(idTable = 9947, nlast = 25, unnest = TRUE, tip = "A")
 )
-
-# concept: "Renta media por unidad de consumo", "Total" (no imputed rent)
-ecv <- ecv[grepl("Renta media por unidad de consumo. Total", Nombre, fixed = TRUE) &
+ecv <- ecv[grepl("Total Nacional. Renta media por unidad de consumo. Total", Nombre, fixed = TRUE) &
            !grepl("alquiler", Nombre, fixed = TRUE)]
-ecv[, region := trimws(sub("\\. Renta media.*$", "", Nombre))]
+stopifnot(uniqueN(ecv$Anyo) == nrow(ecv))
 
-ecv_w <- dcast(ecv[Anyo %in% c(BASE_SURVEY, TARGET_SURVEY)],
-               region ~ Anyo, value.var = "Valor")
-setnames(ecv_w, as.character(c(BASE_SURVEY, TARGET_SURVEY)), c("inc_base", "inc_target"))
-ecv_w[, raw_factor := inc_target / inc_base]
-
-# ECV region name -> CCAA code (INE 2-digit)
-name2ccaa <- c(
-  "Andalucía" = "01", "Aragón" = "02", "Asturias, Principado de" = "03",
-  "Balears, Illes" = "04", "Canarias" = "05", "Cantabria" = "06",
-  "Castilla y León" = "07", "Castilla - La Mancha" = "08", "Cataluña" = "09",
-  "Comunitat Valenciana" = "10", "Extremadura" = "11", "Galicia" = "12",
-  "Madrid, Comunidad de" = "13", "Murcia, Región de" = "14",
-  "Navarra, Comunidad Foral de" = "15", "País Vasco" = "16", "Rioja, La" = "17",
-  "Ceuta" = "18", "Melilla" = "19"
-)
-ecv_w[, ccaa_code := name2ccaa[region]]
-
-nat_factor <- ecv_w[region == "Total Nacional", raw_factor]
-ccaa <- ecv_w[!is.na(ccaa_code), .(ccaa_code, ccaa_name = region, inc_base, inc_target, raw_factor)]
-
-stopifnot(nrow(ccaa) == 19)
+ecv <- ecv[, .(year = Anyo - 1L, ecv = Valor)][order(year)]
+ecv[, g_ecv := ecv / shift(ecv) - 1]
 
 #-------------------------------------------------------------
-# 2. Province -> CCAA crosswalk (INE 2-digit province codes)
+# 3. Ratio of administrative to survey growth, and the nowcast
 #-------------------------------------------------------------
-prov2ccaa <- c(
-  "01"="16","02"="08","03"="10","04"="01","05"="07","06"="11","07"="04",
-  "08"="09","09"="07","10"="11","11"="01","12"="10","13"="08","14"="01",
-  "15"="12","16"="08","17"="09","18"="01","19"="08","20"="16","21"="01",
-  "22"="02","23"="01","24"="07","25"="09","26"="17","27"="12","28"="13",
-  "29"="01","30"="14","31"="15","32"="12","33"="03","34"="07","35"="05",
-  "36"="12","37"="07","38"="05","39"="06","40"="07","41"="01","42"="07",
-  "43"="09","44"="02","45"="08","46"="10","47"="07","48"="16","49"="07",
-  "50"="02","51"="18","52"="19"
-)
+both <- merge(adrh_growth, ecv[!is.na(g_ecv)], by = "year")
+stopifnot(max(both$year) == BASE_INCOME_YEAR)
 
-#-------------------------------------------------------------
-# 3. ADRH income shares by CCAA (for the national calibration)
-#    National mean grows by the income-weighted average of the factors,
-#    with weights = total equivalised income by CCAA.
-#-------------------------------------------------------------
-print("Loading ADRH municipal income/population for calibration weights...")
+rho <- sum(both$g_adrh) / sum(both$g_ecv)
+g_ecv_target <- ecv[year == TARGET_INCOME_YEAR, g_ecv]
+stopifnot(length(g_ecv_target) == 1)
 
-atlas <- merge(
-  as.data.table(ineAtlas::get_atlas("income", "municipality")),
-  as.data.table(ineAtlas::get_atlas("demographics", "municipality"))
-)[year == BASE_INCOME_YEAR]
-atlas[, ccaa_code := prov2ccaa[prov_code]]
-atlas <- atlas[!is.na(net_income_equiv) & !is.na(population) & population > 0]
-
-ccaa_income <- atlas[, .(income_share_num = sum(population * net_income_equiv)),
-                     by = ccaa_code]
-ccaa <- merge(ccaa, ccaa_income, by = "ccaa_code")
-ccaa[, s_inc := income_share_num / sum(income_share_num)]
-
-# Calibration constant so income-weighted national growth == ECV national
-k <- nat_factor / ccaa[, sum(s_inc * raw_factor)]
-ccaa[, factor := raw_factor * k]
-
-achieved_nat <- ccaa[, sum(s_inc * factor)]
+growth <- rho * g_ecv_target
+factor <- 1 + growth
 
 #-------------------------------------------------------------
 # 4. Report
 #-------------------------------------------------------------
-report <- copy(ccaa)[order(-raw_factor)]
-report[, `:=`(raw_pct = round(100 * (raw_factor - 1), 2),
-              final_pct = round(100 * (factor - 1), 2))]
-cat("\nECV national growth (target):", round(100 * (nat_factor - 1), 3), "%\n")
-cat("Calibration constant k       :", round(k, 6), "\n")
-cat("Achieved national growth     :", round(100 * (achieved_nat - 1), 3),
-    "% (should equal target)\n\n")
-print(report[, .(ccaa_code, ccaa_name, raw_pct, final_pct)], row.names = FALSE)
+cat("\nNational year-on-year growth (%):\n")
+print(both[, .(year, adrh = round(100 * g_adrh, 2), ecv = round(100 * g_ecv, 2))], row.names = FALSE)
+cat(sprintf("\nrho = sum(ADRH) / sum(ECV), %d-%d : %.4f\n", min(both$year), max(both$year), rho))
+cat(sprintf("ECV growth %d -> %d             : %.2f%%\n", BASE_INCOME_YEAR, TARGET_INCOME_YEAR, 100 * g_ecv_target))
+cat(sprintf("Nowcast growth (rho x ECV)        : %.2f%%\n", 100 * growth))
 
 #-------------------------------------------------------------
-# 5. Save province-level lookup (one factor per province)
+# 5. Save
 #-------------------------------------------------------------
-prov_factors <- data.table(
-  prov_code = names(prov2ccaa),
-  ccaa_code = unname(prov2ccaa)
+nowcast <- data.table(
+  base_income_year = BASE_INCOME_YEAR,
+  target_income_year = TARGET_INCOME_YEAR,
+  first_year = min(both$year),
+  last_year = max(both$year),
+  rho = rho,
+  ecv_growth = g_ecv_target,
+  growth = growth,
+  factor = factor
 )
-prov_factors <- merge(prov_factors,
-                      ccaa[, .(ccaa_code, ccaa_name, raw_factor, factor)],
-                      by = "ccaa_code", all.x = TRUE)
-setcolorder(prov_factors, c("prov_code", "ccaa_code", "ccaa_name",
-                            "raw_factor", "factor"))
-setorder(prov_factors, prov_code)
 
-# Metadata attributes (documented in the file for downstream scripts)
-attr(prov_factors, "base_income_year")   <- BASE_INCOME_YEAR
-attr(prov_factors, "target_income_year") <- TARGET_INCOME_YEAR
-attr(prov_factors, "national_factor")    <- nat_factor
-
-write_fst(prov_factors, "data-raw/ccaa_growth.fst")
-cat("\nSaved data-raw/ccaa_growth.fst (", nrow(prov_factors), "provinces )\n")
+write_fst(nowcast, "data-raw/nowcast_factor.fst")
+cat("\nSaved data-raw/nowcast_factor.fst\n")

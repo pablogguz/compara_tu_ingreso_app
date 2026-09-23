@@ -2,7 +2,9 @@
 #-------------------------------------------------------------
 #* Author: Pablo Garcia Guzman
 #* Project: validation metrics for www.comaparatuingreso.es
-#* This script: calculates municipality-level stats
+#* This script: calculates municipality-level stats for the ADRH
+#*   base year (2023). 3c. apply_nowcast_mun_stats.r then nowcasts the
+#*   income column to 2024 and writes data/municipality_stats.fst.
 #-------------------------------------------------------------
 
 packages_to_load <- c(
@@ -38,17 +40,6 @@ atlas_income <- merge(
         prov_name, mun_name, net_income_equiv,
         net_income_pc, population
     )
-
-# Nowcast 2023 -> 2024 equivalised income with ECV CCAA factors (see 0d. ecv_nowcast.r)
-ccaa_growth <- read_fst("data-raw/ccaa_growth.fst") %>%
-    select(prov_code, nowcast_factor = factor)
-atlas_income <- atlas_income %>%
-    left_join(ccaa_growth, by = "prov_code") %>%
-    mutate(
-        nowcast_factor = coalesce(nowcast_factor, 1),
-        across(c(net_income_equiv, net_income_pc), ~ .x * nowcast_factor)
-    ) %>%
-    select(-nowcast_factor)
 
 atlas_income_sources <- get_atlas(
     "income_sources",
@@ -212,4 +203,4 @@ municipality_stats <- processed_data %>%
         pct_higher_ed_completed, ends_with("_is_imputed")
     )
 
-write.fst(municipality_stats, "data/municipality_stats.fst")
+write.fst(municipality_stats, "data-raw/municipality_stats_2023.fst")

@@ -111,18 +111,20 @@ where $\hat{y}_j$ is the predicted value under log-normality and $y_j$ is the ob
 
 \subsection{Nowcasting to the current year}
 
-The ADRH is published with a lag of roughly two years, so the most recent available edition refers to income year 2023. To compare users against a contemporaneous distribution, I project tract-level incomes forward to the latest year for which aggregate income growth is observed (2024) using the Spanish Living Conditions Survey (\textit{Encuesta de Condiciones de Vida}, ECV, the national component of EU-SILC). The ECV reports mean equivalised income (\textit{renta media por unidad de consumo}) by autonomous community, with survey wave $t+1$ referring to income earned in year $t$. For each autonomous community $c$, I compute the gross growth factor
+The ADRH is published with a lag of roughly two years, so the most recent edition refers to income year 2023. To compare users against a contemporaneous distribution, I project incomes forward to 2024 using the Spanish Living Conditions Survey (\textit{Encuesta de Condiciones de Vida}, ECV), the national component of EU-SILC, whose survey wave $t+1$ reports mean equivalised income (\textit{renta media por unidad de consumo}) earned in year $t$.
+
+Let $g^{\text{ADRH}}_t$ and $g^{\text{ECV}}_t$ denote the year-on-year growth of national mean equivalised income in each source, where the ADRH mean is the population-weighted average across the municipalities observed in both years. Survey and administrative growth rates need not coincide, so I measure by how much the ECV over- or understates growth in the administrative data over the years covered by both sources,
 
 \begin{equation}
-g_c = \frac{\bar{y}^{\,\text{ECV}}_{c,\,2024}}{\bar{y}^{\,\text{ECV}}_{c,\,2023}},
+\rho = \frac{\sum_{t=2016}^{2023} g^{\text{ADRH}}_t}{\sum_{t=2016}^{2023} g^{\text{ECV}}_t},
 \end{equation}
 
-and scale the income of every tract $j \in c$ by $g_c$. Because multiplying a log-normal variate by a constant shifts its location parameter, $\nu_j \mapsto \nu_j + \ln g_c$, while leaving the shape parameter $\sigma_j$ unchanged, this operation preserves within-tract inequality --- and hence the tract Gini coefficient --- and updates only the level of the distribution. The upscaling factor is applied identically to the income of every census tract and municipality within an autonomous community, so that the entire small-area distribution shifts up while its shape is preserved.
-
-To ensure that the implied national growth matches the aggregate ECV figure exactly, I rescale the community-level factors by a common constant,
+and nowcast income growth in 2024 as
 
 \begin{equation}
-\tilde{g}_c = k\, g_c, \qquad k = \frac{g_{\text{ES}}}{\sum_c s_c\, g_c},
+\hat{g}_{2024} = \rho \, g^{\text{ECV}}_{2024}.
 \end{equation}
 
-where $g_{\text{ES}}$ is the ECV national growth factor and $s_c$ is the share of autonomous community $c$ in aggregate equivalised income, computed from the ADRH. Since the national mean of the mixture grows by the income-weighted average of the community factors, this construction guarantees $\sum_c s_c\, \tilde{g}_c = g_{\text{ES}}$: the national mean is anchored to the ECV national figure while relative differences in regional income growth are retained. In the 2023--2024 application, national mean equivalised income grew by 5.4\%, with (calibrated) community-level factors ranging from $-1.1\%$ (Melilla) to $+8.3\%$ (Cantabria). This adjustment rests on two assumptions: that the year-on-year \emph{growth} of survey-based equivalised income is a good proxy for growth in the administrative (tax-based) measure within each region --- levels differ across the two sources, but growth rates are considerably more comparable --- and that within-area inequality is stable over the one-year horizon.
+Over 2016--2023 the ECV slightly overstates administrative income growth ($\rho = 0.93$). With ECV growth of 5.4\% in 2024, this implies that equivalised income grew by 5.1\%.
+
+I scale the income of every census tract by $1+\hat{g}_{2024}$. Because multiplying a log-normal variate by a constant shifts its location parameter, $\nu_j \mapsto \nu_j + \ln(1+\hat{g}_{2024})$, while leaving $\sigma_j$ unchanged, the adjustment updates the level of every small-area distribution and preserves its shape, and hence the tract Gini coefficients. The underlying assumption is that incomes grew at a common rate across areas and along the distribution over the one-year horizon.

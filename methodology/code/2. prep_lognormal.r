@@ -38,17 +38,15 @@ atlas_all <- merge(
 ) %>%
     filter(year == 2023)
 
-# Nowcast 2023 -> 2024 income using ECV CCAA growth factors (see 0d. ecv_nowcast.r).
+# Nowcast 2023 -> 2024 income with a single national factor (see 0d. ecv_nowcast.r).
 # Scaling income by a constant shifts each tract's log-normal in log-space
 # (mu -> mu + log(factor)) and leaves sigma (from the Gini) unchanged, so
 # within-area inequality is preserved and only the level moves to 2024.
-ccaa_growth <- read_fst("data-raw/ccaa_growth.fst") %>%
-    select(prov_code, nowcast_factor = factor)
+nowcast_factor <- read_fst("data-raw/nowcast_factor.fst")$factor
+stopifnot(length(nowcast_factor) == 1, is.finite(nowcast_factor))
 
 atlas_all <- atlas_all %>%
-    left_join(ccaa_growth, by = "prov_code") %>%
     mutate(
-        nowcast_factor = coalesce(nowcast_factor, 1),
         across(
             c(net_income_equiv, net_income_pc, median_income_equiv),
             ~ .x * nowcast_factor
@@ -231,14 +229,18 @@ provincial_percentiles <- atlas_params %>%
         # Recalculate weights within province
         data$weight <- data$population/sum(data$population)
         # Calculate percentiles
-        setNames(
-            as.list(sapply(seq(0.01, 0.99, 0.01), 
-                          function(p) mixture_quantile(p, data))),
-            paste0("p", 1:99)
+        # label each row with its own group key, so the column names can
+        # never drift from the order group_map() returns the groups in
+        c(
+            list(prov_code = group$prov_code),
+            setNames(
+                as.list(sapply(seq(0.01, 0.99, 0.01),
+                              function(p) mixture_quantile(p, data))),
+                paste0("p", 1:99)
+            )
         )
     }) %>%
     bind_rows() %>%
-    mutate(prov_code = unique(atlas_params$prov_code)) %>%
     data.table::transpose(keep.names = "percentile", make.names = "prov_code")
 
 # Calculate municipality-level percentiles
@@ -248,14 +250,18 @@ mun_percentiles <- atlas_params %>%
         # Recalculate weights within municipality
         data$weight <- data$population/sum(data$population)
         # Calculate percentiles
-        setNames(
-            as.list(sapply(seq(0.01, 0.99, 0.01), 
-                          function(p) mixture_quantile(p, data))),
-            paste0("p", 1:99)
+        # label each row with its own group key, so the column names can
+        # never drift from the order group_map() returns the groups in
+        c(
+            list(mun_code = group$mun_code),
+            setNames(
+                as.list(sapply(seq(0.01, 0.99, 0.01),
+                              function(p) mixture_quantile(p, data))),
+                paste0("p", 1:99)
+            )
         )
     }) %>%
     bind_rows() %>%
-    mutate(mun_code = unique(atlas_params$mun_code)) %>%
     data.table::transpose(keep.names = "percentile", make.names = "mun_code")
 
 #-------------------------------------------------------------
@@ -264,7 +270,10 @@ mun_percentiles <- atlas_params %>%
 
 print("Creating municipality lookup...")
 
-municipality_lookup <- atlas_year %>%
+# Only municipalities with an estimated distribution: a municipality whose
+# tracts all lack ADRH income or Gini has no percentiles, so it is left out
+# of the lookup rather than offered in the app without data.
+municipality_lookup <- atlas_params %>%
     select(mun_code, mun_name, prov_code, prov_name) %>%
     distinct() %>%
     mutate(
@@ -308,6 +317,7 @@ print(head(mun))
 print("\nSanity checks:")
 print(paste("Number of provinces:", ncol(prov) - 1))
 print(paste("Number of municipalities:", nrow(mun)))
+stopifnot(setequal(mun$mun_code, setdiff(names(read_fst("data/mun_percentiles.fst")), "percentile")))
 print(paste("Income range:", min(nat$value), "to", max(nat$value)))
 
 # Load the density curve data
