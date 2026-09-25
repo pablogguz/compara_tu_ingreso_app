@@ -726,6 +726,9 @@
 /* ---- loading ---- */
 
 .loading {
+  display: flex;
+  align-items: center;
+  gap: 22px;
   margin-top: 26px;
   padding: 30px 0 34px;
   border-top: 1px solid var(--ink);
@@ -740,29 +743,70 @@
   color: var(--ink-2);
 }
 
-.loadingBar {
+/* sixteen squares breathe in a diagonal wave while the blue one hops */
+.spinner {
+  --cell: 12px;
+  --gap: 4px;
+  --step: calc(var(--cell) + var(--gap));
   position: relative;
-  height: 1px;
-  margin-top: 22px;
-  background: var(--hair);
-  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, var(--cell));
+  gap: var(--gap);
 }
 
-.loadingBar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  width: 30%;
-  background: var(--you);
-  animation: sweep 1100ms var(--ease-fly) infinite;
+.spinSq {
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: 1.5px;
+  animation: spinWave 1300ms var(--ease) infinite;
+  animation-delay: calc(var(--d) * 95ms);
 }
 
-@keyframes sweep {
-  from {
-    transform: translateX(-100%);
+@keyframes spinWave {
+  0%,
+  55%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
-  to {
-    transform: translateX(340%);
+  28% {
+    transform: scale(0.42);
+    opacity: 0.5;
+  }
+}
+
+.spinYou {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cell);
+  height: var(--cell);
+  border-radius: 1.5px;
+  background: var(--you);
+  box-shadow: 0 0 0 2px var(--paper);
+  animation: spinHop 2600ms var(--ease-fly) infinite;
+}
+
+@keyframes spinHop {
+  0%,
+  16% {
+    transform: translate(calc(var(--step) * 1), calc(var(--step) * 2));
+  }
+  25%,
+  41% {
+    transform: translate(calc(var(--step) * 3), calc(var(--step) * 0));
+  }
+  50%,
+  66% {
+    transform: translate(calc(var(--step) * 0), calc(var(--step) * 1));
+  }
+  75%,
+  91% {
+    transform: translate(calc(var(--step) * 2), calc(var(--step) * 3));
+  }
+  100% {
+    transform: translate(calc(var(--step) * 1), calc(var(--step) * 2));
   }
 }
 
@@ -937,8 +981,13 @@
     animation: fadeOnly 240ms ease both;
   }
 
-  .loadingBar::after {
-    animation-duration: 2400ms;
+  .spinSq,
+  .spinYou {
+    animation: none;
+  }
+
+  .spinYou {
+    transform: translate(calc(var(--step) * 2), calc(var(--step) * 2));
   }
 }
 

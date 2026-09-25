@@ -184,7 +184,7 @@ describe('Ensayo', () => {
     fireEvent.keyDown(forty, { key: 'Enter' })
 
     // loading, then the story: 30 nationally, 60 in the province, 15 in the municipality
-    expect(await screen.findByText(/poniendo en fila/i)).toBeInTheDocument()
+    expect(await screen.findByText(/calculando/i)).toBeInTheDocument()
     const story = await screen.findByRole('region', { name: /dónde estás, paso a paso/i }, { timeout: 4000 })
 
     // the answers go to the research log (which itself checks cookie consent),

@@ -233,22 +233,40 @@ function Ensayo() {
   )
 }
 
+// the loading mark: sixteen people, lightest to darkest, and you hopping between them
+const SPINNER = Array.from({ length: 16 }, (_, k) => k)
+const SPINNER_COLOR = SPINNER.map((k) => {
+  const from = [0xe2, 0xe6, 0xec]
+  const to = [0x3f, 0x4c, 0x63]
+  return `rgb(${from.map((v, i) => Math.round(v + ((to[i] - v) * k) / 15)).join(',')})`
+})
+
 function Loading() {
   const ref = useRef<HTMLDivElement>(null)
-  // the questions it replaces were taller: keep the line in view
+  // the questions it replaces were taller: bring the section back to the top,
+  // so the mark sits where the questions were
   useEffect(() => {
     const el = ref.current
     if (!el) return
     const r = el.getBoundingClientRect()
     if (r.top < 0 || r.bottom > window.innerHeight) {
       const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-      el.scrollIntoView?.({ block: 'center', behavior: still ? 'auto' : 'smooth' })
+      ;(el.closest('section') ?? el).scrollIntoView?.({ block: 'start', behavior: still ? 'auto' : 'smooth' })
     }
   }, [])
   return (
     <div ref={ref} className={q.loading} role="status">
-      <p className={q.loadingLine}>Estamos poniendo en fila a toda la población de España, de menos a más ingresos…</p>
-      <div className={q.loadingBar} aria-hidden="true" />
+      <div className={q.spinner} aria-hidden="true">
+        {SPINNER.map((k) => (
+          <span
+            key={k}
+            className={q.spinSq}
+            style={{ background: SPINNER_COLOR[k], ['--d' as string]: (k % 4) + Math.floor(k / 4) } as React.CSSProperties}
+          />
+        ))}
+        <span className={q.spinYou} />
+      </div>
+      <p className={q.loadingLine}>Calculando…</p>
     </div>
   )
 }

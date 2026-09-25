@@ -434,6 +434,8 @@
 .stage {
   min-height: 100vh;
   min-height: 100svh;
+  /* the grid would stretch its one row to the full height */
+  align-content: start;
   padding-top: clamp(40px, 12vh, 120px);
   padding-bottom: 48px;
 }
