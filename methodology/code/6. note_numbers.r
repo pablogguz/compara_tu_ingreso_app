@@ -377,28 +377,39 @@ writeLines(c(
 ), "output/table_gini_cv.tex")
 
 #-------------------------------------------------------------
-# Nowcast (from 0d. ecv_nowcast.r) and its sensitivity
+# Nowcast (from 0d. nowcast.r), its sensitivity and its backtest
 #-------------------------------------------------------------
-b <- series[!is.na(g_adrh) & !is.na(g_ecv)]
-rho <- NOWCAST$rho; g_ecv <- NOWCAST$ecv_growth
-rho_last3 <- b[year > max(year) - 3, sum(g_adrh) / sum(g_ecv)]
-rho_excl  <- b[!year %in% 2020:2021, sum(g_adrh) / sum(g_ecv)]
-rho_orig  <- b[, sum(g_adrh * g_ecv) / sum(g_ecv^2)]
-loo <- sapply(seq_len(nrow(b)), function(i) b$g_adrh[i] - sum(b$g_adrh[-i]) / sum(b$g_ecv[-i]) * b$g_ecv[i])
-growths <- 100 * g_ecv * c(rho, rho_last3, rho_excl, rho_orig, 1)
+b <- series[!is.na(g_adrh) & !is.na(g_aeat)]
+ahead <- series[!is.na(g_nowcast)][order(year)]
+rho <- NOWCAST$rho
+cum <- function(r) 100 * (prod(1 + r * ahead$g_aeat) - 1)
+rho_last3 <- b[year > max(year) - 3, sum(g_adrh) / sum(g_aeat)]
+rho_excl  <- b[!year %in% 2020:2021, sum(g_adrh) / sum(g_aeat)]
+rho_orig  <- b[, sum(g_adrh * g_aeat) / sum(g_aeat^2)]
+growths <- sapply(c(rho, rho_last3, rho_excl, rho_orig, 1), cum)
+bt <- as.data.table(read_fst("data-raw/nowcast_backtest.fst"))
+target <- series[year == TARGET_YEAR]
 
 mac("NowcastFirstYear", as.character(NOWCAST$first_year))
 mac("NowcastLastYear", as.character(NOWCAST$last_year))
 mac("NowcastRho", num(rho, 2))
-mac("EcvGrowth", num(100 * g_ecv, 1))
+mac("NowcastMidYear", as.character(BASE_YEAR + 1))
+mac("NowcastGrowthMid", num(100 * ahead[year == BASE_YEAR + 1, g_nowcast], 1))
+mac("NowcastGrowthTarget", num(100 * ahead[year == TARGET_YEAR, g_nowcast], 1))
 mac("NowcastGrowth", num(100 * NOWCAST$growth, 1))
+mac("AeatNetTarget", num(100 * target$g_aeat, 1))
+mac("AeatGrossTarget", num(100 * target$g_aeat_gross, 1))
 mac("RhoLastThree", num(rho_last3, 2))
 mac("RhoExclCovid", num(rho_excl, 2))
 mac("RhoOrigin", num(rho_orig, 2))
 mac("NowcastGrowthMin", num(min(growths), 1))
 mac("NowcastGrowthMax", num(max(growths), 1))
-mac("NowcastLooMAE", num(100 * mean(abs(loo)), 2))
-mac("EcvRawMAE", num(100 * b[, mean(abs(g_adrh - g_ecv))], 2))
+mac("NowcastBtN", num(nrow(bt)))
+mac("NowcastBtFirst", as.character(min(bt$origin)))
+mac("NowcastBtLast", as.character(max(bt$origin)))
+mac("NowcastBtMAE", num(100 * mean(abs(bt$error)), 1))
+mac("NowcastBtMax", num(100 * max(abs(bt$error)), 1))
+mac("NowcastBtOneMAE", num(100 * mean(abs(bt$error_1y)), 1))
 
 #-------------------------------------------------------------
 # Variance decomposition (GB2 moments of log income)

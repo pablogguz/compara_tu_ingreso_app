@@ -10,14 +10,14 @@ This folder contains the scripts that build the income distributions used by [co
 1. Each census tract's distribution of income per consumption unit is a GB2 (generalized beta of the second kind), fitted by weighted minimum distance to the 13 indicators the ADRH publishes for the tract: median, mean, Gini, P80/P20 and the shares of the population below/above nine income thresholds. Published medians are treated as €700 intervals and values at INE's caps as censored. Tracts without published shares (under 500 residents) get pseudo-share targets from a regression prior, adjusted to their municipality's published shares.
 2. Tracts without these indicators (under 100 residents) get a log-normal: σ from a Gini imputed with an XGBoost model on tract demographics, log income and province dummies, location from the mean imputed from income per person.
 3. National, provincial and municipal distributions are population-weighted mixtures of their tracts; percentiles 1–99 are solved numerically.
-4. Incomes are nowcast from the latest ADRH year to the following one with ECV growth, scaled by the historical ratio of ADRH to ECV growth (every GB2 scale b → k·b).
+4. Incomes are nowcast from the latest ADRH year to the latest year in the Agencia Tributaria's annual tax revenue report, with the growth of household income (excluding capital gains, net of income tax, per person) in that report, scaled by the historical ratio of ADRH to AEAT growth (every GB2 scale b → k·b). A pseudo-real-time backtest measures the error.
 
 The note validates the result out of sample on what the fits do not target — the medians, Gini coefficients and P80/P20 ratios of national, provincial and municipal distributions, and tract shares left out of the fit in turn — and documents its limitations, chiefly a remaining understatement of the share of the population below €5,000.
 
 ## Data
 
 - _Atlas de Distribución de Renta de los Hogares_ ([ADRH](https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177088&menu=ultiDatos&idp=1254735976608)), INE: income, inequality, income-threshold shares and demographic indicators by census tract and municipality, loaded with [`ineAtlas`](https://github.com/pablogguz/ineAtlas); national and provincial totals from the INE API with [`ineapir`](https://github.com/es-ine/ineapir) (the national median behind the relative thresholds, and validation).
-- _Encuesta de Condiciones de Vida_ ([ECV](https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176807&menu=ultiDatos&idp=1254735976608)), INE table 9947: national mean income per consumption unit, used for the nowcast.
+- _Informe Anual de Recaudación Tributaria_ ([AEAT](https://sede.agenciatributaria.gob.es/Sede/estadisticas/recaudacion-tributaria/informe-anual.html)), table 2.1 "Rentas de los hogares e IRPF": national household income from tax sources and income tax accrued, used for the nowcast (cached in `data-raw/aeat_rentas_hogares_<year>.xlsx`); population from Eurostat (`nama_10_pe`).
 - INE annual population census, tract tables exported as CSV: education and place of birth, for the municipal context indicators shown in the app (not used in the estimation).
 
 ## Code
@@ -26,7 +26,7 @@ Scripts are run from this folder (paths such as `data/` and `data-raw/` are rela
 
 | Script | What it does | Output |
 |--------|--------------|--------|
-| `0d. ecv_nowcast.r` | Nowcast factor: ECV growth in the target year times ρ, the ratio of ADRH to ECV growth over the years both cover | `data-raw/nowcast_factor.fst`, `data-raw/nowcast_series.fst` |
+| `0d. nowcast.r` | Nowcast factor: AEAT household income growth in each year after the ADRH times ρ, the ratio of ADRH to AEAT growth over the years both cover; pseudo-real-time backtest | `data-raw/nowcast_factor.fst`, `data-raw/nowcast_series.fst`, `data-raw/nowcast_backtest.fst` |
 | `1. predict_gini_ml.r` | Imputes the Gini of tracts without one (for their log-normal) with XGBoost; compares it with OLS and a constant on the same cross-validation folds | `data-raw/gini_predicted.fst`, `data-raw/gini_model_cv.fst` |
 | `1b. fit_gb2.r` | Fits a GB2 to every tract with core indicators (weighted minimum distance to the 13 published indicators); log-normal fallback for the rest | `data/tract_fits.fst`, `data/tract_targets.fst`, `data/mun_shares.fst`, `data/gb2_fit_info.fst` |
 | `1c. gb2_holdout.r` | Leave-one-share-out validation of the GB2 fits (nine refits) | `data-raw/gb2_holdout.fst` |
@@ -57,4 +57,4 @@ runs `0d`, `1b`, `2`, `3a`, `3c`, the Arrow conversion, `5` and `6` (a few minut
 
 The note is built with `bash methodology/tex/build_note.sh` (needs a TeX distribution). Its numbers, tables and figures all come from the pipeline, so rebuilding it after the pipeline updates the note to the latest data. The build fails if any reference or citation is unresolved.
 
-When the ADRH and ECV publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d`, the census periods in `3a` if the tract tables are refreshed, and the reference year in the app's copy, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1`. R packages are installed by the scripts if missing (R 4.3 or later).
+When the ADRH or the AEAT annual report publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d`, the census periods in `3a` if the tract tables are refreshed, and `src/lib/years.ts` in the app, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1`. R packages are installed by the scripts if missing (R 4.3 or later).

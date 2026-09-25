@@ -12,7 +12,7 @@ This repository holds everything behind the site:
 1. For each of the ~37,000 census tracts, the ADRH reports net equivalised income (median and mean), the Gini coefficient, the P80/P20 ratio and the shares of population below or above nine income thresholds. Each tract's income distribution is modelled as a GB2 (generalised beta of the second kind) fitted by minimum distance to those thirteen statistics.
 2. Tracts for which the ADRH publishes no income statistics (almost all under 100 residents) get a log-normal whose Gini is imputed with a gradient-boosted model on tract characteristics.
 3. The tract distributions are combined, weighted by population, into national, provincial and municipal distributions, whose percentiles are solved numerically.
-4. The latest ADRH year (2023) is nowcast to 2024 with the growth of mean equivalised income in the Living Conditions Survey (ECV), scaled by how ECV growth has historically compared with ADRH growth.
+4. The latest ADRH year (2023) is nowcast to 2025 with the growth of household income in the tax data of the Agencia Tributaria (its annual tax revenue report, published about six months after each year), scaled by how that growth has historically compared with ADRH growth.
 5. In the browser, the user's household income is equivalised with the modified OECD scale and located in those distributions.
 
 The full method and its validation are in the [methodological note](methodology/tex/note.pdf).
@@ -56,7 +56,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for setting these up.
 
 ## Rebuilding the data
 
-Requires R (4.3 or later). The scripts install their own packages; the INE data is downloaded with [`ineAtlas`](https://github.com/pablogguz/ineAtlas) (ADRH) and [`ineapir`](https://github.com/es-ine/ineapir) (ECV).
+Requires R (4.3 or later). The scripts install their own packages; the INE data is downloaded with [`ineAtlas`](https://github.com/pablogguz/ineAtlas) (ADRH) and [`ineapir`](https://github.com/es-ine/ineapir) (validation totals); the nowcast downloads the Agencia Tributaria's table and Eurostat's population series.
 
 ```bash
 bash methodology/run_pipeline.sh

@@ -3,11 +3,11 @@
 #* Project: validation metrics for www.comparatuingreso.es
 #* This script: nowcasts the municipality statistics from the ADRH
 #*   base year to the target year by scaling equivalised income with the
-#*   national factor from 0d. ecv_nowcast.r. The census columns and the
+#*   national factor from 0d. nowcast.r. The census columns and the
 #*   *_is_imputed flags are left as they are.
 #*
 #* Input : data-raw/municipality_stats_<base year>.fst (3a. mun_stats.r)
-#*         data-raw/nowcast_factor.fst                (0d. ecv_nowcast.r)
+#*         data-raw/nowcast_factor.fst                (0d. nowcast.r)
 #* Output: data/municipality_stats.fst
 #-------------------------------------------------------------
 

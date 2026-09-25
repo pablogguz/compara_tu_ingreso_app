@@ -1,4 +1,5 @@
 import { displayPercentile, euro, headline, num, outOf100 } from '@/lib/format'
+import { INCOME_YEAR } from '@/lib/years'
 
 // The essay's own sentences and constants, built on the shared ones in
 // src/lib/format.ts.
@@ -33,9 +34,9 @@ export function householdText(adults: number, children: number): string {
   return `${a} y ${children} ${children === 1 ? 'menor' : 'menores'} de 14`
 }
 
-/** "3.200 € al mes en 2024, en 12 pagas" */
+/** "3.200 € al mes en 2025, en 12 pagas" */
 export function incomeText(monthly: number, periods: 12 | 14): string {
-  return `${num(monthly)} € al mes en 2024, en ${periods} pagas`
+  return `${num(monthly)} € al mes en ${INCOME_YEAR}, en ${periods} pagas`
 }
 
 /** The 5.000 € bins of the histogram: 18 of them over 0–90.000 €. */

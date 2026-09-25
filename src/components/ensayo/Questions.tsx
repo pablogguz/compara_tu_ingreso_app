@@ -5,6 +5,7 @@ import MunicipalitySearch from '@/components/ensayo/MunicipalitySearch'
 import { LIMITS, type Flow } from '@/hooks/useFlow'
 import { euro, num } from '@/lib/format'
 import { openHelp } from '@/components/HelpModal'
+import { INCOME_YEAR } from '@/lib/years'
 import GuessPicker from './GuessPicker'
 import Sidenote from './Sidenote'
 import { cx } from './copy'
@@ -238,23 +239,23 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
     v.state === 'invalid' || v.state === 'warning'
       ? { text: clean(v.message), error: v.state === 'invalid' }
       : v.state === 'empty' && attempted
-        ? { text: 'Escribe cuánto dinero entraba en tu hogar cada mes en 2024.', error: true }
+        ? { text: `Escribe cuánto dinero entraba en tu hogar cada mes en ${INCOME_YEAR}.`, error: true }
         : null
 
   return (
     <>
       <h3 className={q.qTitle}>
         <label htmlFor="ensayo-ingresos" id="ensayo-q-title">
-          ¿Cuánto dinero entraba en tu hogar cada mes en 2024?
+          ¿Cuánto dinero entraba en tu hogar cada mes en {INCOME_YEAR}?
         </label>
       </h3>
       <p className={cx(q.hint, q.hintNote)} id="ensayo-ingresos-hint">
         En neto, después de impuestos, y sumando lo de todas las personas que vivían contigo: nóminas, pensiones,
         prestaciones, alquileres, intereses… Sin contar ayudas de familiares que no vivan contigo ni ingresos no
         declarados.
-        <Sidenote n={1} title="¿Por qué 2024?">
+        <Sidenote n={1} title={`¿Por qué ${INCOME_YEAR}?`}>
           Es el año más reciente al que podemos llevar los datos de renta del INE. Si tus ingresos han cambiado desde
-          entonces, usa los de 2024 para comparar con lo mismo.
+          entonces, usa los de {INCOME_YEAR} para comparar con lo mismo.
         </Sidenote>
       </p>
 

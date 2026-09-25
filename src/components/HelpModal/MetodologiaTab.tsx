@@ -1,3 +1,5 @@
+import { ADRH_YEAR, INCOME_YEAR } from '@/lib/years'
+
 export default function MetodologiaTab() {
   return (
     <div className="help-content">
@@ -73,7 +75,7 @@ export default function MetodologiaTab() {
         <ul>
           <li>Para las secciones censales en las que el INE no publica indicadores de renta (un 5,5 % de las secciones, casi todas con menos de 100 habitantes y apenas un 0,3 % de la población), usamos una distribución log-normal con un índice de Gini estimado con un modelo de aprendizaje automático que usa como predictores variables sociodemográficas de la sección y su provincia.</li>
           <li>Los municipios con menos de 3.000 habitantes generalmente tienen sólo una sección censal. Estos municipios con sección censal única representan un 6% de la población a nivel nacional. En estos casos, la distribución municipal coincide con la distribución de la sección censal.</li>
-          <li>Los datos de renta del Atlas corresponden a 2023. Para actualizarlos a 2024, comparamos año a año el crecimiento de la renta media por unidad de consumo en España según el Atlas y según la Encuesta de Condiciones de Vida (ECV) del INE, lo que nos dice cuánto sobrestima o infraestima la ECV el crecimiento real. Aplicamos esa corrección al crecimiento que mide la ECV para 2024 y escalamos la renta de todas las secciones censales por el resultado. Como este ajuste multiplica todos los ingresos por un mismo factor, la desigualdad interna no varía: solo se actualiza el nivel. Por eso te pedimos tus ingresos de 2024.</li>
+          <li>Los datos de renta del Atlas corresponden a {ADRH_YEAR}. Para actualizarlos a {INCOME_YEAR}, comparamos año a año el crecimiento de la renta media por unidad de consumo en España según el Atlas y el de la renta neta de los hogares por persona que publica la Agencia Tributaria en su Informe Anual de Recaudación Tributaria, que sale de los mismos datos fiscales pero está disponible unos seis meses después de cada año. Esa comparación nos dice cuánto se desvía el crecimiento de la Agencia Tributaria del que acaba recogiendo el Atlas. Aplicamos esa corrección al crecimiento de cada año posterior y escalamos la renta de todas las secciones censales por el resultado. Aplicado en años anteriores, este método se desvió del Atlas publicado en torno a medio punto porcentual. Como este ajuste multiplica todos los ingresos por un mismo factor, la desigualdad interna no varía: solo se actualiza el nivel. Por eso te pedimos tus ingresos de {INCOME_YEAR}.</li>
         </ul>
       </div>
     </div>

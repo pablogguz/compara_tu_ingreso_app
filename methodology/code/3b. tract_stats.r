@@ -38,7 +38,7 @@ atlas_income <- merge(
         net_income_pc, population
     )
 
-# Nowcast base year -> target year income with the national factor (see 0d. ecv_nowcast.r)
+# Nowcast base year -> target year income with the national factor (see 0d. nowcast.r)
 nowcast_factor <- read_fst("data-raw/nowcast_factor.fst")$factor
 atlas_income <- atlas_income %>%
     mutate(across(c(net_income_equiv, net_income_pc), ~ .x * nowcast_factor))

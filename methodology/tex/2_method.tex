@@ -56,21 +56,21 @@ Cross-validation measures accuracy for tracts like those in the training sample,
 
 \subsection{Nowcasting}\label{sec:nowcast}
 
-The ADRH is published almost two years after the income year, so its latest edition refers to \BaseYear{}. To compare households with a distribution of the same year, I project incomes to \TargetYear{} with the ECV, whose wave $t+1$ reports mean income per consumption unit in year $t$.
+The ADRH is published almost two years after the income year, so its latest edition refers to \BaseYear{}. To compare households with a distribution of the same year, I project incomes to \TargetYear{} with the household income that the Agencia Tributaria reports in its annual tax revenue report, which comes from the same tax records as the ADRH and is available about six months after the end of the year. The indicator is gross household income excluding capital gains, net of the income tax accrued, per person.
 
-Let $g^{\text{ADRH}}_t$ and $g^{\text{ECV}}_t$ be the growth of national mean income per consumption unit in year $t$ in each source, the ADRH mean being the population-weighted average over the municipalities observed in both years. Survey and administrative growth rates need not coincide, so I measure how ECV growth has compared with ADRH growth over the years both cover,
+Let $g^{\text{ADRH}}_t$ and $g^{\text{AEAT}}_t$ be the growth of national mean income in year $t$ in each source, the ADRH mean being income per consumption unit, population-weighted over the municipalities observed in both years. The two measure slightly different things (the ADRH also deducts social contributions and divides by consumption units rather than people), so I measure how their growth rates have compared over the years both cover,
 \begin{equation}
-\rho = \frac{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{ADRH}}_t}{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{ECV}}_t},
+\rho = \frac{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{ADRH}}_t}{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{AEAT}}_t},
 \end{equation}
-and nowcast growth in \TargetYear{} as
+and nowcast growth in each year after \BaseYear{} as
 \begin{equation}
-\hat{g}_{\TargetYear} = \rho \, g^{\text{ECV}}_{\TargetYear}.
+\hat{g}_t = \rho \, g^{\text{AEAT}}_t, \qquad t = \NowcastMidYear, \TargetYear.
 \end{equation}
-Over \NowcastFirstYear--\NowcastLastYear{} the ECV slightly overstates administrative income growth ($\rho = \NowcastRho{}$). With ECV growth of \EcvGrowth{}\% in \TargetYear{}, the nowcast growth is \NowcastGrowth{}\%.
+Over \NowcastFirstYear--\NowcastLastYear{} the tax indicator grows slightly faster than ADRH income ($\rho = \NowcastRho{}$). Nowcast growth is \NowcastGrowthMid{}\% in \NowcastMidYear{} and \NowcastGrowthTarget{}\% in \TargetYear{}, \NowcastGrowth{}\% in total. Net income grows more slowly than gross income in \TargetYear{} (\AeatNetTarget{}\% against \AeatGrossTarget{}\% per person) because income-tax brackets are not indexed to inflation.
 
-I scale the income of every tract by $1+\hat{g}_{\TargetYear}$. Multiplying a GB2 variable by a constant multiplies its scale $b_j$ by that constant and leaves $a_j$, $p_j$ and $q_j$ unchanged (for a log-normal, it shifts $\nu_j$ by $\ln(1+\hat{g}_{\TargetYear})$ and leaves $\sigma_j$ unchanged), so the adjustment moves every distribution while preserving its shape and Gini coefficient. The underlying assumption is that incomes grew at a common rate across areas and along the distribution over one year.
+I scale the income of every tract by $(1+\hat{g}_{\NowcastMidYear})(1+\hat{g}_{\TargetYear})$. Multiplying a GB2 variable by a constant multiplies its scale $b_j$ by that constant and leaves $a_j$, $p_j$ and $q_j$ unchanged (for a log-normal, it shifts $\nu_j$ by the logarithm of the constant and leaves $\sigma_j$ unchanged), so the adjustment moves every distribution while preserving its shape and Gini coefficient. The underlying assumption is that incomes grew at a common rate across areas and along the distribution.
 
-The projection is uncertain. In leave-one-year-out validation, $\rho\, g^{\text{ECV}}_t$ misses $g^{\text{ADRH}}_t$ by \NowcastLooMAE{} percentage points on average, against \EcvRawMAE{} points for uncorrected ECV growth. The estimate of $\rho$ also depends on the window and the estimator: it is \RhoLastThree{} over the last three years, \RhoExclCovid{} excluding 2020 and 2021, and \RhoOrigin{} by least squares through the origin. Across these choices, including no correction, nowcast growth ranges from \NowcastGrowthMin{}\% to \NowcastGrowthMax{}\%.
+To measure the accuracy of the projection, I repeat it as it would have been made in the past. At each origin year $B$ from \NowcastBtFirst{} to \NowcastBtLast{}, I estimate $\rho$ with the ADRH up to $B$ only and predict the ADRH mean two years later. The prediction misses the published figure by \NowcastBtMAE{} percentage points on average, and by at most \NowcastBtMax{} points; one year ahead, by \NowcastBtOneMAE{} points. The estimate of $\rho$ also depends on the window and the estimator: it is \RhoLastThree{} over the last three years, \RhoExclCovid{} excluding 2020 and 2021, and \RhoOrigin{} by least squares through the origin. Across these choices, including no correction, total nowcast growth ranges from \NowcastGrowthMin{}\% to \NowcastGrowthMax{}\%.
 
 \subsection{Placing a household}\label{sec:placing}
 

@@ -135,7 +135,7 @@ describe('Ensayo', () => {
     next()
 
     // 2 · income: thousands dots, the year, validation
-    const income = await screen.findByRole('textbox', { name: /cuánto dinero entraba en tu hogar cada mes en 2024/i })
+    const income = await screen.findByRole('textbox', { name: /cuánto dinero entraba en tu hogar cada mes en 2025/i })
     fireEvent.change(income, { target: { value: '60000' } })
     expect(screen.getByRole('alert')).toHaveTextContent(/entre 1 y 50.000/)
     fireEvent.change(income, { target: { value: '2500' } })
@@ -226,7 +226,7 @@ describe('Ensayo', () => {
     expect(within(summary).getByRole('img', { name: /municipio de madrid: .*15\s% de la población del municipio de madrid/i })).toBeInTheDocument()
     const facts = within(summary).getByRole('region', { name: /así es madrid/i })
     expect(facts).toHaveTextContent(/21\.500\s€/)
-    expect(facts).toHaveTextContent(/renta media por unidad de consumo \(2024\)/i)
+    expect(facts).toHaveTextContent(/renta media por unidad de consumo \(2025\)/i)
     expect(facts).toHaveTextContent(/estudios superiores \(2023\)/i)
     expect(facts).toHaveTextContent(/nacidas en el extranjero \(2024, media provincial\)/i)
 

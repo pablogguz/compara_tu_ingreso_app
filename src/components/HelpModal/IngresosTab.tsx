@@ -1,8 +1,10 @@
+import { INCOME_YEAR } from '@/lib/years'
+
 export default function IngresosTab() {
   return (
     <div className="help-content">
       <h4>¿Qué ingresos debo incluir?</h4>
-      <p>Debes sumar todos los ingresos netos mensuales de tu hogar en 2024, incluyendo:</p>
+      <p>Debes sumar todos los ingresos netos mensuales de tu hogar en {INCOME_YEAR}, incluyendo:</p>
       <ul>
         <li>Salarios y nóminas</li>
         <li>Pensiones de cualquier tipo (jubilación, incapacidad, viudedad...)</li>
@@ -16,7 +18,7 @@ export default function IngresosTab() {
       <div className="help-alert mt-4">
         <p className="mb-2"><strong>Importante:</strong></p>
         <ul>
-          <li>Usa los ingresos de 2024, que es el año al que se refieren los datos con los que te comparamos</li>
+          <li>Usa los ingresos de {INCOME_YEAR}, que es el año al que se refieren los datos con los que te comparamos</li>
           <li>Incluye los ingresos de todos los miembros del hogar</li>
           <li>Los ingresos deben ser netos (después de impuestos y retenciones)</li>
           <li>Si algún ingreso es variable, puedes hacer una media mensual</li>

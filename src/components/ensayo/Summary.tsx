@@ -5,6 +5,7 @@ import type { Level, Stats } from '@/hooks/useLevels'
 import { smoothPath } from '@/lib/chartGeometry'
 import { euro, headline, num, pct, perceptionGap, shareText } from '@/lib/format'
 import { shareResult } from '@/lib/share'
+import { INCOME_YEAR } from '@/lib/years'
 import { findPercentile } from '@/lib/calculations'
 import { XMAX, contract, cx, levelPhrase, levelTitle } from './copy'
 import { curveInSquares, peakOf } from './geometry'
@@ -77,7 +78,7 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
             <Fact
               value={euro(stats.net_income_equiv)}
               label="Renta media por unidad de consumo"
-              year={2024}
+              year={INCOME_YEAR}
               imputed={stats.net_income_equiv_is_imputed === 1}
               imputedAs="estimada"
             />
@@ -112,7 +113,7 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
   )
 }
 
-/** "Renta media por unidad de consumo (2024)", or "(2024, estimada)" / "(2023, media provincial)" when imputed. */
+/** "Renta media por unidad de consumo (2025)", or "(2025, estimada)" / "(2023, media provincial)" when imputed. */
 function Fact({
   value,
   label,

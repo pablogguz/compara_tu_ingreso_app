@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Rebuild the app's data and the methodology note's numbers from the INE sources:
-#   ADRH + ECV  ->  methodology/data/*.fst  ->  public/data/*.arrow
+#   ADRH + AEAT  ->  methodology/data/*.fst  ->  public/data/*.arrow
 #               ->  methodology/output/ (figures, tables), methodology/tex/numbers.tex
 #
 # Usage (from anywhere):   bash methodology/run_pipeline.sh
@@ -21,7 +21,7 @@ mkdir -p data data-raw output
 
 run() { echo; echo "==> $1"; Rscript "code/$1"; }
 
-run "0d. ecv_nowcast.r"
+run "0d. nowcast.r"
 if [[ "${RUN_GINI_MODEL:-0}" == "1" ]]; then run "1. predict_gini_ml.r"; fi
 run "1b. fit_gb2.r"
 if [[ "${RUN_HOLDOUT:-0}" == "1" ]]; then run "1c. gb2_holdout.r"; fi
