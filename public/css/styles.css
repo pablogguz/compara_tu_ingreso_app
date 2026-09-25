@@ -1061,14 +1061,14 @@ html[data-nav='back'] .question-step {
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
-  min-height: 3rem;
-  padding: 0 1.45rem;
-  border-radius: var(--radius-pill);
+  min-height: 2.75rem;
+  padding: 0 1.2rem;
+  border-radius: 3px;
   border: 1px solid transparent;
   font-family: var(--font-ui);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -1076,149 +1076,67 @@ html[data-nav='back'] .question-step {
   -webkit-tap-highlight-color: transparent;
   appearance: none;
   text-decoration: none;
-  overflow: hidden;
-  isolation: isolate;
   transition:
-    transform 220ms var(--ease-spring),
-    box-shadow 220ms var(--ease),
-    background-color 200ms var(--ease),
-    border-color 200ms var(--ease),
-    color 200ms var(--ease),
-    filter 200ms var(--ease);
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .btn > * {
   position: relative;
-  z-index: 1;
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 3px;
+  outline: 2px solid #2458c6;
+  outline-offset: 2px;
 }
 
 .btn:disabled,
 .btn[aria-disabled='true'] {
   cursor: not-allowed;
-}
-
-/* Primary — brand gradient with an inner highlight and a hover sheen sweep */
-.btn--primary {
-  background: var(--btn-grad);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 2px rgba(15, 23, 42, 0.12),
-    0 8px 20px -6px var(--btn-grad-shadow);
-}
-
-.btn--primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 55%);
-  pointer-events: none;
-}
-
-.btn--primary::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -130%;
-  width: 55%;
-  height: 100%;
-  z-index: 0;
-  background: var(--btn-sheen);
-  transform: skewX(-18deg);
-  transition: left 650ms var(--ease);
-  pointer-events: none;
-}
-
-.btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: var(--btn-grad-hover);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.32),
-    0 1px 2px rgba(15, 23, 42, 0.12),
-    0 14px 30px -8px var(--btn-grad-shadow-strong);
-}
-
-.btn--primary:hover:not(:disabled)::after {
-  left: 140%;
-}
-
-.btn--primary:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 6px 14px -6px var(--btn-grad-shadow);
-}
-
-.btn--primary:disabled {
-  background: rgba(148, 163, 184, 0.38);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-.btn--primary:disabled::before,
-.btn--primary:disabled::after {
-  display: none;
-}
-
-/* Secondary — glass pill */
-.btn--secondary {
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--ink-soft);
-  border-color: rgba(15, 23, 42, 0.1);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 1px 2px rgba(15, 23, 42, 0.05);
-}
-
-.btn--secondary:hover:not(:disabled) {
-  background: #ffffff;
-  border-color: rgba(88, 162, 236, 0.45);
-  color: var(--ink);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 8px 18px -8px rgba(15, 23, 42, 0.18);
-}
-
-.btn--secondary:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-}
-
-.btn--secondary:disabled {
   opacity: 0.5;
 }
 
-/* Ghost — text-only */
+/* Primary — the essay's blue, flat */
+.btn--primary {
+  background: #2458c6;
+  border-color: #2458c6;
+  color: #ffffff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: #1b4499;
+  border-color: #1b4499;
+}
+
+/* Secondary — a hairline outline */
+.btn--secondary {
+  background: transparent;
+  border-color: #cdc9c0;
+  color: #1a1d23;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: #1a1d23;
+}
+
+/* Ghost — text only */
 .btn--ghost {
   background: transparent;
-  color: var(--muted-foreground);
+  color: #4e5561;
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.05);
-  color: var(--ink);
-}
-
-.btn--ghost:active:not(:disabled) {
-  transform: scale(0.98);
+  color: #1a1d23;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Sizes */
 .btn--sm {
   min-height: 2.5rem;
-  padding: 0 1.05rem;
-  font-size: 0.875rem;
+  padding: 0 1rem;
+  font-size: 0.9rem;
 }
 
 .btn--xl {

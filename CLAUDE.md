@@ -89,7 +89,7 @@ When the ADRH (each autumn) or the AEAT annual report (each spring/summer) publi
 
 ## App architecture
 
-The site is one page: an explorable essay ("Ensayo"). An opening, four questions, then a scrollytelling figure in which a hundred squares (Spain as 100 people) become the income distribution, then a summary at the three levels. Help (data, method, FAQ) is the HelpModal.
+The site is one page: an explorable essay ("Ensayo"). An opening, an intro screen with one question and a "Comenzar" button, the four questions (alone on the screen), then a scrollytelling figure in which a hundred squares (Spain as 100 people) become the income distribution, then a summary at the three levels. Help (data, method, FAQ) is the HelpModal.
 
 ```
 src/
@@ -137,6 +137,7 @@ src/
 ### The essay
 
 - **Opening.** A full-screen title ("Descubre tu posición en la distribución de la renta", rising word by word) and the earlier site's subtitle over `HeroField.tsx`: a canvas where ~2.800 dots (fewer on phones) gather as a crowd, flow into piles by income using the real national percentiles, get the density curve drawn over them, and a blue "¿Tú?" walks along the curve. A scroll cue follows: the essay starts when you scroll. The canvas draws nothing without IntersectionObserver (tests) and only the last frame with reduced motion.
+- **Intro** (`#introduccion`): a screen of its own with "Si pusiéramos en fila…", a "Comenzar" button and "Las cuentas se hacen en tu navegador". The questions section is not rendered until "Comenzar"; it then scrolls in, focuses the first field and takes a full screen (`.stage`, min-height 100svh) while it is being answered, with only a visually hidden heading. The story and summary are numbered 1 and 2. The hero title is not `text-wrap: balance`d: with its inline-block words, WebKit sometimes broke it one word per line.
 - **Questions** (`Questions.tsx`): municipality, monthly net household income **in `INCOME_YEAR`** (2025, the year the distributions are nowcast to; `src/lib/years.ts`) with 12/14 pagas, household (people aged 14+ and under 14), and the guess: "how many of 100 people have less income than you", picked on a 10×10 grid or a slider (1–99, no default). `useFlow().calculate()` runs `computeResults` with a minimum loading beat.
 - **Squares.** A result p means p % of people are below you, so p squares are dark, yours (blue) is square p+1 in reading order, and 99−p are light. The guess g works the same way: the dashed ochre square is g+1. Never number the user's square in copy; talk about people below.
 - **Story** (`Story.tsx` + `Figure.tsx`): one sticky figure, nine steps. Grid → sorted → guess → you → histogram (each square at its percentile's income, 5.000 € bins to 90.000 €) → national curve scaled to the squares' area → guess and income lines ("Tu predicción", "Tu hogar") → province (no median line there) → municipality, whose median is named by place ("Mediana de Aranjuez: …"). From the lines step on, every chart (the story's and the summary's three) shows both "Tu predicción" and "Tu hogar". A "Saltar al resumen" link sits under the story's heading. Without IntersectionObserver (tests) the figure shows the final state; with reduced motion, squares cross-fade instead of moving.

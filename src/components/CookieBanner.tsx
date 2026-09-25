@@ -38,9 +38,6 @@ export default function CookieBanner() {
       aria-label="Consentimiento de cookies"
     >
       <div className="cookie-banner__inner">
-        <span className="cookie-banner__icon" aria-hidden="true">
-          <i className="fas fa-cookie-bite"></i>
-        </span>
         <p className="cookie-banner__text">
           Usamos cookies para mejorar tu experiencia y guardamos tus respuestas
           de forma anónima con fines de investigación académica.
@@ -49,7 +46,7 @@ export default function CookieBanner() {
           <button
             type="button"
             onClick={handleReject}
-            className="btn btn--ghost btn--sm"
+            className="btn btn--secondary btn--sm"
           >
             Rechazar
           </button>

@@ -122,6 +122,10 @@ describe('Ensayo', () => {
     // the essay speaks of people, and keeps what it compares with to itself
     expect(screen.getByText(/de la que tiene menos ingresos a la que más/i)).toBeInTheDocument()
 
+    // the questions wait for "Comenzar", then have the screen to themselves
+    expect(screen.queryByRole('combobox', { name: /en qué municipio vives/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /comenzar/i }))
+
     // 1 · municipality: required, chosen from the list with Enter
     await screen.findByRole('heading', { name: /en qué municipio vives/i })
     next()
@@ -241,6 +245,7 @@ describe('Ensayo', () => {
     vi.mocked(loadNationalPercentiles).mockRejectedValueOnce(new Error('offline'))
     const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<EnsayoApp />)
+    fireEvent.click(screen.getByRole('button', { name: /comenzar/i }))
     const combo = await screen.findByRole('combobox', { name: /en qué municipio vives/i })
     fireEvent.focus(combo)
     fireEvent.change(combo, { target: { value: 'madrid' } })

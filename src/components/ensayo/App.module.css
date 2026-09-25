@@ -250,6 +250,12 @@
   max-width: none;
 }
 
+/* Balancing a line of inline-block words (the rising title) sometimes leaves
+   one word per line in WebKit, depending on when the font arrives. */
+.heroBody > .title {
+  text-wrap: wrap;
+}
+
 .flow > .scrollCue {
   grid-column: text;
   justify-self: center;
@@ -383,42 +389,53 @@
   font-weight: 560;
 }
 
-/* ---- figure 1: the hook ---- */
+/* ---- the intro: one question and a way in ---- */
 
-.hook {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 28px;
-  align-items: end;
-  margin: 44px 0 40px;
+.intro {
+  /* a screen of its own between the opening and the questions */
+  min-height: 78vh;
+  min-height: 78svh;
+  align-content: center;
+  padding: 72px 0;
 }
 
-.hookGrid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 4px;
-  width: 196px;
+.introLead {
+  font-size: clamp(24px, 1rem + 1.3vw, 32px);
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'SOFT' 50, 'WONK' 0;
+  text-wrap: pretty;
 }
 
-.hookSq {
-  aspect-ratio: 1;
-  border-radius: 1.5px;
-  background: var(--above);
-  animation: hookIn 700ms var(--ease) both;
-  animation-delay: calc(var(--i) * 9ms + 200ms);
+.introSub {
+  margin-top: 18px;
+  font-size: clamp(18px, 0.95rem + 0.3vw, 21px);
+  color: var(--ink-2);
+  text-wrap: pretty;
 }
 
-.hookSqYou {
-  background: transparent;
-  outline: 1.5px solid var(--ink);
-  outline-offset: -1.5px;
+.introActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 22px;
+  margin-top: 36px;
 }
 
-@keyframes hookIn {
-  from {
-    opacity: 0;
-    transform: scale(0.6);
-  }
+.introNote {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+/* ---- the questions: alone on the screen while you answer ---- */
+
+.stage {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: clamp(40px, 12vh, 120px);
+  padding-bottom: 48px;
 }
 
 .caption {
@@ -432,18 +449,6 @@
 .caption b {
   font-weight: 650;
   color: var(--ink-2);
-}
-
-@media (max-width: 520px) {
-  .hook {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    margin: 36px 0 32px;
-  }
-
-  .hookGrid {
-    width: min(230px, 64vw);
-  }
 }
 
 /* ---- sidenotes: in the margin from 1180px, tap-to-open below ---- */
@@ -649,7 +654,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hookSq,
   .noteOpen {
     animation: none;
   }

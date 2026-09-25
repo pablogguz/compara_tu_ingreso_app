@@ -19,7 +19,8 @@ import { useReducedMotion } from './hooks'
 import a from './App.module.css'
 import q from './Questions.module.css'
 
-// The site: an explorable essay. Opening and four questions; then a
+// The site: an explorable essay. An opening, one question and a way in
+// ("Comenzar"); then the four questions, alone on the screen; then a
 // scrollytelling figure where your hundred squares become the income curve;
 // then a summary. Help (data, method, FAQ) lives in the HelpModal.
 //
@@ -40,12 +41,14 @@ export default function EnsayoApp() {
   )
 }
 
-const HUNDRED = Array.from({ length: 100 }, (_, i) => i)
 const TITLE = 'Descubre tu posición en la distribución de la renta'
 
 function Ensayo() {
   const flow = useFlow({ logResponses: true })
   const [step, setStep] = useState(0)
+  // the questions appear once the reader asks for them
+  const [started, setStarted] = useState(false)
+  const scrollOnStart = useRef(false)
   // the guess has no default on screen: the reader has to choose
   const [guessTouched, setGuessTouched] = useState(false)
   const reduced = useReducedMotion()
@@ -71,6 +74,22 @@ function Ensayo() {
     },
     [reduced]
   )
+
+  const start = () => {
+    if (started) {
+      toQuestions(true)
+      return
+    }
+    scrollOnStart.current = true
+    setStarted(true)
+  }
+
+  // once the questions have mounted, bring them in and focus the first one
+  useEffect(() => {
+    if (!started || !scrollOnStart.current) return
+    scrollOnStart.current = false
+    toQuestions(true)
+  }, [started, toQuestions])
 
   const toIntro = () =>
     document.getElementById('introduccion')?.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
@@ -123,58 +142,57 @@ function Ensayo() {
           </button>
         </header>
 
-        <section id="introduccion" className={cx(a.flow, a.prose)} aria-label="Introducción">
-          <figure className={a.hook} aria-labelledby="ensayo-fig1">
-            <div className={a.hookGrid} aria-hidden="true">
-              {HUNDRED.map((i) => (
-                <span key={i} className={a.hookSq} style={{ ['--i' as string]: i } as React.CSSProperties} />
-              ))}
-            </div>
-            <figcaption className={a.caption} id="ensayo-fig1">
-              <b>Figura 1.</b> España, reducida a cien personas. Cada cuadrado es el 1 % de la población. Tú estás en
-              uno de ellos.
-            </figcaption>
-          </figure>
-
-          <div className={a.text}>
-            <p>
+        <section id="introduccion" className={cx(a.flow, a.intro)} aria-label="Introducción">
+          <div>
+            <p className={a.introLead}>
               Si pusiéramos en fila a todas las personas que viven en España, de la que tiene menos ingresos a la que
               más, ¿en qué punto de la fila estarías tú?
             </p>
-            <p>Con cuatro preguntas sobre tu hogar, puedes descubrir en qué punto de la fila te encuentras tú.</p>
+            <p className={a.introSub}>
+              Con cuatro preguntas sobre tu hogar, puedes descubrir en qué punto de la fila te encuentras tú.
+            </p>
+            <div className={a.introActions}>
+              <button type="button" className={a.btn} onClick={start}>
+                Comenzar
+                <span className={a.btnArrow} aria-hidden="true">
+                  →
+                </span>
+              </button>
+              <span className={a.introNote}>Las cuentas se hacen en tu navegador.</span>
+            </div>
           </div>
         </section>
 
-        <section id="preguntas" className={cx(a.flow, a.section)} aria-labelledby="ensayo-preguntas">
-          <div className={a.sectionHead}>
-            <span className={a.secNum}>1</span>
-            <h2 className={a.h2} id="ensayo-preguntas">
+        {started && (
+          <section
+            id="preguntas"
+            className={cx(a.flow, a.section, !done && a.stage)}
+            aria-labelledby="ensayo-preguntas"
+          >
+            <h2 className={a.srOnly} id="ensayo-preguntas">
               Cuatro preguntas
             </h2>
-          </div>
-          <p className={a.lede}>
-            Las cuentas se hacen en tu navegador.
-          </p>
 
-          {flow.status === 'calculating' ? (
-            <Loading />
-          ) : done ? (
-            <Record flow={flow} onEdit={again} />
-          ) : (
-            <Questions
-              flow={flow}
-              step={step}
-              onStep={setStep}
-              guessTouched={guessTouched}
-              onGuess={(n) => {
-                flow.set('perceivedPercentile', n)
-                setGuessTouched(true)
-              }}
-              onCalculate={calculate}
-              error={flow.status === 'error' ? flow.error : null}
-            />
-          )}
-        </section>
+            {flow.status === 'calculating' ? (
+              <Loading />
+            ) : done ? (
+              <Record flow={flow} onEdit={again} />
+            ) : (
+              <Questions
+                flow={flow}
+                step={step}
+                onStep={setStep}
+                guessTouched={guessTouched}
+                onGuess={(n) => {
+                  flow.set('perceivedPercentile', n)
+                  setGuessTouched(true)
+                }}
+                onCalculate={calculate}
+                error={flow.status === 'error' ? flow.error : null}
+              />
+            )}
+          </section>
+        )}
 
         {done && (
           <ErrorBoundary label="ensayo-resultados">

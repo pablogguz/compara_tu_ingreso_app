@@ -95,7 +95,7 @@ interface FigureProps {
   guessValue: number
   reduced: boolean
   compact: boolean
-  /** "Figura 2" */
+  /** "Figura 1" */
   number: string
 }
 
@@ -141,9 +141,9 @@ export default function Figure({ step, levels, you, below, guess, income, guessV
   }
 
   return (
-    <figure className={s.figure} aria-labelledby="ensayo-fig2-caption">
+    <figure className={s.figure} aria-labelledby="ensayo-fig1-caption">
       <div className={s.head}>
-        <p className={s.caption} id="ensayo-fig2-caption">
+        <p className={s.caption} id="ensayo-fig1-caption">
           <span className={s.figNum}>{number}</span>
           <span className={s.captionText} key={step}>
             {captionFor(step, levels)}

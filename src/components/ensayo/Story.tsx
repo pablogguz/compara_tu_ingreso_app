@@ -65,7 +65,7 @@ export default function Story({ levels, rawNational, guess, income, guessValue }
     <section className={cx(a.flow, s.story)} aria-labelledby="ensayo-historia">
       <header className={s.head}>
         <div className={a.sectionHead}>
-          <span className={a.secNum}>2</span>
+          <span className={a.secNum}>1</span>
           <h2 className={a.h2} id="ensayo-historia" tabIndex={-1}>
             Dónde estás, paso a paso
           </h2>
@@ -91,7 +91,7 @@ export default function Story({ levels, rawNational, guess, income, guessValue }
               guessValue={guessValue}
               reduced={reduced}
               compact={compact}
-              number="Figura 2"
+              number="Figura 1"
             />
           </div>
           <p className={a.srOnly} aria-live="polite" aria-atomic="true">

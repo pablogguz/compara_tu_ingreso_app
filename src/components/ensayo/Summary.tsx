@@ -47,7 +47,7 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
   return (
     <section id="resumen" className={cx(a.flow, a.section, s.summary)} aria-labelledby="ensayo-resumen">
       <div className={a.sectionHead}>
-        <span className={a.secNum}>3</span>
+        <span className={a.secNum}>2</span>
         <h2 className={a.h2} id="ensayo-resumen">
           Tu resumen
         </h2>
@@ -56,14 +56,14 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
         {headline(national.rawPercentile, 'España')}. {gap.sentence}
       </p>
 
-      <figure className={cx(a.wide, s.figure)} aria-labelledby="ensayo-fig3">
+      <figure className={cx(a.wide, s.figure)} aria-labelledby="ensayo-fig2">
         <div className={s.minis}>
           {levels.map((l, i) => (
             <Mini key={l.key} level={l} values={curves[i]} peak={peak} income={income} guessValue={guessValue} />
           ))}
         </div>
-        <figcaption className={cx(a.caption, s.caption)} id="ensayo-fig3">
-          <b>Figura 3.</b> La renta de tu hogar (en azul) y tu predicción (en ocre) en las tres distribuciones, a la
+        <figcaption className={cx(a.caption, s.caption)} id="ensayo-fig2">
+          <b>Figura 2.</b> La renta de tu hogar (en azul) y tu predicción (en ocre) en las tres distribuciones, a la
           misma escala. La línea de puntos marca la mediana de cada una. Pasa el ratón o el dedo por una curva para ver en qué percentil estaría
           cada renta.
         </figcaption>
