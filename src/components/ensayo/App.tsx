@@ -153,7 +153,7 @@ function Ensayo() {
             </h2>
           </div>
           <p className={a.lede}>
-            Una cada vez. Las cuentas se hacen en tu navegador.
+            Las cuentas se hacen en tu navegador.
           </p>
 
           {flow.status === 'calculating' ? (
