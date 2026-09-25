@@ -35,13 +35,13 @@ export default function DatosTab() {
           <li>Los datos son anónimos y se presentan agregados por zonas geográficas</li>
           <li>Se excluye la población que reside en establecimientos colectivos (e.g. residencias de mayores, cuarteles, prisiones, etc.)</li>
           <li>Los datos se basan en registros administrativos oficiales, no en encuestas</li>
-          <li>La cobertura es muy alta: más del 98.6% de la población reside en hogares con algún tipo de renta en el territorio fiscal común (datos de 2016)</li>
+          <li>La cobertura es muy alta: más del 98,6 % de la población reside en hogares con algún tipo de renta en el territorio fiscal común (datos de 2016)</li>
         </ul>
       </div>
 
       <div className="help-alert mt-4">
         <p className="mb-2"><strong>El Censo</strong></p>
-        <p>Para calcular algunas de las estadísticas a nivel municipal disponibles en el panel de resultados, utilizamos datos del Censo Anual de Población del INE. Estos datos son independientes de los datos de renta y se utilizan para calcular indicadores como el porcentaje de población extranjera o los niveles de educación.</p>
+        <p>Para calcular algunas de las estadísticas a nivel municipal que mostramos en el resumen, utilizamos datos del Censo Anual de Población del INE. Estos datos son independientes de los datos de renta y se utilizan para calcular indicadores como el porcentaje de población extranjera o los niveles de educación.</p>
         <p>
           Puedes consultar más información sobre el Censo{' '}
           <a href="https://www.ine.es/dyngs/INEbase/operacion.htm?c=Estadistica_C&cid=1254736176992&menu=resultados&idp=1254735572981#_tabs-1254736195811" target="_blank" rel="noopener noreferrer">
@@ -53,7 +53,7 @@ export default function DatosTab() {
       <div className="help-note mt-4">
         <p>
           <strong>Nota: </strong>
-          No todos los indicadores que se muestran en las tarjetas de colores en el panel de resultados están disponibles para todos los municipios. En los casos en los que no haya datos disponibles, se mostrará la media provincial.
+          No todos los indicadores del municipio que mostramos en el resumen están disponibles para todos los municipios. Si el INE no publica la renta media por unidad de consumo de un municipio, la estimamos a partir de su renta por persona y la marcamos como «estimada». Si faltan los datos de educación o de población extranjera, mostramos la media provincial.
         </p>
       </div>
     </div>

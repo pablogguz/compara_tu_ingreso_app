@@ -3,39 +3,27 @@
 import { useEffect, useState } from 'react'
 import { getCookieConsent, setCookieConsent, initGA } from '@/lib/analytics'
 
-interface CookieBannerProps {
-  /** Always show, and let the buttons only dismiss it: no stored consent, no
-   *  analytics (used by the /mocks screens). */
-  preview?: boolean
-}
-
-export default function CookieBanner({ preview = false }: CookieBannerProps) {
+export default function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    if (preview) {
-      setShowBanner(true)
-      return
-    }
     const consent = getCookieConsent()
     if (consent === null) {
       setShowBanner(true)
     } else if (consent === 'accepted') {
       initGA(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '')
     }
-  }, [preview])
+  }, [])
 
   const handleAccept = () => {
-    if (preview) return setShowBanner(false)
     setCookieConsent('accepted')
     setShowBanner(false)
     initGA(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '')
   }
 
   const handleReject = () => {
-    if (preview) return setShowBanner(false)
     setCookieConsent('rejected')
     setShowBanner(false)
   }

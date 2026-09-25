@@ -61,3 +61,7 @@ methodology/tex/*.out
 .Rhistory
 .RData
 .Rproj.user/
+
+# Method comparison: kept locally, not published
+methodology/research/
+methodology/method_comparison.md

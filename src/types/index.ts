@@ -49,15 +49,6 @@ export interface MunicipalityStats {
   pct_foreign_born_is_imputed: number;
 }
 
-export interface UserInput {
-  municipality: string
-  monthlyIncome: number
-  adults: number
-  children: number
-  perceivedPercentile: number
-  calculationPromise?: Promise<CalculatedResults>
-}
-
 export interface CalculatedResults {
   equiv_income: number;
   national_percentile: number;
@@ -65,8 +56,6 @@ export interface CalculatedResults {
   municipal_percentile: number;
   selected_prov: string;
 }
-
-export type ViewType = 'national' | 'provincial' | 'municipal';
 
 export interface ResponseData {
   timestamp: string;

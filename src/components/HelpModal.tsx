@@ -34,9 +34,17 @@ const TAB_CONTENT: Record<TabId, () => JSX.Element> = {
 }
 
 interface HelpModalProps {
-  /** Start with the dialog open (used by the /mocks screens). */
+  /** Start with the dialog open (used by the tests). */
   defaultOpen?: boolean
   defaultTab?: TabId
+}
+
+const OPEN_EVENT = 'cti:open-help'
+
+/** Opens the help dialog, optionally on a given tab. The page links to it from
+ *  its header and its closing line; there is no floating button. */
+export function openHelp(tab?: HelpTabId) {
+  window.dispatchEvent(new CustomEvent<HelpTabId | undefined>(OPEN_EVENT, { detail: tab }))
 }
 
 export default function HelpModal({ defaultOpen = false, defaultTab = 'datos' }: HelpModalProps) {
@@ -44,6 +52,22 @@ export default function HelpModal({ defaultOpen = false, defaultTab = 'datos' }:
   const [activeTab, setActiveTab] = useState<TabId>(defaultTab)
 
   const close = useCallback(() => setIsOpen(false), [])
+
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const tab = (e as CustomEvent<HelpTabId | undefined>).detail
+      if (tab) setActiveTab(tab)
+      setIsOpen(true)
+    }
+    window.addEventListener(OPEN_EVENT, onOpen)
+    return () => window.removeEventListener(OPEN_EVENT, onOpen)
+  }, [])
+
+  // on narrow screens the tab strip scrolls: keep the active tab in view
+  useEffect(() => {
+    if (!isOpen) return
+    document.getElementById(`help-tab-${activeTab}`)?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+  }, [isOpen, activeTab])
 
   // Escape closes; body scroll is locked while open.
   useEffect(() => {
@@ -64,17 +88,6 @@ export default function HelpModal({ defaultOpen = false, defaultTab = 'datos' }:
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="help-btn"
-        aria-label="Ayuda"
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-      >
-        <i className="fas fa-question-circle" aria-hidden="true"></i>
-      </button>
-
       {isOpen && (
         <div className="modal-overlay" onClick={close}>
           <div

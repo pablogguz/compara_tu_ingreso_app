@@ -38,9 +38,11 @@ describe('findPercentile', () => {
   // Synthetic 99-element ascending array: [1000, 2000, 3000, ..., 99000]
   const percentiles = Array.from({ length: 99 }, (_, i) => (i + 1) * 1000)
 
-  it('returns 1 for values at or below the lowest percentile', () => {
-    expect(findPercentile(500, percentiles)).toBe(1)
+  it('returns 0 below the lowest percentile and 1 from it', () => {
+    expect(findPercentile(500, percentiles)).toBe(0)
+    expect(findPercentile(999, percentiles)).toBe(0)
     expect(findPercentile(1000, percentiles)).toBe(1)
+    expect(findPercentile(1500, percentiles)).toBe(1)
   })
 
   it('returns 100 for values at or above the highest percentile', () => {

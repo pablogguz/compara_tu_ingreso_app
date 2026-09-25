@@ -1,8 +1,7 @@
-import App from '@/components/App'
+import EnsayoApp from '@/components/ensayo/App'
 
-// The whole app is one client-side state machine (landing → questions →
-// loading → results); see src/components/App.tsx. /mocks boots the same
-// component at any stage.
+// The whole site is one client component: the essay, its questions and the
+// scrollytelling results (src/components/ensayo/).
 export default function Home() {
-  return <App />
+  return <EnsayoApp />
 }

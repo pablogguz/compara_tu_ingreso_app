@@ -21,11 +21,12 @@ export function calculateEquivIncome(
 }
 
 /**
- * Find percentile position for a given income value
- * Clamps to [1, 100] and finds the largest p where percentiles[p] <= value
+ * Find percentile position for a given income value: the largest p where
+ * percentiles[p - 1] <= value, i.e. the whole-number share of people with a
+ * lower income. 0 below the 1st percentile, 100 at or above the 99th.
  */
 export function findPercentile(value: number, percentiles: number[]): number {
-  if (value <= Math.min(...percentiles)) return 1;
+  if (value < Math.min(...percentiles)) return 0;
   if (value >= Math.max(...percentiles)) return 100;
   
   // Find largest percentile index where value is >= percentile value

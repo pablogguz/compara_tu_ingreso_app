@@ -1,15 +1,15 @@
 export default function GraficaTab() {
   return (
     <div className="help-content">
-      <h4>¿Cómo interpretar la gráfica?</h4>
-      <p>La curva azul muestra cómo se distribuyen los ingresos en la población:</p>
+      <h4>¿Cómo interpretar los gráficos?</h4>
+      <p>Los gráficos muestran cómo se reparte la población según su renta por unidad de consumo:</p>
       <ul>
-        <li>Las zonas más altas indican donde se concentra más gente</li>
-        <li>Tu posición se marca con una línea vertical en azul oscuro</li>
-        <li>Tu percepción en la distribución nacional se marcará con una línea vertical en rojo</li>
-        <li>El percentil indica el porcentaje de hogares que tienen menos ingresos que tú</li>
+        <li>En los cuadrados, cada uno es el 1 % de la población, ordenada de menos a más ingresos. El tuyo es el azul, y los que quedan antes que él son las personas con menos ingresos que tú</li>
+        <li>En la curva, las zonas más altas indican dónde se concentra más gente</li>
+        <li>La renta de tu hogar se marca con una línea azul, y tu predicción con una línea discontinua ocre</li>
+        <li>El percentil indica el porcentaje de la población con menos ingresos que tú</li>
       </ul>
-      <p>Por ejemplo, si estás en el percentil 70, significa que el 70% de la población tiene ingresos menores que el tuyo.</p>
+      <p>Por ejemplo, si estás en el percentil 70, el 70 % de la población tiene menos ingresos que tú.</p>
     </div>
   )
 }

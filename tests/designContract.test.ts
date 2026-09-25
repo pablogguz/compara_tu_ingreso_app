@@ -4,16 +4,15 @@
  * These tests do not render anything. They read the source tree and check the
  * invariants that keep the UI coherent:
  *
- *  1. Every class name a component uses is defined in one of the stylesheets
- *     (catches typos and orphaned classes after a CSS refactor).
- *  2. src/lib/charts/theme.ts mirrors the :root tokens in styles.css.
- *  3. Typography is Fraunces + Hanken Grotesk everywhere — no stray Inter.
- *  4. Buttons are explicit about their type and use the shared .btn system.
+ *  1. Every plain-string class name a component uses (the help dialog, the
+ *     cookie banner, the error fallback) is defined in one of the global
+ *     stylesheets. The essay itself uses CSS modules.
+ *  2. Typography is Fraunces + Hanken Grotesk everywhere — no stray Inter.
+ *  3. Buttons are explicit about their type and use the shared .btn system.
  */
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-import { chartTheme } from '@/lib/charts/theme'
 
 const ROOT = path.resolve(__dirname, '..')
 const CSS_DIR = path.join(ROOT, 'public', 'css')
@@ -56,19 +55,6 @@ const definedClasses = new Set(
   Array.from(css.matchAll(/\.([A-Za-z_][\w-]*)/g)).map((m) => m[1])
 )
 
-// ---- :root tokens -----------------------------------------------------------
-function rootTokens(): Record<string, string> {
-  const styles = fs.readFileSync(path.join(CSS_DIR, 'styles.css'), 'utf8')
-  const start = styles.indexOf(':root {')
-  const end = styles.indexOf('\n}', start)
-  const block = styles.slice(start, end)
-  const tokens: Record<string, string> = {}
-  for (const m of block.matchAll(/(--[\w-]+):\s*([^;]+);/g)) {
-    tokens[m[1]] = m[2].replace(/\s+/g, ' ').trim()
-  }
-  return tokens
-}
-
 describe('CSS ↔ component contract', () => {
   it('every class used by a component is defined in a stylesheet', () => {
     const orphans: string[] = []
@@ -82,18 +68,7 @@ describe('CSS ↔ component contract', () => {
   })
 
   it('dynamic modifier classes built at runtime exist too', () => {
-    for (const cls of [
-      'stat-card--income',
-      'stat-card--education',
-      'stat-card--foreign',
-      'pagas-toggle--14',
-      'is-active',
-      'active',
-      'invalid',
-      'field-message--error',
-      'field-message--warning',
-      'is-collapsed',
-    ]) {
+    for (const cls of ['active']) {
       expect(definedClasses.has(cls), `.${cls} missing from CSS`).toBe(true)
     }
   })
@@ -102,46 +77,6 @@ describe('CSS ↔ component contract', () => {
     for (const cls of ['btn', 'btn--primary', 'btn--secondary', 'btn--ghost', 'btn--sm', 'btn--xl', 'btn__icon', 'btn__spinner']) {
       expect(definedClasses.has(cls), `.${cls} missing from CSS`).toBe(true)
     }
-  })
-})
-
-describe('theme.ts mirrors styles.css tokens', () => {
-  const tokens = rootTokens()
-
-  it('parses the :root block', () => {
-    expect(Object.keys(tokens).length).toBeGreaterThan(20)
-  })
-
-  it.each([
-    ['primary', '--primary'],
-    ['primaryDeep', '--chart-position'],
-    ['prediction', '--chart-prediction'],
-    ['grid', '--chart-grid'],
-    ['areaTop', '--chart-area-top'],
-    ['areaBottom', '--chart-area-bottom'],
-    ['areaDimTop', '--chart-area-dim-top'],
-    ['areaDimBottom', '--chart-area-dim-bottom'],
-    ['areaDimLine', '--chart-area-dim-line'],
-    ['areaLine', '--primary'],
-    ['text', '--foreground'],
-    ['textMuted', '--muted-foreground'],
-    ['axisLine', '--border'],
-  ] as const)('chartTheme.%s === %s', (key, token) => {
-    expect(chartTheme[key]).toBe(tokens[token])
-  })
-
-  it.each([
-    ['motionFast', '--motion-fast'],
-    ['motionBase', '--motion-base'],
-    ['motionSlow', '--motion-slow'],
-  ] as const)('chartTheme.%s === %s (ms)', (key, token) => {
-    expect(chartTheme[key]).toBe(parseInt(tokens[token], 10))
-  })
-
-  it('font stacks agree on the UI family', () => {
-    expect(tokens['--font-ui']).toMatch(/Hanken Grotesk/)
-    expect(tokens['--font-display']).toMatch(/Fraunces/)
-    expect(chartTheme.fontFamily).toMatch(/Hanken Grotesk/)
   })
 })
 

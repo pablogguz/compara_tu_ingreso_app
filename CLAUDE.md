@@ -21,13 +21,16 @@ It is read-only with a single optional side-effect: with cookie consent, the inp
 The frontend ships pre-computed Apache Arrow files in [public/data/](public/data/). Those files are produced by the R pipeline in [methodology/](methodology/) (scripts run from that folder; `methodology/run_pipeline.sh` runs the whole chain):
 
 ```
-methodology/code/   (R pipeline)
+methodology/code/   (R pipeline, run from methodology/ by run_pipeline.sh)
         │
-        ├── 0d. ecv_nowcast.r           # national nowcast factor, ADRH year → current year (ECV)
-        ├── 1. predict_gini_ml.r        # XGBoost imputes missing tract-level Gini
-        ├── 2. prep_lognormal.r         # log-normal mixture per tract → percentiles + density (nowcast)
-        ├── 3a. mun_stats.r             # municipality demographics (income, edu, foreign-born), base year
+        ├── 0d. ecv_nowcast.r           # national nowcast factor, ADRH year → target year (ECV); sets BASE/TARGET years
+        ├── 1. predict_gini_ml.r        # XGBoost imputes the Gini of tracts without one (optional re-fit)
+        ├── 1b. fit_gb2.r               # GB2 per tract, fitted to the 13 published ADRH indicators (gb2_engine.r)
+        ├── 1c. gb2_holdout.r           # leave-one-share-out validation (optional, RUN_HOLDOUT=1)
+        ├── 2. prep_distributions.r     # GB2 / log-normal mixtures → percentiles + densities (nowcast)
+        ├── 3a. mun_stats.r             # municipality stats (income, edu, foreign-born), base year
         ├── 3c. apply_nowcast_mun_stats.r  # nowcasts the municipal income stat
+        ├── 5. note_figures.r / 6. note_numbers.r  # the note's figures, tables and numbers.tex
         └── 3b. tract_stats.r           # tract-level outputs (NOT consumed by this app)
         │
         └── methodology/data/*.fst      # FST output (gitignored, regenerated)
@@ -39,20 +42,20 @@ methodology/code/   (R pipeline)
 
 ### Sources
 
-- **ADRH** (INE *Atlas de Distribución de Renta de los Hogares*, 2023) — net household and equivalised income, Gini, at census-tract / municipal / provincial level. Loaded via the `ineAtlas` R package.
+- **ADRH** (INE *Atlas de Distribución de Renta de los Hogares*, 2023) — per tract and municipality: mean and median income per consumption unit, Gini, P80/P20 and the shares of population below/above nine thresholds. Loaded via the `ineAtlas` R package; the national and provincial totals used to validate come from INE tables 53689/53688/53690/53694 via `ineapir`.
 - **ECV** (INE *Encuesta de Condiciones de Vida*, table 9947) — national mean equivalised income, used only for the nowcast.
-- **Census 2021** (INE) — demographics (population, age, household composition, employment, education, foreign-born share). Loaded via `ineAtlas::get_census()`.
+- **ADRH demographics** (population, age, household composition) per tract, via `ineAtlas`, for the weights and the Gini model.
 - **INE tract tables** (CSV exports, population by place of birth and by educational attainment) — education + foreign-born share for `3a. mun_stats.r`; the folder is passed as `TRACT_TABLES_DIR`. `3a` writes the base-year file `methodology/data-raw/municipality_stats_2023.fst`, which is kept in git so the rest of the pipeline runs without those CSVs.
 
 ### Method (in 30 seconds)
 
-1. For each of ~37k census tracts: fit a log-normal whose mean comes from ADRH equivalised income and whose σ comes from the tract Gini via `σ = √2 · Φ⁻¹((G + 1) / 2)`.
-2. ~5.5% of tracts are missing Gini; impute with an XGBoost on `(log income_equiv, dependency ratio, mean age, % single-person households, household size, population, province FE)`.
-3. Population-weight the per-tract log-normals into a national / per-province / per-municipality mixture. Evaluate density on a 1,000-point grid up to €160k. Solve numerically for the 1st–99th percentiles at each level.
-4. **Nowcast to 2024:** ρ = Σ ADRH national growth / Σ ECV national growth over the years both cover (2016–2023); 2024 growth = ρ × ECV growth (currently 0.935 × 5.44% = 5.09%). Every tract's income is scaled by that one factor (shifts μ, leaves σ), and the municipal income stat likewise.
-5. Outputs are written as FST and converted to Arrow by [scripts/convert-data.R](scripts/convert-data.R). The municipality lookup only contains municipalities with an estimated distribution (ADRH suppresses income for a few dozen tiny ones), so every selectable municipality has percentiles.
+1. **Each census tract is a GB2** (generalised beta of the second kind), `F(y) = I_t(p, q)` with `t = (y/b)^a / (1 + (y/b)^a)`, fitted by weighted minimum distance to the 13 indicators the ADRH publishes for it: median, mean, Gini (computed as the ADRH does, after replacing the lowest and highest 1.5% of values), P80/P20 and 9 threshold shares. Published medians are €700-interval midpoints and are treated as intervals; values at the ADRH's caps are soft-censored. The 3,396 tracts without published shares get share targets from a regression on their core indicators, shifted to reproduce their municipality's published shares. Engine: `code/gb2_engine.r` (about 11 s on 10 cores). The comparison with other methods that led to GB2 is kept locally in `methodology/method_comparison.md` and `methodology/research/` (gitignored, not published).
+2. **Tracts without income indicators** (1,370, 0.3% of the population, nearly all under 100 residents) get a log-normal: σ from a Gini imputed with XGBoost (log income, dependency ratio, mean age, share under 18, single-person households, household size, population, province dummies; CV RMSE 2.57), location from the imputed mean.
+3. **Mixtures:** national, provincial and municipal distributions are population-weighted mixtures of the tract distributions; the 1st–99th percentiles are solved with Brent's method, and densities are closed-form on a grid up to €160k.
+4. **Nowcast to 2024:** ρ = Σ ADRH national growth / Σ ECV national growth over the years both cover (2016–2023); 2024 growth = ρ × ECV growth (currently 0.935 × 5.44% = 5.09%, with a range of about 4.6–5.4% depending on the window). Every income is scaled by that factor (GB2 `b → k·b`, log-normal `μ → μ + ln k`), and the municipal income stat likewise. The app asks users for their 2024 income.
+5. Outputs are written as FST and converted to Arrow by [scripts/convert-data.R](scripts/convert-data.R). The municipality lookup only contains municipalities with an estimated distribution (81 ADRH municipalities without income data are excluded). `net_income_equiv_is_imputed = 1` exactly where the ADRH publishes no income per consumption unit (1,324 municipalities in the lookup, shown as "(2024, estimada)"); 1,326 municipalities are built only from fallback tracts.
 
-For the published methodology note, see [methodology/tex/note.pdf](methodology/tex/note.pdf) (rebuild with `bash methodology/tex/build_note.sh`).
+For the published methodology note, see [methodology/tex/note.pdf](methodology/tex/note.pdf). Every number in it comes from `methodology/tex/numbers.tex`, written by `6. note_numbers.r`, and its tables and figures from `5.`/`6.`, so the note updates itself when the data change; rebuild with `BUILD_NOTE=1` or `bash methodology/tex/build_note.sh`.
 
 ### Files in [public/data/](public/data/)
 
@@ -70,13 +73,15 @@ For the published methodology note, see [methodology/tex/note.pdf](methodology/t
 ### Updating the data
 
 ```bash
-bash methodology/run_pipeline.sh   # 0d → 2 → 3c, then scripts/convert-data.R → public/data/*.arrow
-# RUN_GINI_MODEL=1 also re-fits 1. predict_gini_ml.r
-# TRACT_TABLES_DIR=/path also rebuilds the base year with 3a. mun_stats.r
+bash methodology/run_pipeline.sh   # 0d → 1b → 2 → 3a → 3c → convert-data.R → 5 → 6
+# RUN_GINI_MODEL=1   also re-fits 1. predict_gini_ml.r
+# RUN_HOLDOUT=1      also re-runs the GB2 hold-out (1c)
+# TRACT_TABLES_DIR=/path  also rebuilds the census columns of the base-year municipal stats
+# BUILD_NOTE=1       also rebuilds methodology/tex/note.pdf
 npm test && npm run build
 ```
 
-When the ADRH or ECV publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOME_YEAR` in `0d`, the `year == 2023` filters in `1`, `2` and `3a`, the reference year in the UI copy, and the nowcast paragraph of the note.
+When the ADRH or ECV publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOME_YEAR` in `0d` (the other scripts read the years from its output), the census periods in `3a` if the CSVs are refreshed, and the year in the app's copy (the income question asks for the target year). The note's numbers, tables and figures regenerate themselves.
 
 `scripts/convert-data.R` writes uncompressed Feather v2 — required because the browser-side `apache-arrow` IPC reader does not handle LZ4/ZSTD frames.
 
@@ -84,78 +89,65 @@ When the ADRH or ECV publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOM
 
 ## App architecture
 
+The site is one page: an explorable essay ("Ensayo"). An opening, four questions, then a scrollytelling figure in which a hundred squares (Spain as 100 people) become the income distribution, then a summary at the three levels. Help (data, method, FAQ) is the HelpModal.
+
 ```
 src/
 ├── app/
-│   ├── page.tsx              # Renders <App /> (the whole site is one client state machine)
-│   ├── layout.tsx            # Metadata, next/font (Fraunces + Hanken Grotesk), CSS links
-│   ├── globals.css           # Minimal reset only — real styles live in public/css/
-│   ├── mocks/                # Dev/preview-only screen gallery (see "Mocks" below)
+│   ├── page.tsx              # Renders <EnsayoApp /> (the whole site is one client component)
+│   ├── layout.tsx            # Metadata, next/font (Fraunces + Hanken Grotesk), global CSS links
+│   ├── globals.css           # Minimal reset only
 │   └── api/appendResponse/
 │       └── route.ts          # Server-side Google Sheets append (POST)
 ├── components/
-│   ├── App.tsx               # 4-stage machine: landing → questions → loading → results; bootable at any stage
-│   ├── LandingPage.tsx       # Animated hero + start button
-│   ├── QuestionFlow.tsx      # Orchestrates the 4-step questionnaire
-│   ├── questions/            # One file per step (municipality / income / household / perceived)
-│   ├── ResultsView.tsx       # National/Provincial/Municipal toggle + chart + stats
-│   ├── DistributionChart.tsx # HighchartsReact wrapper
-│   ├── StatsCards.tsx        # Three small-box demographic cards
-│   ├── HelpModal.tsx         # FAQ modal with 6 lazy-loaded tabs
+│   ├── ensayo/               # The essay (CSS modules)
+│   │   ├── App.tsx           # Entry: DataProvider, cookie banner, help dialog, analytics; the essay itself
+│   │   ├── HeroField.tsx     # The opening animation (canvas): crowd → piles by income → curve → "¿Tú?"
+│   │   ├── Questions.tsx     # The four questions, one at a time (+ GuessPicker.tsx: the 10×10 guess grid)
+│   │   ├── MunicipalitySearch.tsx  # Accessible headless combobox over the municipalities
+│   │   ├── Story.tsx         # Act II: sticky figure + nine scroll steps (IntersectionObserver)
+│   │   ├── Figure.tsx        # The figure: 100 squares ↔ histogram ↔ curve, per step
+│   │   ├── Summary.tsx       # Three levels as small multiples, municipality facts, share / restart
+│   │   ├── Sidenote.tsx      # Margin notes (inline, tappable, on narrow screens)
+│   │   ├── geometry.ts       # Squares → bins, curve scaled to the squares, label placement
+│   │   ├── copy.ts           # The essay's sentences
+│   │   └── hooks.ts          # Media queries / reduced motion, element size, tweened curves, counters
+│   ├── HelpModal.tsx         # FAQ dialog with 6 tabs (+ HelpModal/*Tab.tsx); openHelp(tab?) opens it, no button of its own
 │   ├── CookieBanner.tsx      # Top-of-page consent banner
-│   ├── ErrorBoundary.tsx     # Class boundary used around chart + stats
-│   └── mocks/                # MockScreen (control bar) + scenarios.ts (one entry per mock)
+│   └── ErrorBoundary.tsx     # Class boundary around the results
 ├── hooks/
-│   └── useQuestionFlow.ts    # Form state + step navigation
+│   ├── useFlow.ts            # Answers, validation, the calculation, the research log
+│   └── useLevels.ts          # The three levels' percentiles, density curves, medians, municipality stats
 ├── lib/
 │   ├── analytics.ts          # GA4 init + cookieConsent helpers
-│   ├── calculations.ts       # equiv income, percentile lookup, formatters
-│   ├── computeResults.ts     # answers → percentiles at 3 levels (questionnaire + mocks)
+│   ├── calculations.ts       # equiv income, percentile lookup
+│   ├── computeResults.ts     # answers → percentiles at 3 levels
 │   ├── dataLoader.ts         # Arrow IPC loaders + in-memory cache
 │   ├── DataContext.tsx       # React context: shared municipality_lookup
+│   ├── format.ts             # Spanish numbers and the shared sentences (headline, outOf100, perceptionGap…)
+│   ├── chartGeometry.ts      # resample a density, smooth SVG paths, ticks
+│   ├── municipalitySearch.ts # Ranking for the municipality combobox
+│   ├── share.ts              # Web Share, falling back to the clipboard
 │   ├── sheetLogger.ts        # Fire-and-forget POST to /api/appendResponse
-│   ├── validation.ts         # Per-step validation predicates
-│   ├── viewTransition.ts     # runViewTransition(): screen/step changes via startViewTransition
-│   └── charts/
-│       ├── theme.ts          # Chart palette / fonts / motion (mirrors CSS tokens)
-│       ├── formatters.ts     # Euro / k€ formatters used by Highcharts
-│       └── distributionOptions.ts  # buildDistributionOptions() — all chart config
+│   └── validation.ts         # Income validation, text normalisation
 └── types/
-    └── index.ts              # UserInput, CalculatedResults, ViewType, etc.
+    └── index.ts              # CalculatedResults, Municipality, MunicipalityStats, etc.
 ```
 
-### Page state machine
+### The essay
 
-[src/components/App.tsx](src/components/App.tsx) holds one `stage`:
-
-```
-'landing' (on mount)
-   │  user clicks "Comenzar"
-   ▼
-'questions'
-   │  user clicks "Calcular" — handleCalculate awaits the calculation Promise
-   ▼
-'loading'                           ← spinner stage, held for at least MIN_LOADING_MS (800 ms)
-   │  Promise resolves
-   ▼
-'results'
-```
-
-`handleRecalculate()` returns to `'questions'` and clears `userInput`/`results`. Every screen except landing renders the help button (bottom-right, fixed). Stage changes and question steps run through `runViewTransition()` ([src/lib/viewTransition.ts](src/lib/viewTransition.ts)): where `document.startViewTransition` exists the old frame fades out with a soft focus while the new one plays its own CSS entrance; elsewhere (and in jsdom) the update is immediate. `App` takes an optional `boot` (start stage, pre-filled answers, results, help tab…) and a `mock` flag (no analytics, no sheet logging, no stored consent) — that is what the mocks use.
-
-### Mocks
-
-`/mocks/` lists every screen; `/mocks/<id>/` boots the real `App` straight into that state (21 scenarios in [src/components/mocks/scenarios.ts](src/components/mocks/scenarios.ts): landing, each questionnaire step and its validation states, loading, results at the three levels and at the extremes, help modal). Results mocks compute their numbers from the real Arrow data through `computeResults()`. On each mock: ← / → switch screens, R replays the entrance, H hides the control bar; append `?clean` to drop the bar entirely (screenshots). The route is `noindex` and 404s when built with `VERCEL_ENV=production`, so it exists locally and on Vercel preview deployments only. Add a scenario there when you add a screen or state.
-
-### Prototypes
-
-`src/prototypes/ensayo/` is the redesign chosen to replace the main app: an academic explorable essay (a matte take on the current look, with scrollytelling from 100 squares to the income curve). It is not routed on the public site while it is being integrated. It uses `src/prototypes/shared/`, which provides `useFlow` (answers and the real `computeResults`), `useLevels` (the three levels, curves, landmarks and stats), the `MunicipalitySearch` combobox, the Spanish sentences in `format.ts` and SVG geometry in `chart.ts`. Read `src/prototypes/README.md` before touching them. The other directions that were compared (Portada, Formulario, Cien, Línea) are in the git history.
+- **Opening.** A full-screen title ("Descubre tu posición en la distribución de la renta", rising word by word) and the earlier site's subtitle over `HeroField.tsx`: a canvas where ~2.800 dots (fewer on phones) gather as a crowd, flow into piles by income using the real national percentiles, get the density curve drawn over them, and a blue "¿Tú?" walks along the curve. A scroll cue follows: the essay starts when you scroll. The canvas draws nothing without IntersectionObserver (tests) and only the last frame with reduced motion.
+- **Questions** (`Questions.tsx`): municipality, monthly net household income **in 2024** (the year the distributions are nowcast to) with 12/14 pagas, household (people aged 14+ and under 14), and the guess: "how many of 100 people have less income than you", picked on a 10×10 grid or a slider (1–99, no default). `useFlow().calculate()` runs `computeResults` with a minimum loading beat.
+- **Squares.** A result p means p % of people are below you, so p squares are dark, yours (blue) is square p+1 in reading order, and 99−p are light. The guess g works the same way: the dashed ochre square is g+1. Never number the user's square in copy; talk about people below.
+- **Story** (`Story.tsx` + `Figure.tsx`): one sticky figure, nine steps. Grid → sorted → guess → you → histogram (each square at its percentile's income, 5.000 € bins to 90.000 €) → national curve scaled to the squares' area → guess and income lines ("Tu predicción", "Tu hogar") → province (no median line there) → municipality, whose median is named by place ("Mediana de Aranjuez: …"). From the lines step on, every chart (the story's and the summary's three) shows both "Tu predicción" and "Tu hogar". A "Saltar al resumen" link sits under the story's heading. Without IntersectionObserver (tests) the figure shows the final state; with reduced motion, squares cross-fade instead of moving.
+- **Help.** The HelpModal is the site's help (data, income, household scale, method, chart, author). It has no button of its own: `openHelp(tab?)` opens it from the header ("Ayuda y metodología"), the household question (`'hogar'`) and the closing line (`'metodologia'`). Its text is unchanged from the previous design; `public/css/help-modal.css` styles it like the essay. The cookie banner and the dialog render outside the essay's root.
+- **Research log.** `useFlow({ logResponses: true })` posts `{ timestamp, municipality, monthly_income, adults, children, perceived_percentile, actual_percentile, equiv_income }` after each calculation; `logResponseToSheet` only sends it if the visitor accepted cookies.
 
 ### Data flow
 
-1. **On mount of `<QuestionFlow>`**: `municipality_lookup` is fetched once via `useMunicipalityLookup()` (DataContext). All four downstream consumers (`QuestionFlow`, `ResultsView`, `StatsCards`, `DistributionChart`) read from the same context — no duplicate fetches.
-2. **On submit**: `QuestionFlow` builds a `UserInput` containing a `calculationPromise`. The promise loads the three percentile tables in parallel, computes the percentile rank at each level, and (if consent given) posts to `/api/appendResponse`.
-3. **In `<ResultsView>`**: `viewType` toggles drive `<DistributionChart>` to load the relevant density (`density_curve` / `density_curve_prov` / `density_curve_mun/mun_<prov>`) and re-render.
+1. **On mount**: `municipality_lookup` is fetched once through `DataContext` (`useMunicipalities()`), shared by the combobox and `useFlow`.
+2. **On calculate**: `computeResults` loads the three percentile tables in parallel and computes the percentile rank at each level; with consent, the answers are posted to `/api/appendResponse`.
+3. **For the figures**: `useLevels` loads the national, provincial (`density_curve_prov`) and municipal (`density_curve_mun/mun_<prov>`) densities and the municipality stats.
 
 ---
 
@@ -165,19 +157,19 @@ All math lives in [src/lib/calculations.ts](src/lib/calculations.ts) and must st
 
 - **Equivalence scale (modified OECD):** `scale = 1 + max(0, adults - 1) · 0.5 + children · 0.3`. `equiv_income = (monthlyIncome · 12) / scale`.
 - **Pagas (annualisation):** Spanish payroll splits the annual amount across 12 or 14 monthly payments. If the user picks `14 pagas`, the entered "monthly" figure is one of those 14 — so the displayed annual is `monthlyIncome · 14`. We multiply by `14/12` before applying the equivalence scale, so the equivalence math stays in the same 12-month frame.
-- **Percentile lookup:** `findPercentile(value, percentiles[])` returns the largest 1-based index `p` such that `percentiles[p-1] ≤ value`. Clamped to `[1, 100]`. The percentiles array is sorted ascending and is exactly 99 entries (1..99).
+- **Percentile lookup:** `findPercentile(value, percentiles[])` returns the largest 1-based index `p` such that `percentiles[p-1] ≤ value`: the whole-number share of people with a lower income. It returns 0 below P1 and 100 at or above P99. The percentiles array is sorted ascending and is exactly 99 entries (1..99). The UI shows the number capped to 1–99 (`displayPercentile`), but wording is decided on the raw value: 0 reads "entre el 1 % con menos ingresos", 1 reads "más que el 1 %" (`headline`, `outOf100`, `countBelow`).
 - **Inverse lookup:** `findValueForPercentile(p, percentiles[])` is used by the chart to position the user's perceived-percentile guess on the x-axis.
 
 ---
 
 ## Conventions
 
-- **CSS tokens live in [public/css/styles.css](public/css/styles.css)** under `:root`. TypeScript code that needs the same values (chart palette, motion durations) must read them from `src/lib/charts/theme.ts`, which mirrors the CSS variables. If you change a token in CSS, update `theme.ts` — [tests/designContract.test.ts](tests/designContract.test.ts) fails when they drift.
-- **Typography.** Two families, self-hosted via `next/font/google` in [layout.tsx](src/app/layout.tsx): **Fraunces** (variable serif, `opsz`/`SOFT`/`WONK` axes) for display — landing headline, question titles, the percentile hero, stat values, modal headings — and **Hanken Grotesk** for UI/body. They arrive on `<html>` as `--font-fraunces` / `--font-hanken`; always reference them through `var(--font-display)` / `var(--font-ui)` (defined in `styles.css`), never by family name. Highcharts gets the resolved family via `resolveChartFont()` in `theme.ts`. Don't reintroduce Inter (the contract test checks).
-- **Buttons.** One system: `.btn` + variant (`.btn--primary` | `.btn--secondary` | `.btn--ghost`) + optional size (`.btn--sm` | `.btn--xl`), icons via `.btn__icon` (`--left` / `--right` / `--chip`). The results view toggle is `.seg` / `.seg__btn.is-active`. Every `<button>` declares `type=`. Don't add per-component button classes.
-- **Layout is centered.** Question cards, the results hero, stats row and action rows are centered stacks; keep new UI on that axis.
-- **No CSS-in-JS or Tailwind.** Components use plain class names from the four `public/css/*.css` files (see the file map at the top of `styles.css`). New styles go in `styles.css` (general), `custom-components.css` (widgets), `styles_results.css` (results screen) or `help-modal.css` — not in component `style={...}` props. A class used in JSX must exist in one of those files (the contract test enumerates every `className`).
-- **Spanish UI strings.** All user-facing text is `es-ES`. Currency formatting uses `Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })`.
+- **Styles.** The essay uses **CSS modules** next to its components (`import s from './X.module.css'`, `className={s.foo}`); its palette and type scale are custom properties on its root in `App.module.css` (paper #FAF9F6, ink, blue #2458C6 for "you", ochre #A5600C for the guess). Inline `style` only for data-driven values (positions, transforms, sizes). The four global stylesheets in `public/css/` still load; they now serve the HelpModal, the cookie banner and the error fallback, whose plain class names must exist there (the contract test checks). The global `input[type='text'] { font-size: 16px }` rule inside a max-width 768px query beats a single module class, so give inputs selectors of at least two classes.
+- **Typography.** Two families, self-hosted via `next/font/google` in [layout.tsx](src/app/layout.tsx): **Fraunces** (variable serif, `opsz`/`SOFT`/`WONK` axes) for the title, headings, body text and big numbers, and **Hanken Grotesk** for UI, figure labels and captions. They arrive on `<html>` as `--font-fraunces` / `--font-hanken`. Don't reintroduce Inter (the contract test checks).
+- **Look.** Matte and academic: hairline rules instead of cards, radii of 2–4px at most, no glass, gradients, glows or shadows. Figures are numbered with captions; asides go in sidenotes.
+- **Wording.** The distributions are population-weighted, with each household's income per consumption unit, so describe people: "más que el 86 % de la población", "86 de cada 100 personas tienen menos ingresos que tú", "la persona con menos ingresos". Don't talk about households when describing the row of people. The essay doesn't explain consumption units or say what it compares with (that is in the help dialog). Avoid semicolons in copy. The shared sentences live in `src/lib/format.ts`.
+- **Buttons.** Every `<button>` declares `type=`. The HelpModal and cookie banner use the global `.btn` system.
+- **Spanish UI strings.** All user-facing text is `es-ES`. Numbers go through `src/lib/format.ts` (`euro()`, `pct()`, `num()`), which groups four-digit numbers too ("5.143 €").
 - **Apache Arrow loading is synchronous-after-fetch.** `tableFromIPC()` is fast but blocks the main thread — keep arrow files small (<5 MB each). The largest is `density_curve_mun/mun_*.arrow` at ~1–2 MB per province.
 
 ---
@@ -196,10 +188,10 @@ npm test         # vitest (jsdom) — run before every commit
 
 [tests/](tests/) is a Vitest + Testing Library suite. Fixtures live in [tests/helpers/mockData.ts](tests/helpers/mockData.ts). Coverage, by layer:
 
-- **Pure logic** — `calculations`, `validation`, `chartFormatters`, `chartOptions`, `sheetLogger`, `useCountUp`, `useQuestionFlow`, `viewTransition`, `mockScenarios`.
-- **Components** — one file per screen/step (`LandingPage`, `ProgressHeader`, `MunicipalityStep`, `IncomeStep`, `HouseholdStep`, `PerceivedStep`, `ResultsView`, `StatsCards`, `HelpModal`, `CookieBanner`, `ErrorBoundary`). Highcharts is stubbed (it cannot render in jsdom); `dataLoader` is mocked.
-- **Flows** — `QuestionFlow.test.tsx` walks all four steps with mocked Arrow data and asserts the resolved percentiles; `page.test.tsx` covers the landing → questions → loading → results/error state machine and booting `App` at a given stage.
-- **Contract** — `designContract.test.ts` reads the source tree: every JSX class exists in CSS, `theme.ts` mirrors `:root`, no Inter, every `<button>` has a `type`.
+- **Pure logic** — `calculations`, `validation`, `municipalitySearch`, `sheetLogger`; `ensayoShared` (formatting, the shared sentences, chart geometry, the combobox).
+- **Components** — `HelpModal`, `CookieBanner`, `ErrorBoundary`.
+- **The essay** — `Ensayo.test.tsx` walks the four questions with mocked Arrow data, checks the research log payload, the story (jsdom has no IntersectionObserver, so the figure is in its final state: p dark squares, yours, 99−p light), the summary, "Volver a empezar", the help dialog and the cookie banner; plus the figure's pure geometry. `page.test.tsx` checks the home page renders the essay.
+- **Contract** — `designContract.test.ts` reads the source tree: every plain JSX class exists in the global CSS, no Inter, every `<button>` has a `type`.
 
 `npm run build` needs network access the first time (next/font downloads Fraunces + Hanken Grotesk at build time; Vercel has it).
 
@@ -223,5 +215,5 @@ If sheets credentials are missing, the POST returns 500 but the user-facing flow
 
 - **Equivalence scale and percentile lookup logic** — must match the published methodology ([methodology/tex/note.pdf](methodology/tex/note.pdf)). Any change to [src/lib/calculations.ts](src/lib/calculations.ts) needs to round-trip through the methodology note.
 - **Arrow column names** — they are the schema contract with `convert-data.R`. Renaming `mun_code` → `municipality_id` here would silently break the next data refresh.
-- **`'unsafe-inline'` in the CSP** ([next.config.js](next.config.js)) — required because Highcharts injects inline `<style>` for every chart redraw. Removing it breaks the chart.
+- **`'unsafe-inline'` in the CSP** ([next.config.js](next.config.js)) — the figures position their squares, lines and labels with server-rendered `style` attributes, which a CSP without `'unsafe-inline'` for styles blocks.
 - **Cookie banner default = no consent.** GA only loads after explicit accept. Don't pre-load `gtag.js`.

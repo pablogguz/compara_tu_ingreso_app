@@ -7,8 +7,9 @@ export default function MetodologiaTab() {
       <h5 className="mt-4 mb-2">Los datos que tenemos</h5>
       <p>Los datos del INE nos proporcionan información agregada por secciones censales (áreas pequeñas que suelen comprender entre 1.000 y 2.500 habitantes). Para cada sección censal, conocemos:</p>
       <ul>
-        <li>La renta media</li>
-        <li>El índice de desigualdad (coeficiente de Gini)</li>
+        <li>La renta mediana y la renta media por unidad de consumo</li>
+        <li>El índice de desigualdad (coeficiente de Gini) y el cociente entre los percentiles 80 y 20</li>
+        <li>El porcentaje de población por debajo o por encima de nueve umbrales de renta</li>
         <li>El número de habitantes</li>
       </ul>
 
@@ -17,8 +18,8 @@ export default function MetodologiaTab() {
       <ol>
         <li>Primero, para cada barrio:
           <ul>
-            <li>Asumimos que los ingresos siguen un patrón "log-normal", que es típico en áreas pequeñas donde los vecinos comparten características socioeconómicas similares</li>
-            <li>Conociendo la renta media y el índice de desigualdad, la distribución de ingresos log-normal para cada barrio queda completamente determinada</li>
+            <li>Describimos cómo se reparten los ingresos con una curva flexible de cuatro parámetros, la distribución GB2, muy utilizada para estudiar la renta</li>
+            <li>Ajustamos esos cuatro parámetros para que la curva reproduzca lo mejor posible los trece indicadores que publica el INE para ese barrio</li>
           </ul>
         </li>
         <li>Después, combinamos las distribuciones de todos los barrios:
@@ -45,29 +46,34 @@ export default function MetodologiaTab() {
           <li>Por otro lado, sabemos que los ingresos de una persona son el resultado de multiplicar varios factores individuales (experiencia, sector laboral, rendimiento individual, etc.)</li>
         </ul>
 
-        <p>Cuando las personas parten de condiciones socioeconómicas parecidas, estas diferencias multiplicativas tienden a generar naturalmente una distribución log-normal, que es exactamente lo que asumimos en nuestro método. De este modo, respetamos la desigualdad observada dentro de cada sección censal y podemos generar distribuciones realistas mediante un cálculo analítico sencillo.</p>
+        <p>Cuando las personas parten de condiciones socioeconómicas parecidas, estas diferencias multiplicativas tienden a generar una distribución parecida a la log-normal. La distribución GB2 incluye la log-normal como caso particular, pero además permite colas más realistas: más personas con rentas muy bajas y una cola de rentas altas que decae como en los datos. De este modo, respetamos la desigualdad observada dentro de cada sección censal.</p>
 
         <p><strong>Validación</strong></p>
-        <p>En la mayoría de las secciones censales, disponemos también de la mediana observada de la distribución de ingresos equivalentes y del ratio entre el percentil 80 y el percentil 20. Para validar nuestro método, hemos comparado estos valores reales con los valores esperados de la distribución log-normal en cada sección censal. Los resultados muestran que los valores obtenidos con nuestro método se ajustan muy bien a los valores reales.</p>
+        <p>El INE también publica esos indicadores para cada municipio, cada provincia y el conjunto de España. Como nuestras distribuciones de esos territorios salen de combinar las de sus barrios, compararlas con lo publicado es una prueba independiente. La mediana de España que obtenemos cae dentro del intervalo que publica el INE, la renta media difiere en menos de un 0,1 % y el índice de Gini en menos de 0,1 puntos.</p>
 
         <p><strong>Limitaciones</strong></p>
-        <p>El método que usamos tiende a suavizar los extremos de la distribución, y es probable que subestime los ingresos más altos (lo que llevaría a una estimación conservadora de la desigualdad). Al combinar las distribuciones de miles de barrios, logramos una aproximación razonable a la hora de calcular las posiciones, pero debes interpretarlas como estimaciones.</p>
+        <p>La parte que peor conocemos es la más baja: por debajo de unos 5.000 € al año por unidad de consumo, nuestra estimación deja algo menos población de la que publica el INE (un 3,9 % frente a un 4,3 % en España). Aunque el ajuste es muy bueno, debes interpretar las posiciones como estimaciones.</p>
 
         <p><strong>Código abierto</strong></p>
         <p>
-          Todo el código utilizado para calcular la distribución de ingresos y una nota metodológica completa están disponibles en un repositorio público de GitHub. Si quieres saber más, échale un vistazo{' '}
-          <a href="https://github.com/pablogguz/compara_tu_ingreso_validation" target="_blank" rel="noopener noreferrer">
-            aquí.
+          Todo el código de esta web y del cálculo de la distribución de ingresos está disponible en un{' '}
+          <a href="https://github.com/pablogguz/compara_tu_ingreso_app" target="_blank" rel="noopener noreferrer">
+            repositorio público de GitHub
           </a>
+          , junto con la{' '}
+          <a href="https://github.com/pablogguz/compara_tu_ingreso_app/blob/main/methodology/tex/note.pdf" target="_blank" rel="noopener noreferrer">
+            nota metodológica completa
+          </a>
+          .
         </p>
       </div>
 
       <div className="help-note mt-4">
         <p><strong>Notas: </strong></p>
         <ul>
-          <li>Para secciones censales donde el INE no proporciona el índice de Gini (aproximadamente un 5% de los casos), se estima mediante técnicas de aprendizaje automático usando variables sociodemográficas como predictores.</li>
+          <li>Para las secciones censales en las que el INE no publica indicadores de renta (un 5,5 % de las secciones, casi todas con menos de 100 habitantes y apenas un 0,3 % de la población), usamos una distribución log-normal con un índice de Gini estimado con un modelo de aprendizaje automático que usa como predictores variables sociodemográficas de la sección y su provincia.</li>
           <li>Los municipios con menos de 3.000 habitantes generalmente tienen sólo una sección censal. Estos municipios con sección censal única representan un 6% de la población a nivel nacional. En estos casos, la distribución municipal coincide con la distribución de la sección censal.</li>
-          <li>Los datos de renta del Atlas corresponden a 2023. Para actualizarlos a 2024, comparamos año a año el crecimiento de la renta media por unidad de consumo en España según el Atlas y según la Encuesta de Condiciones de Vida (ECV) del INE, lo que nos dice cuánto sobrestima o infraestima la ECV el crecimiento real. Aplicamos esa corrección al crecimiento que mide la ECV para 2024 y escalamos la renta de todas las secciones censales por el resultado. Como este ajuste multiplica todos los ingresos por un mismo factor, la desigualdad interna (el Gini) no varía: solo se actualiza el nivel.</li>
+          <li>Los datos de renta del Atlas corresponden a 2023. Para actualizarlos a 2024, comparamos año a año el crecimiento de la renta media por unidad de consumo en España según el Atlas y según la Encuesta de Condiciones de Vida (ECV) del INE, lo que nos dice cuánto sobrestima o infraestima la ECV el crecimiento real. Aplicamos esa corrección al crecimiento que mide la ECV para 2024 y escalamos la renta de todas las secciones censales por el resultado. Como este ajuste multiplica todos los ingresos por un mismo factor, la desigualdad interna no varía: solo se actualiza el nivel. Por eso te pedimos tus ingresos de 2024.</li>
         </ul>
       </div>
     </div>

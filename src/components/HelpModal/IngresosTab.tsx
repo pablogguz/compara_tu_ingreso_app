@@ -2,7 +2,7 @@ export default function IngresosTab() {
   return (
     <div className="help-content">
       <h4>¿Qué ingresos debo incluir?</h4>
-      <p>Debes sumar todos los ingresos netos mensuales de tu hogar, incluyendo:</p>
+      <p>Debes sumar todos los ingresos netos mensuales de tu hogar en 2024, incluyendo:</p>
       <ul>
         <li>Salarios y nóminas</li>
         <li>Pensiones de cualquier tipo (jubilación, incapacidad, viudedad...)</li>
@@ -16,10 +16,12 @@ export default function IngresosTab() {
       <div className="help-alert mt-4">
         <p className="mb-2"><strong>Importante:</strong></p>
         <ul>
+          <li>Usa los ingresos de 2024, que es el año al que se refieren los datos con los que te comparamos</li>
           <li>Incluye los ingresos de todos los miembros del hogar</li>
           <li>Los ingresos deben ser netos (después de impuestos y retenciones)</li>
           <li>Si algún ingreso es variable, puedes hacer una media mensual</li>
-          <li>Incluye pagas extra prorrateadas si las tienes</li>
+          <li>Si cobras pagas extra, escribe lo que entra en un mes normal (sin prorratear las extras) y elige 14 pagas. Nosotros sumamos las dos pagas extra</li>
+          <li>No cuentes las ayudas de familiares que no viven contigo ni los ingresos no declarados, porque los datos del INE tampoco los recogen</li>
         </ul>
       </div>
     </div>

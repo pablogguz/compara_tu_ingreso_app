@@ -1,7 +1,6 @@
 import { normalizeText } from './validation'
 
-// Municipality search shared by the questionnaire's picker and the redesign's
-// combobox: one ranking, so every search box finds the same municipality first.
+// Ranking for the municipality combobox (src/components/ensayo/MunicipalitySearch.tsx).
 
 export interface MunicipalityOption {
   value: string
@@ -21,19 +20,9 @@ export function scoreOption(opt: MunicipalityOption, search: string): number {
   return 0
 }
 
-// Filter + rank the option list for a search string. Done on the options
-// themselves (not on the rendered menu rows) so that what the user sees, what
-// the keyboard focuses and what Enter selects are all the same list.
-//
-// Ties between equally-scored matches go to the shorter name (closer to what
-// was typed), then alphabetical: "madr" → Madrid before Madremanya.
-//
-// The result deliberately contains *fresh* option objects. react-select keeps
-// its keyboard focus on the previously focused option as long as that same
-// object is still present in `options` — so "mad" (Madarcos focused first)
-// followed by "madr" would leave focus on Madarcos even though it is now a
-// province-only match at the bottom of the list. New identities make
-// react-select re-focus the top-ranked option on every keystroke.
+// Filter + rank the option list for a search string. Ties between
+// equally-scored matches go to the shorter name (closer to what was typed),
+// then alphabetical: "madr" → Madrid before Madremanya.
 export function rankOptions(
   options: MunicipalityOption[],
   rawSearch: string
@@ -49,5 +38,5 @@ export function rankOptions(
         a.o.munName.length - b.o.munName.length ||
         a.o.label.localeCompare(b.o.label, 'es')
     )
-    .map((x) => ({ ...x.o }))
+    .map((x) => x.o)
 }
