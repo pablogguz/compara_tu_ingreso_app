@@ -23,7 +23,7 @@ export default function IngresosTab() {
           <li>Los ingresos deben ser netos (después de impuestos y retenciones)</li>
           <li>Si algún ingreso es variable, puedes hacer una media mensual</li>
           <li>Si cobras pagas extra, escribe lo que entra en un mes normal (sin prorratear las extras) y elige 14 pagas. Nosotros sumamos las dos pagas extra</li>
-          <li>No cuentes las ayudas de familiares que no viven contigo ni los ingresos no declarados, porque los datos del INE tampoco los recogen</li>
+          <li>No cuentes el dinero que os den familiares que no viven con vosotros ni lo que se cobre en negro, porque los datos del INE tampoco lo recogen</li>
         </ul>
       </div>
     </div>

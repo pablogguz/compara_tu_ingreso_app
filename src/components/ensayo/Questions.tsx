@@ -250,9 +250,9 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
         </label>
       </h3>
       <p className={cx(q.hint, q.hintNote)} id="ensayo-ingresos-hint">
-        En neto, después de impuestos, y sumando lo de todas las personas que vivían contigo: nóminas, pensiones,
-        prestaciones, alquileres, intereses… Sin contar ayudas de familiares que no vivan contigo ni ingresos no
-        declarados.
+        Suma lo que cobraban en un mes normal todas las personas que vivían contigo, ya descontados los impuestos:
+        sueldos, pensiones, paro, ayudas, alquileres… Sin contar el dinero que os dieran familiares que no vivieran
+        con vosotros ni lo que se cobrara en negro.
         <Sidenote n={1} title={`¿Por qué ${INCOME_YEAR}?`}>
           Es el año más reciente al que podemos llevar los datos de renta del INE. Si tus ingresos han cambiado desde
           entonces, usa los de {INCOME_YEAR} para comparar con lo mismo.
