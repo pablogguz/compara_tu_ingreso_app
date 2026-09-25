@@ -429,9 +429,33 @@
   color: var(--ink-3);
 }
 
+/* ---- things arrive: blocks rise into place the first time they are seen ---- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 800ms var(--ease),
+    transform 900ms var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.revealShown {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
 /* ---- the questions: alone on the screen while you answer ---- */
 
 .stage {
+  /* a fade only: the page scrolls to this section as it mounts */
+  animation: fadeIn 600ms var(--ease) both;
   min-height: 100vh;
   min-height: 100svh;
   /* the grid would stretch its one row to the full height */
@@ -656,6 +680,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transform: none;
+    transition: opacity 200ms linear;
+  }
+
+  .stage {
+    animation: none;
+  }
+
   .noteOpen {
     animation: none;
   }

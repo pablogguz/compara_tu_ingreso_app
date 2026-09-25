@@ -6,6 +6,8 @@ interface Props {
   children: ReactNode
   fallback?: ReactNode
   label?: string
+  /** called once the boundary has caught an error */
+  onError?: () => void
 }
 
 interface State {
@@ -22,6 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.error(`ErrorBoundary[${this.props.label ?? 'unnamed'}]`, error)
+    this.props.onError?.()
   }
 
   render() {

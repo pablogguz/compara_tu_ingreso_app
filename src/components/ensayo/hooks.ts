@@ -110,3 +110,33 @@ export function useCount(to: number, run: boolean, duration: number, instant: bo
   }, [to, run, duration, instant])
   return n
 }
+
+/**
+ * Reveals an element the first time it scrolls into view: returns a ref and
+ * whether it has been seen. Without IntersectionObserver (tests, old
+ * browsers) everything is shown at once.
+ */
+export function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null)
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (typeof IntersectionObserver === 'undefined') {
+      setShown(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setShown(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return [ref, shown] as const
+}

@@ -726,6 +726,7 @@
 /* ---- loading ---- */
 
 .loading {
+  animation: softIn 500ms var(--ease) both;
   display: flex;
   align-items: center;
   gap: 22px;
@@ -741,6 +742,13 @@
   font-weight: 360;
   line-height: 1.4;
   color: var(--ink-2);
+}
+
+@keyframes softIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 /* sixteen squares breathe in a diagonal wave while the blue one hops */
@@ -813,6 +821,7 @@
 /* ---- your answers, once calculated ---- */
 
 .record {
+  animation: softIn 800ms var(--ease) both;
   margin-top: 26px;
   padding-top: 14px;
   border-top: 1px solid var(--ink);
@@ -982,7 +991,9 @@
   }
 
   .spinSq,
-  .spinYou {
+  .spinYou,
+  .loading,
+  .record {
     animation: none;
   }
 

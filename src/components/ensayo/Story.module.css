@@ -8,6 +8,15 @@
 
 .head {
   scroll-margin-top: 24px;
+  animation: riseIn 800ms var(--ease) 120ms both;
+}
+
+/* the story arrives as the page glides to it: heading, figure, text */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
 }
 
 .intro {
@@ -44,11 +53,13 @@
 .figureBox {
   width: 100%;
   height: min(840px, 100%);
+  animation: riseIn 1000ms var(--ease) 380ms both;
 }
 
 .steps {
   list-style: none;
   padding: 34vh 0 48vh;
+  animation: riseIn 1000ms var(--ease) 620ms both;
 }
 
 .step {
@@ -184,5 +195,11 @@
 @media (prefers-reduced-motion: reduce) {
   .step {
     transition: none;
+  }
+
+  .head,
+  .figureBox,
+  .steps {
+    animation: none;
   }
 }

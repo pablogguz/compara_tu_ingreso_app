@@ -9,7 +9,7 @@ import { INCOME_YEAR } from '@/lib/years'
 import { findPercentile } from '@/lib/calculations'
 import { XMAX, contract, cx, levelPhrase, levelTitle } from './copy'
 import { curveInSquares, peakOf } from './geometry'
-import { useSize } from './hooks'
+import { useReveal, useSize } from './hooks'
 import a from './App.module.css'
 import s from './Summary.module.css'
 
@@ -34,6 +34,13 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
   const mun = levels[2]
 
   const [shared, setShared] = useState('')
+  // each block rises into place the first time it is seen
+  const [headRef, headShown] = useReveal<HTMLDivElement>()
+  const [leadRef, leadShown] = useReveal<HTMLParagraphElement>()
+  const [figRef, figShown] = useReveal<HTMLElement>()
+  const [factsRef, factsShown] = useReveal<HTMLElement>()
+  const [actionsRef, actionsShown] = useReveal<HTMLDivElement>()
+  const reveal = (shown: boolean) => cx(a.reveal, shown && a.revealShown)
   useEffect(() => {
     if (!shared) return
     const t = setTimeout(() => setShared(''), 2800)
@@ -46,17 +53,17 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
 
   return (
     <section id="resumen" className={cx(a.flow, a.section, s.summary)} aria-labelledby="ensayo-resumen">
-      <div className={a.sectionHead}>
+      <div ref={headRef} className={cx(a.sectionHead, reveal(headShown))}>
         <span className={a.secNum}>2</span>
         <h2 className={a.h2} id="ensayo-resumen">
           Tu resumen
         </h2>
       </div>
-      <p className={s.lead}>
+      <p ref={leadRef} className={cx(s.lead, reveal(leadShown))}>
         {headline(national.rawPercentile, 'España')}. {gap.sentence}
       </p>
 
-      <figure className={cx(a.wide, s.figure)} aria-labelledby="ensayo-fig2">
+      <figure ref={figRef} className={cx(a.wide, s.figure, reveal(figShown))} aria-labelledby="ensayo-fig2">
         <div className={s.minis}>
           {levels.map((l, i) => (
             <Mini key={l.key} level={l} values={curves[i]} peak={peak} income={income} guessValue={guessValue} />
@@ -70,7 +77,7 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
       </figure>
 
       {stats && (
-        <section className={s.facts} aria-labelledby="ensayo-asi">
+        <section ref={factsRef} className={cx(s.facts, reveal(factsShown))} aria-labelledby="ensayo-asi">
           <h3 className={s.h3} id="ensayo-asi">
             Así es {mun.place}
           </h3>
@@ -98,7 +105,7 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
         </section>
       )}
 
-      <div className={s.actions}>
+      <div ref={actionsRef} className={cx(s.actions, reveal(actionsShown))}>
         <button type="button" className={a.btn} onClick={share}>
           Compartir
         </button>

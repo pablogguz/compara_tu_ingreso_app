@@ -15,7 +15,7 @@ import Story from './Story'
 import Summary from './Summary'
 import HeroField from './HeroField'
 import { cx, householdText, incomeText } from './copy'
-import { useReducedMotion } from './hooks'
+import { useReducedMotion, useReveal } from './hooks'
 import a from './App.module.css'
 import q from './Questions.module.css'
 
@@ -49,6 +49,11 @@ function Ensayo() {
   // the questions appear once the reader asks for them
   const [started, setStarted] = useState(false)
   const scrollOnStart = useRef(false)
+  // the answers and the story arrive together, once the figures are ready
+  const [figuresReady, setFiguresReady] = useState(false)
+  const figuresDone = useCallback(() => setFiguresReady(true), [])
+  const [introRef, introShown] = useReveal<HTMLDivElement>()
+  const [closingRef, closingShown] = useReveal<HTMLParagraphElement>()
   // the guess has no default on screen: the reader has to choose
   const [guessTouched, setGuessTouched] = useState(false)
   const reduced = useReducedMotion()
@@ -96,6 +101,7 @@ function Ensayo() {
 
   const again = () => {
     flow.reset()
+    setFiguresReady(false)
     setStep(0)
     requestAnimationFrame(() => toQuestions(true))
   }
@@ -143,15 +149,21 @@ function Ensayo() {
         </header>
 
         <section id="introduccion" className={cx(a.flow, a.intro)} aria-label="Introducción">
-          <div>
-            <p className={a.introLead}>
+          <div ref={introRef}>
+            <p className={cx(a.introLead, a.reveal, introShown && a.revealShown)}>
               Si pusiéramos en fila a todas las personas que viven en España, de la que tiene menos ingresos a la que
               más, ¿en qué punto de la fila estarías tú?
             </p>
-            <p className={a.introSub}>
+            <p
+              className={cx(a.introSub, a.reveal, introShown && a.revealShown)}
+              style={{ ['--delay' as string]: '160ms' } as React.CSSProperties}
+            >
               Con cuatro preguntas sobre tu hogar, puedes descubrir en qué punto de la fila te encuentras tú.
             </p>
-            <div className={a.introActions}>
+            <div
+              className={cx(a.introActions, a.reveal, introShown && a.revealShown)}
+              style={{ ['--delay' as string]: '320ms' } as React.CSSProperties}
+            >
               <button type="button" className={a.btn} onClick={start}>
                 Comenzar
                 <span className={a.btnArrow} aria-hidden="true">
@@ -173,7 +185,7 @@ function Ensayo() {
               Cuatro preguntas
             </h2>
 
-            {flow.status === 'calculating' ? (
+            {flow.status === 'calculating' || (done && !figuresReady) ? (
               <Loading />
             ) : done ? (
               <Record flow={flow} onEdit={again} />
@@ -195,13 +207,13 @@ function Ensayo() {
         )}
 
         {done && (
-          <ErrorBoundary label="ensayo-resultados">
-            <Results flow={flow} reduced={reduced} onAgain={again} />
+          <ErrorBoundary label="ensayo-resultados" onError={figuresDone}>
+            <Results flow={flow} reduced={reduced} onAgain={again} onReady={figuresDone} />
           </ErrorBoundary>
         )}
 
         <section className={cx(a.flow, a.section)} aria-label="Cómo se calcula">
-          <p className={a.lede}>
+          <p ref={closingRef} className={cx(a.lede, a.reveal, closingShown && a.revealShown)}>
             ¿De dónde salen los datos y cómo se calcula todo esto?{' '}
             <button type="button" className={a.inlineButton} onClick={() => openHelp('metodologia')}>
               Metodología y preguntas frecuentes
@@ -301,12 +313,27 @@ function Record({ flow, onEdit }: { flow: Flow; onEdit: () => void }) {
   )
 }
 
-function Results({ flow, reduced, onAgain }: { flow: Flow; reduced: boolean; onAgain: () => void }) {
+function Results({
+  flow,
+  reduced,
+  onAgain,
+  onReady,
+}: {
+  flow: Flow
+  reduced: boolean
+  onAgain: () => void
+  /** the figures are ready (or failed): the answers and the story can arrive */
+  onReady: () => void
+}) {
   const results = flow.results!
   const guess = flow.answers.perceivedPercentile
   const { levels, stats, loading, error, guessValue } = useLevels(results, flow.answers.municipality, guess)
   const ready = !loading && !error && levels.length === 3
   const scrolled = useRef(false)
+
+  useEffect(() => {
+    if (ready || error) onReady()
+  }, [ready, error, onReady])
 
   // once the figures are ready, take the reader to the story
   useEffect(() => {
@@ -332,15 +359,8 @@ function Results({ flow, reduced, onAgain }: { flow: Flow; reduced: boolean; onA
       </section>
     )
   }
-  if (!ready) {
-    return (
-      <section className={cx(a.flow, a.section)}>
-        <p className={q.loadingLine} role="status">
-          Preparando las figuras…
-        </p>
-      </section>
-    )
-  }
+  // until then the spinner above keeps the reader company
+  if (!ready) return null
 
   return (
     <>
