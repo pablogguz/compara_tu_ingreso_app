@@ -1,18 +1,19 @@
 #-------------------------------------------------------------
 #* Author: Pablo Garcia Guzman
 #* Project: validation metrics for www.comparatuingreso.es
-#* This script: predicts missing Ginis using ML
+#* This script: imputes the Gini coefficient of the tracts where the
+#*   ADRH does not publish it (tracts with fewer than 100 residents).
+#*
+#* Model: XGBoost on tract demographics, log equivalised income and
+#*   province dummies. It is compared with OLS on the same predictors
+#*   (province fixed effects) and with a constant, using the same
+#*   5-fold cross-validation folds.
+#*
+#* Output: data-raw/gini_predicted.fst  -- imputed Gini by tract
+#*         data-raw/gini_model_cv.fst   -- cross-validated metrics
 #-------------------------------------------------------------
 
-packages_to_load <- c(
-    "tidyverse",
-    "data.table",
-    "ineAtlas",
-    "fixest",
-    "xgboost",
-    "caret",
-    "fst"
-)
+packages_to_load <- c("data.table", "ineAtlas", "xgboost", "fst")
 
 package.check <- lapply(
   packages_to_load,
@@ -22,174 +23,120 @@ package.check <- lapply(
     }
   }
 )
-
-lapply(packages_to_load, require, character=T)
-
+lapply(packages_to_load, require, character.only = TRUE)
 #-------------------------------------------------------------------
 
+BASE_YEAR <- read_fst("data-raw/nowcast_factor.fst")$base_income_year
+
+# Model settings (reported in the note)
+K_FOLDS   <- 5
+NROUNDS   <- 100
+MAX_DEPTH <- 6
+ETA       <- 0.3
+SEED      <- 123
+# Extrapolation check: train on tracts with at least SMALL_TRAIN_MIN
+# residents, test on tracts with 100 to SMALL_TRAIN_MIN - 1 residents
+SMALL_TRAIN_MIN <- 300
+
 # ------------------------- Prepare data ---------------------------
-atlas_all <- merge(
-    setDT(ineAtlas::get_atlas("income", "tract")),
-    setDT(ineAtlas::get_atlas("demographics", "tract"))
-) %>%
-    filter(year == 2023)
+atlas <- merge(
+  setDT(ineAtlas::get_atlas("income", "tract")),
+  setDT(ineAtlas::get_atlas("demographics", "tract"))
+)[year == BASE_YEAR]
 
-# verify % of missings for each variable in atlas_all 
-missing_percent <- atlas_all %>%
-    summarise(across(everything(), ~ mean(is.na(.)) * 100))
+gini <- setDT(ineAtlas::get_atlas("gini_p80p20", "tract"))[year == BASE_YEAR, .(tract_code, gini)]
+atlas <- merge(atlas, gini, by = "tract_code")
 
-print(missing_percent)
+atlas[, dependency_ratio := (pct_under18 + pct_over65) / (100 - pct_under18 - pct_over65)]
 
-gini <- setDT(ineAtlas::get_atlas("gini_p80p20", "tract")) %>%
-    filter(year == 2023) %>%
-    select(tract_code, gini, p80p20)
+# Impute equivalised income from income per person with the provincial,
+# population-weighted ratio of the two (same rule as 1b. fit_gb2.r)
+atlas[, ratio := weighted.mean(net_income_equiv / net_income_pc, w = population, na.rm = TRUE),
+      by = prov_code]
+atlas[is.na(net_income_equiv) & !is.na(net_income_pc), net_income_equiv := net_income_pc * ratio]
+atlas[, log_income_equiv := log(net_income_equiv)]
 
-atlas_all <- merge(atlas_all, gini, by = "tract_code")
+features <- c("log_income_equiv", "dependency_ratio", "mean_age", "pct_single_hh",
+              "pct_under18", "mean_hh_size", "population")
 
-# First impute net_income_equiv where missing
-data_clean <- atlas_all %>%
-    # Calculate national ratio for imputation
-    mutate(
-        # Create dependency ratio
-        dependency_ratio = (pct_under18 + pct_over65)/(100 - pct_under18 - pct_over65),
-        # Create province factor
-        prov_code = factor(prov_code)
-    ) %>%
-    group_by(prov_code) %>%
-    mutate(
-        # Calculate provincial ratio
-        ratio = weighted.mean(net_income_equiv/net_income_pc, w = population, na.rm = TRUE),
-        # Impute net_income_equiv where missing
-        net_income_equiv = if_else(
-            is.na(net_income_equiv) & !is.na(net_income_pc),
-            net_income_pc * ratio,
-            net_income_equiv
-        )
-    ) %>%
-    ungroup()
-
-# ------------------------- Model training ---------------------------
-
-# 1. OLS
-model_data <- data_clean %>%
-    filter(!is.na(gini),              
-           !is.na(net_income_equiv), 
-           !is.na(dependency_ratio),  
-           !is.na(mean_age),
-           !is.na(pct_single_hh)) %>%
-    mutate(
-        log_income_equiv = log(net_income_equiv),
-    )
-
-# Get predictions from OLS
-model1 <- feols(
-    gini ~ log_income_equiv + 
-          dependency_ratio + mean_age + pct_single_hh + mean_hh_size + population | prov_code,
-    data = model_data
-)
-
-prediction_data <- data_clean %>%
-    filter(is.na(gini)) %>%  # Get observations without Gini
-    filter(!is.na(net_income_equiv),
-           !is.na(dependency_ratio),
-           !is.na(mean_age),
-           !is.na(pct_single_hh)) %>%
-    mutate(log_income_equiv = log(net_income_equiv))
-
-ols_predictions <- predict(model1, newdata = prediction_data)
-
-# Print prediction metrics
-model_data$predicted_gini <- fitted(model1)
-
-cat("\nPrediction Performance:\n")
-performance <- model_data %>%
-    summarise(
-        rmse = sqrt(mean((gini - predicted_gini)^2)),
-        mae = mean(abs(gini - predicted_gini)),
-        mape = mean(abs(gini - predicted_gini)/gini)*100
-    )
-
-# 2. XGBoost with cross-validation
-# Prepare data for XGBoost
-features <- c("log_income_equiv", "dependency_ratio", "mean_age", 
-              "pct_single_hh", "pct_under18", "mean_hh_size", "population")
-
-# Create training matrix
-train_x <- model_data %>%
-    select(all_of(features)) %>%
-    as.matrix()
-
-train_y <- model_data$gini
-
-# Create cross-validation folds
-set.seed(123)
-folds <- createFolds(train_y, k = 5, list = TRUE)
-
-# Function to calculate metrics
-calc_metrics <- function(actual, predicted) {
-    data.frame(
-        rmse = sqrt(mean((actual - predicted)^2)),
-        mae = mean(abs(actual - predicted)),
-        mape = mean(abs(actual - predicted)/actual)*100
-    )
+# Province dummies, with the same columns for training and prediction
+prov_levels <- sort(unique(atlas$prov_code))
+design <- function(d) {
+  prov <- model.matrix(~ factor(prov_code, levels = prov_levels) - 1, d)
+  colnames(prov) <- paste0("prov_", prov_levels)
+  cbind(as.matrix(d[, ..features]), prov)
 }
 
-# Cross-validate XGBoost
-xgb_cv_results <- lapply(folds, function(test_idx) {
-    train_idx <- setdiff(seq_along(train_y), test_idx)
-    
-    # Train XGBoost
-    xgb_model <- xgboost(
-        data = train_x[train_idx,],
-        label = train_y[train_idx],
-        nrounds = 100,
-        max_depth = 6,
-        eta = 0.3,
-        objective = "reg:squarederror",
-        verbose = 0
-    )
-    
-    # Get predictions
-    pred <- predict(xgb_model, train_x[test_idx,])
-    
-    # Calculate metrics
-    calc_metrics(train_y[test_idx], pred)
-})
+train <- atlas[!is.na(gini) & complete.cases(atlas[, ..features])]
+target <- atlas[is.na(gini) & !is.na(log_income_equiv)]
 
-# Average CV results
-cv_results <- bind_rows(xgb_cv_results) %>%
-    summarise(across(everything(), mean))
+cat(sprintf("Training tracts: %d | tracts to impute: %d\n", nrow(train), nrow(target)))
 
-# Train final XGBoost model on all data
-final_xgb <- xgboost(
-    data = train_x,
-    label = train_y,
-    nrounds = 100,
-    max_depth = 6,
-    eta = 0.3,
-    objective = "reg:squarederror",
+# ------------------------- Cross-validation ---------------------------
+metrics <- function(actual, predicted) {
+  data.table(
+    rmse = sqrt(mean((actual - predicted)^2)),
+    mae  = mean(abs(actual - predicted)),
+    mape = 100 * mean(abs(actual - predicted) / actual),
+    r2   = 1 - sum((actual - predicted)^2) / sum((actual - mean(actual))^2)
+  )
+}
+
+fit_xgb <- function(x, y) {
+  xgb.train(
+    params = list(objective = "reg:squarederror", max_depth = MAX_DEPTH, eta = ETA),
+    data = xgb.DMatrix(x, label = y),
+    nrounds = NROUNDS,
     verbose = 0
+  )
+}
+
+ols_formula <- as.formula(paste("gini ~", paste(features, collapse = " + "), "+ factor(prov_code)"))
+
+set.seed(SEED)
+fold <- sample(rep(seq_len(K_FOLDS), length.out = nrow(train)))
+x_train <- design(train)
+
+oof <- data.table(gini = train$gini, constant = NA_real_, ols = NA_real_, xgb = NA_real_)
+for (k in seq_len(K_FOLDS)) {
+  fit <- fold != k
+  oof[!fit, constant := mean(train$gini[fit])]
+  oof[!fit, ols := predict(lm(ols_formula, data = train[fit]), newdata = train[!fit])]
+  oof[!fit, xgb := predict(fit_xgb(x_train[fit, ], train$gini[fit]), x_train[!fit, ])]
+}
+
+cv <- rbind(
+  cbind(model = "constant", metrics(oof$gini, oof$constant)),
+  cbind(model = "ols",      metrics(oof$gini, oof$ols)),
+  cbind(model = "xgb",      metrics(oof$gini, oof$xgb))
 )
 
-# Get XGBoost predictions for missing values
-prediction_matrix <- prediction_data %>%
-    select(all_of(features)) %>%
-    as.matrix()
+# Extrapolation check towards small tracts (the imputation targets are
+# all below 100 residents, outside the training sample)
+big   <- train$population >= SMALL_TRAIN_MIN
+small <- train$population < SMALL_TRAIN_MIN
+m_big <- fit_xgb(x_train[big, ], train$gini[big])
+cv <- rbind(cv, cbind(model = "xgb_small_tracts",
+                      metrics(train$gini[small], predict(m_big, x_train[small, ]))))
 
-xgb_predictions <- predict(final_xgb, prediction_matrix)
+cv[, `:=`(
+  n_train = nrow(train), n_target = nrow(target), n_small_test = sum(small),
+  k_folds = K_FOLDS, nrounds = NROUNDS, max_depth = MAX_DEPTH, eta = ETA,
+  small_train_min = SMALL_TRAIN_MIN, gini_sd = sd(train$gini),
+  gini_obs_mean = mean(train$gini)
+)]
 
-# Compare model performance
-cat("\nOLS Performance (original):\n")
-print(performance)
+cat("\nOut-of-fold performance (same folds for every model):\n")
+print(cv[, .(model, rmse = round(rmse, 3), mae = round(mae, 3), mape = round(mape, 2), r2 = round(r2, 3))])
 
-cat("\nXGBoost Performance (cross-validated):\n")
-print(cv_results)
-
-# Combine tract codes with XGBoost predictions
+# ------------------------- Final model ---------------------------
+final_xgb <- fit_xgb(x_train, train$gini)
 predicted_gini <- data.frame(
-    tract_code = prediction_data$tract_code,
-    gini = xgb_predictions
+  tract_code = target$tract_code,
+  gini = predict(final_xgb, design(target))
 )
+cv[, gini_pred_mean := mean(predicted_gini$gini)]
 
-# Save to file
-write.fst(predicted_gini, "data-raw/gini_predicted.fst")
+write_fst(predicted_gini, "data-raw/gini_predicted.fst")
+write_fst(as.data.frame(cv), "data-raw/gini_model_cv.fst")
+cat("\nSaved data-raw/gini_predicted.fst and data-raw/gini_model_cv.fst\n")

@@ -11,7 +11,10 @@
 #*   the administrative data; the nowcast is rho * ECV growth for the
 #*   target year, applied to every tract and municipality.
 #*
-#* Output: data-raw/nowcast_factor.fst -- one row with the factor.
+#* Output: data-raw/nowcast_factor.fst -- one row with the factor. Its
+#*   base_income_year is the ADRH cross-section every later script uses.
+#*   data-raw/nowcast_series.fst -- the yearly ADRH and ECV growth
+#*   rates behind rho (used by 6. note_numbers.r).
 #-------------------------------------------------------------
 
 packages_to_load <- c("tidyverse", "data.table", "ineapir", "ineAtlas", "fst")
@@ -107,3 +110,7 @@ nowcast <- data.table(
 
 write_fst(nowcast, "data-raw/nowcast_factor.fst")
 cat("\nSaved data-raw/nowcast_factor.fst\n")
+
+series <- merge(adrh_growth, ecv, by = "year", all = TRUE)[order(year)]
+write_fst(as.data.frame(series), "data-raw/nowcast_series.fst")
+cat("Saved data-raw/nowcast_series.fst\n")

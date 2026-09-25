@@ -9,8 +9,8 @@ This repository holds everything behind the site:
 
 ## How it works
 
-1. For each of the ~37,000 census tracts, the ADRH reports net equivalised income (median and mean) and a Gini coefficient. Each tract's income distribution is modelled as a log-normal: σ follows from the Gini, the location from the median.
-2. Where the ADRH suppresses a tract's Gini, it is imputed with a gradient-boosted model on tract characteristics.
+1. For each of the ~37,000 census tracts, the ADRH reports net equivalised income (median and mean), the Gini coefficient, the P80/P20 ratio and the shares of population below or above nine income thresholds. Each tract's income distribution is modelled as a GB2 (generalised beta of the second kind) fitted by minimum distance to those thirteen statistics.
+2. Tracts for which the ADRH publishes no income statistics (almost all under 100 residents) get a log-normal whose Gini is imputed with a gradient-boosted model on tract characteristics.
 3. The tract distributions are combined, weighted by population, into national, provincial and municipal distributions, whose percentiles are solved numerically.
 4. The latest ADRH year (2023) is nowcast to 2024 with the growth of mean equivalised income in the Living Conditions Survey (ECV), scaled by how ECV growth has historically compared with ADRH growth.
 5. In the browser, the user's household income is equivalised with the modified OECD scale and located in those distributions.
@@ -43,8 +43,6 @@ npm run dev      # http://localhost:3000
 npm test         # unit, component and flow tests
 npm run build    # production build
 ```
-
-Every screen can also be opened directly, without going through the questionnaire, at `/mocks` (development and preview builds only).
 
 The app runs without any configuration. Two optional features read environment variables (in `.env.local` locally, or in the hosting provider's settings):
 

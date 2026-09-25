@@ -38,16 +38,10 @@ atlas_income <- merge(
         net_income_pc, population
     )
 
-# Nowcast 2023 -> 2024 equivalised income with ECV CCAA factors (see 0d. ecv_nowcast.r)
-ccaa_growth <- read_fst("data-raw/ccaa_growth.fst") %>%
-    select(prov_code, nowcast_factor = factor)
+# Nowcast base year -> target year income with the national factor (see 0d. ecv_nowcast.r)
+nowcast_factor <- read_fst("data-raw/nowcast_factor.fst")$factor
 atlas_income <- atlas_income %>%
-    left_join(ccaa_growth, by = "prov_code") %>%
-    mutate(
-        nowcast_factor = coalesce(nowcast_factor, 1),
-        across(c(net_income_equiv, net_income_pc), ~ .x * nowcast_factor)
-    ) %>%
-    select(-nowcast_factor)
+    mutate(across(c(net_income_equiv, net_income_pc), ~ .x * nowcast_factor))
 
 # Check municipalities in which all tracts have missing income data
 missing_mun <- atlas_income %>% 

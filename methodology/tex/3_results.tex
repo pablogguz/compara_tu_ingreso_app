@@ -1,80 +1,95 @@
 
-\paragraph{Validation} I begin by validating the log-normality assumption at the tract level. Figure \ref{fig:median} examines the fit for mean income, comparing observed values with those predicted under log-normality for each census tract, where observations are grouped into equal-sized bins using binscatter methods.\footnote{See \cite{cattaneo}.} The relationship is remarkably strong ($\beta$ = 0.99, $R^2$ = 0.99), with predicted values differing from observed ones by just 4.6\% on average. The near-unit slope coefficient and $R^2$ indicate that log-normality captures the central tendency of the income distribution particularly well.
+\subsection{Fit at the tract level}
 
-Figure \ref{fig:p80p20} shows the relationship for the P80/P20 ratio. The regression yields a slope coefficient of 0.77 ($R^2$ = 0.82), with predicted values deviating from observed ones by 4.8\% on average. Consistent with the fact that real income distributions tend to have heavier tails, the coefficient below unity suggests that the log-normal distribution slightly underestimates inequality.
+The tract distributions are fitted to every indicator the ADRH publishes for the tract, so comparing them with those indicators measures the quality of the fit rather than its predictive accuracy. For the \ValTracts{} tracts with a GB2 fit, all averages and regressions below weight tracts by population. The fitted median lies inside the published \texteuro 700 interval in \FitMedInBinPct{}\% of tracts; fitted and published means differ by \FitMeanAbsErr{}\% on average, Gini coefficients by \FitGiniAbsErr{} points and P80/P20 ratios by \FitPAbsErr{}\%, the latter partly because published ratios come from rounded percentiles. The nine shares differ from the published ones by \FitShareMAE{} percentage points on average.
 
-\begin{figure}[H]
+\paragraph{Mean-to-median ratio} The ratio of the mean to the median summarizes the skewness of each tract's distribution. Figure \ref{fig:skew} plots the observed $\ln(\bar y_j / \tilde m_j)$, where $\bar y_j$ and $\tilde m_j$ are the published mean and median, against its fitted value. A regression of observed on fitted values has a slope of \ValSkewSlope{} ($R^2 = \ValSkewRsq{}$).
+
+\begin{figure}[!htb]
 \begin{center}
-\captionsetup{justification=centering}
-\caption{Validation of log-normality: mean income}
-\label{fig:median}
-\includegraphics[width=0.7\textwidth]{output/binned_scatter_mean_2023.png}
+\caption{Mean-to-median ratio: observed and fitted}
+\label{fig:skew}
+\includegraphics[width=0.55\textwidth]{output/fig_validation_skew.png}
 \end{center}
 \begin{fignotes2}
-\textbf{Notes:} This figure shows a binned scatter plot comparing observed mean income with predicted values under the log-normal assumption for each census tract. Source: Spanish Statistical Office and author's calculations.
+\textbf{Notes:} Binned scatter plot of the observed $\ln(\text{mean}/\text{median})$ of income per consumption unit against its value under the tract's fitted GB2. Tracts are grouped into 30 bins of equal population. The solid line is the population-weighted regression of observed on fitted values over all tracts; the dashed line is the 45-degree line. Source: INE, ADRH (\BaseYear{}), and author's calculations.
 \end{fignotes2}
 \end{figure}
-\begin{figure}[H]
+
+\paragraph{P80/P20 ratio} Figure \ref{fig:p80p20} does the same for the P80/P20 ratio. A regression of observed on fitted ratios has a slope of \ValPSlope{} ($R^2 = \ValPRsq{}$).
+
+\begin{figure}[!htb]
 \begin{center}
-\captionsetup{justification=centering}
-\caption{Validation of log-normality: P80/P20 ratio}
+\caption{P80/P20 ratio: observed and fitted}
 \label{fig:p80p20}
-\includegraphics[width=0.7\textwidth]{output/binned_scatter_p80p20_2023.png}
+\includegraphics[width=0.55\textwidth]{output/fig_validation_p80p20.png}
 \end{center}
 \begin{fignotes2}
-\textbf{Notes:} This figure shows a binned scatter plot comparing observed P80/P20 ratios with predicted values under the log-normal assumption for each census tract. Source: Spanish Statistical Office and author's calculations.
+\textbf{Notes:} Binned scatter plot of the observed P80/P20 ratio of income per consumption unit against its value under the tract's fitted GB2. Tracts are grouped into 30 bins of equal population. The solid line is the population-weighted regression of observed on fitted values over all tracts; the dashed line is the 45-degree line. Source: INE, ADRH (\BaseYear{}), and author's calculations.
 \end{fignotes2}
 \end{figure}
 
-% \begin{figure}[H]
-% \begin{center}
-% \captionsetup{justification=centering}
-% \caption{Estimated mixture vs. tract means}
-% \label{fig:distributions}
-% \includegraphics[width=0.7\textwidth]{output/tract_vs_individual_income_distribution.png}
-% \end{center}
-% \begin{fignotes2}
-% \textbf{Notes:} This figure shows two approaches to approximating the individual income distribution: using tract means (in dark blue), where everyone within a tract is assumed to have the same income, and using a mixture of log-normals (in red) that incorporates within-tract inequality. The tract means distribution is calculated as a population-weighted kernel density of tract means. The mixture distribution is constructed using tract-specific log-normal distributions, where the parameters of each component are derived from observed tract means and Gini coefficients, and mixture weights correspond to tract population shares. Data refers to year 2022. Source: Spanish Statistical Office and author's calculations.
-% \end{fignotes2}
-% \end{figure}
+\paragraph{Held-out shares} To measure how well the GB2 predicts what it is not fitted to, I refit every tract nine times, each time leaving one share out of its targets, and compare the predicted share with the published one over the tracts that publish it. The held-out shares differ from the published ones by \HoldShareMAE{} percentage points on average, between \HoldShareMAEMin{} and \HoldShareMAEMax{} depending on the share (Table \ref{tab:thresholds}, last column), against \FitShareMAE{} points when the share is part of the fit.
 
-% A natural question arises: to what extent does exploiting local-level heterogeneity through a mixture of tract-specific distributions improve our measurement of the national income distribution compared to a simpler log-normal approximation? The comparison shown in Figure \ref{fig:dist2} reveals a striking finding: despite incorporating rich geographic variation in both average income and inequality metrics, the mixture distribution is remarkably similar to a single log-normal distribution fitted using only the national-level average income and Gini coefficient derived from household survey data (EU-SILC). This pattern aligns with previous evidence showing that log-normal densities approximate very well the empirical distribution of per capita income in large cross-country panels \citep{lopez2006normal}. In contexts where more granular data is not available, these results suggest that assuming log-normality at the national level might remain an accurate approximation for capturing the overall shape of the income distribution.
+\subsection{Validation of the aggregate distributions}
 
-% \begin{figure}[H]
-% \begin{center}
-% \captionsetup{justification=centering}
-% \caption{Estimated mixture vs. national log-normal}\label{fig:dist2}
-% \includegraphics[width=0.85\textwidth]{output/tract_vs_national_income_distribution.png}
-% \end{center}
-% \begin{fignotes2}
-% \textbf{Notes:} This figure compares the income distribution derived from a mixture of tract-level log-normal distributions (navy) with a single national-level log-normal distribution (light blue). The mixture distribution is constructed using tract-specific log-normal distributions, where the parameters of each component are derived from observed tract means and Gini coefficients, and mixture weights correspond to tract population shares. The parameters for the national log-normal are given by the national-level mean income and Gini coefficient from EU-SILC 2023. Data refers to year 2022. Source: Spanish Statistical Office and author's calculations.
-% \end{fignotes2}
-% \end{figure}
+What the app reports are percentiles of the mixtures. The mean of a mixture and its shares below income thresholds are population-weighted averages of those of its tracts, so they largely reproduce the tract fits. Its median, Gini coefficient and P80/P20 ratio are not, and the ADRH publishes them for Spain, its provinces and its municipalities; they are the main out-of-sample test of the model. Table \ref{tab:aggregate} compares them with the published values; the comparison is in \BaseYear{} euros, before the nowcast, which scales every income by the same factor.
 
-\paragraph{Decomposing income inequality} I examine the spatial structure of income inequality in Spain through a hierarchical variance decomposition exercise. Specifically, I decompose the total variance of log income within each autonomous community $c$  into components corresponding to different geographic levels as follows:
+The national median of the mixture, \texteuro\MixNatMedian{}, lies inside the published interval (\texteuro\AdrhNatMedianLo{} to \texteuro\AdrhNatMedianHi{}), \MixNatMedianErr{}\% from its midpoint. The mean, \texteuro\MixNatMean{}, differs by \MixNatMeanErr{}\% from the published \texteuro\AdrhNatMean{}. Computed as the ADRH computes it, after replacing the lowest and highest 1.5\% of incomes, the Gini coefficient of the mixture is \MixNatGini{}, against \AdrhNatGini{} published. Its P80/P20 ratio is \MixNatPEightyTwenty{}, or \MixNatPEightyTwentyBinned{} once its 20th and 80th percentiles are rounded to \texteuro 700 intervals as the published ones are, against \AdrhNatPEightyTwenty{}. The model median lies inside the published interval for \ProvMedInBinPct{}\% of provinces and for \MunMedInBinPct{}\% of the \MunValN{} municipalities with at least two tracts and published statistics (population-weighted). Gini coefficients differ from the published ones by \ProvGiniAbsErr{} points in provinces and \MunGiniAbsErr{} points in municipalities on average, and P80/P20 ratios by \ProvPAbsErr{}\% and \MunPAbsErr{}\%.
 
+\begin{table}[H]
+\centering
+\begin{threeparttable}
+\onehalfspacing
+\caption{Model and published statistics}\label{tab:aggregate}
+\footnotesize
+\input{output/table_aggregate}
+\begin{tablenotes}[para,flushleft]
+\scriptsize
+\textbf{Notes}: Statistics of income per consumption unit, in \BaseYear{} euros. Panel A compares the mixture for Spain with the totals published by the ADRH; the Gini coefficient of the mixture is computed after replacing the lowest and highest 1.5\% of incomes with the nearest remaining value, as in the ADRH. Published medians are midpoints of \texteuro 700 intervals and published P80/P20 ratios are rounded to one decimal. Panel B reports population-weighted averages of the difference between model and published statistics, in absolute value and with its sign, in per cent for medians and P80/P20 ratios and in points for Gini coefficients, for the provinces and for the municipalities with at least two census tracts and published statistics. Source: INE, ADRH, and author's calculations.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Table \ref{tab:thresholds} compares the shares of the population below nine thresholds that the ADRH publishes for Spain (three fixed amounts and six fractions of the national median) with those of the mixture. They differ by at most \ThrOtherMaxDiff{} percentage points, except below \texteuro 5,000, where the mixture places \ThrFiveKModel{}\% of the population against \ThrFiveKObs{}\% in the ADRH. The share of the population with the lowest incomes is thus somewhat understated: the tract GB2s cannot fully reproduce the mass of very low incomes while also matching the shares higher up.
+
+\begin{table}[H]
+\centering
+\begin{threeparttable}
+\onehalfspacing
+\caption{Share of the population below income thresholds}\label{tab:thresholds}
+\footnotesize
+\input{output/table_thresholds}
+\begin{tablenotes}[para,flushleft]
+\scriptsize
+\textbf{Notes}: Shares of the population with income per consumption unit below each threshold. The relative thresholds are fractions of the national median (\texteuro\AdrhNatMedian{}); for those above the median the ADRH publishes the share above, shown here as its complement. The first columns compare the shares published for Spain with those of the mixture. The last two columns are population-weighted mean absolute differences between the shares of the tracts' fitted GB2s and those the ADRH publishes for the tracts, over the tracts that publish them (\ShareTractsPopPct{}\% of the population): with every share in the fit (fitted) and with the share left out of the fit (held out). Source: INE, ADRH, and author's calculations.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+For households, the first percentile of the mixture is \texteuro\MixPOne{}, and a household at the at-risk-of-poverty line (60\% of the median, \texteuro\ThrPovEuro{}) is placed at position \ThrPovModelP{} (Section \ref{sec:placing}), against \ThrPovObsP{} in the published distribution. At twice the median (\texteuro\ThrTopEuro{}), the mixture places \ThrTopModel{}\% of the population above, against \ThrTopObs{}\% in the ADRH.
+
+\subsection{Decomposing income inequality}
+
+To examine the spatial structure of inequality, I decompose the variance of log income within each autonomous community $c$ into a within-tract component and between-area components:
 \begin{equation}\label{decomp}
-\sigma^2_{c} = 
-\underbrace{\sum_{j} w_j \sigma^2_{j}}_{\text{Within-tract}} + 
-\underbrace{\sum_{k \in c} \sum_{j \in k} w_j \big( \mu_{j} - \mu_{k} \big)^2}_{\text{Between-tract}} + 
-\underbrace{\sum_{p \in c} \sum_{k \in p} w_k \big( \mu_{k} - \mu_{p} \big)^2}_{\text{Between-municipality}} + 
-\underbrace{\sum_{p \in c} w_p \big( \mu_{p} - \mu_{c} \big)^2}_{\text{Between-province}}
+\sigma^2_{c} =
+\underbrace{\sum_{j \in c} w_j \sigma^2_{j}}_{\text{Within tracts}} +
+\underbrace{\sum_{j \in c} w_j \big( \nu_{j} - \bar\nu_{k(j)} \big)^2}_{\text{Between tracts}} +
+\underbrace{\sum_{k \in c} w_k \big( \bar\nu_{k} - \bar\nu_{p(k)} \big)^2}_{\text{Between municipalities}} +
+\underbrace{\sum_{p \in c} w_p \big( \bar\nu_{p} - \bar\nu_{c} \big)^2}_{\text{Between provinces}},
 \end{equation}
+where $\nu_j$ and $\sigma_j^2$ are the mean and variance of log income in tract $j$, which for a GB2 are $\nu_j = \ln b_j + [\psi(p_j) - \psi(q_j)]/a_j$ and $\sigma_j^2 = [\psi'(p_j) + \psi'(q_j)]/a_j^2$, with $\psi$ the digamma function; $\bar\nu_k$, $\bar\nu_p$ and $\bar\nu_c$ are the population-weighted means of $\nu_j$ in municipality $k$, province $p$ and community $c$, $k(j)$ is the municipality of tract $j$ and $p(k)$ the province of municipality $k$, and $w_j$, $w_k$ and $w_p$ are population shares within $c$.
 
-where $\sigma^2_{j}$ is the variance of log income within each census tract $j$, $\mu_j$ is the mean log income in tract $j$, $\mu_k$ is the mean log income in municipality $k$, $\mu_p$ is the mean log income in province $p$, and  $\mu_{c}$ is the cross-tract mean log income within autonomous community $c$. Population weights for tracts, municipalities, and provinces, are denoted by $w_j, w_k, w_p$, respectively. The decomposition separates total income variation into four components: within-tract, between-tract (within municipalities), between-municipality (within provinces), and between-province variation.
-
-Figure \ref{fig:variance_decomp} presents the results of this decomposition by autonomous community. The analysis reveals that within-tract variation accounts by far for the largest share of income inequality, representing around 80\% of total variance on average. This finding provides additional support for using tract-level distributional estimates as the fundamental building blocks for the aggregate distribution.\footnote{Notice that this does not contradict the earlier discussion on homogeneity in income-generating \textit{processes} within neighborhoods. The latter refers to the shared mechanisms (e.g., proportional shocks) influencing income trajectories within neighborhoods, but does not imply homogeneity in outcomes. Individual incomes can still vary significantly due to structural or stochastic factors.} A further 11\% is on average explained by between-tract, within-municipality differences. Income differences between municipalities and provinces contribute the remaining 9\%.\footnote{Extending the decomposition analysis at the national level shows that between-community income disparities only account for 5\% of total variance.}
-
-% This predominance of within-tract variation provides intuition for why the mixture and single log-normal distributions are so similar. Since between-tract heterogeneity accounts for a relatively small share of total inequality, incorporating tract-level variation through a mixture approach adds limited value beyond a simple national-level approximation in the Spanish context.
+Figure \ref{fig:variance_decomp} shows the result for each community. Within-tract variation accounts for between \VdCcaaWithinMin{}\% and \VdCcaaWithinMax{}\% of the variance of log income, and for \VdCcaaWithin{}\% on average across the \VdCcaaN{} communities.\footnote{This does not contradict the homogeneity of income-generating processes within neighborhoods discussed in Section \ref{sec:method}, which refers to the mechanisms that shape incomes, such as proportional shocks, and not to the level of incomes.} Differences between tracts of the same municipality account for a further \VdCcaaTract{}\% on average, and differences between municipalities and provinces for \VdCcaaRest{}\%. For Spain as a whole, within-tract variation accounts for \VdWithin{}\% of the variance, differences between tracts within municipalities for \VdBetweenTract{}\%, between municipalities within provinces for \VdBetweenMun{}\%, between provinces within communities for \VdBetweenProv{}\% and between communities for \VdBetweenCcaa{}\%. Most inequality therefore lies within tracts, which is why the aggregate distribution depends on how incomes are distributed inside each tract and not only on tract averages. These shares rest on the fitted GB2s.
 
 \begin{figure}[H]
 \begin{center}
-\captionsetup{justification=centering}
-\caption{Variance decomposition}
+\caption{Decomposition of the variance of log income by autonomous community}
 \label{fig:variance_decomp}
-\includegraphics[width=0.85\textwidth]{output/variance_decomp_2023.png}
+\includegraphics[width=0.85\textwidth]{output/fig_variance_decomp.png}
 \end{center}
 \begin{fignotes2}
-\textbf{Notes:} This figure shows the decomposition described in Equation \ref{decomp} whereby total variance in log income is broken down into four components: within-tract, between-tract (within municipality), between-municipality (within province), and between-province variation. Source: Spanish Statistical Office and author's calculations.
+\textbf{Notes:} Decomposition of equation (\ref{decomp}) for each autonomous community, excluding Ceuta and Melilla. Tracts with a GB2 fit. Source: INE, ADRH (\BaseYear{}), and author's calculations.
 \end{fignotes2}
 \end{figure}

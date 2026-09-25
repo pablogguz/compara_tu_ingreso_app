@@ -1,130 +1,87 @@
 
 \subsection{Background}
 
-The study of income distributions has been a cornerstone of economic research. A long-standing empirical regularity in the literature is that income distributions tend to approximate a log-normal density \citep{aitchison1957lognormal}. This stylized fact is supported by both theoretical and empirical foundations. At its core, log-normality arises from the multiplicative interaction of economic factors -- such as human capital, local labor market conditions, and productivity -- which determine individual incomes \citep{neal2000theories}. Gibrat's Law of Proportionate Effect \citep{gibrat1931inegalites} formalizes the theoretical basis for log-normality through multiplicative random growth, showing that when the growth rate of a variable is independent of its initial size and the logarithm of the growth rate is independent and identically distributed over time with finite variance, the resulting distribution tends to converge to log-normality. 
+A long-standing empirical regularity is that income distributions are approximately log-normal \citep{aitchison1957lognormal}. Multiplicative processes provide a rationale: incomes result from the interaction of factors such as skills, local labor markets and productivity \citep{neal2000theories}, and if they grow by proportional shocks that are independent of their level, as in Gibrat's law of proportionate effect \citep{gibrat1931inegalites}, the logarithm of income is a sum of independent shocks and tends to normality. The approximation works best within groups exposed to similar shocks. \citet{battistin2009consumption} show that, within cohorts, consumption, which tracks permanent income, is closer to log-normal than current income, whose transitory component departs from log-normality. Mixtures of log-normals fit heterogeneous populations well, each component describing a relatively homogeneous subgroup \citep{flachaire2007, lubrano2016}, and they improve substantially on a single log-normal when mapping income distributions across small areas \citep{gardini2022}.
 
-More concretely, the multiplicative processes through which log-normality arises operate most strongly within demographically homogeneous groups where individuals are subject to similar economic shocks \citep{weiss1972, aitchison1957lognormal, battistin2009consumption}. This methodology note relates to a larger body of research providing empirical support for this pattern, showing that a mixture of log-normals is particularly suitable for modeling income in fairly homogeneous sub-populations while at the same time accounting for between-group heterogeneity \citep{flachaire2007, lubrano2016}. This finding is particularly relevant at higher levels of aggregation, where finite mixtures of log-normals provide substantial improvements in fit compared to single log-normal specifications \citep{gardini2022}.
+The literature on neighborhood effects suggests why census tracts are natural components of such a mixture. Contextual influences and endogenous social interactions, such as shared information about jobs, peer effects and common exposure to local shocks, make income-generating processes more alike within neighborhoods than between them \citep{manski1993identification, durlauf1996neighborhoods, durlauf2004neighborhood}.
 
-The literature of neighborhood effects offers a complementary explanation for why such homogeneity in income-generating processes exists at local levels. In particular, neighborhood effects reinforce homogeneity within local populations through contextual influences and endogenous spillovers, which emerge from behavioral interactions within the neighborhood, such as peer influences or social norms \citep{manski1993identification, durlauf1996neighborhoods}. These mechanisms create reinforcing feedback loops that generate correlated income trajectories within neighborhoods -- for instance, through shared information about job opportunities, similar human capital accumulation patterns, or common responses to local economic shocks.  The resulting interaction structures generate strong within-neighborhood homogeneity while maintaining between-neighborhood heterogeneity \citep{durlauf2004neighborhood}. This pattern provides a rationale for estimating aggregate income distributions as mixtures of local-level distributions.
+The log-normal is known to fit the tails poorly. Top incomes follow a power law rather than a log-normal decay \citep{pareto1896cours, atkinson2011top, gabaix2016power}, and the lower tail of Spanish tract distributions is heavier than a log-normal with the same median and Gini coefficient implies. I therefore use a more flexible family, the generalized beta distribution of the second kind (GB2) of \citet{mcdonald1984some}. It nests the log-normal as a limiting case, together with other distributions commonly fitted to incomes, and has a Pareto upper tail \citep{kleiber2003statistical}; and it can be estimated from the kind of summary statistics that statistical offices publish \citep{chotikapanich2007estimating}.
 
-However, while providing a good approximation for much of the income distribution, the log-normal approximation exhibits systematic deviations in the tails. Since Pareto's \citeyearpar{pareto1896cours} seminal work, research has shown that top incomes follow a power law rather than a log-normal decay \citep{gabaix2016power}. Similarly, studies using detailed administrative tax data have documented that the upper tail of income distributions across countries and time periods are better described by a Pareto distribution \citep{atkinson2011top}. This departure from log-normality at high incomes is important for accurately measuring top income inequality, but modeling the precise behavior of the upper tail is beyond the scope of this note.
+\subsection{Tract distributions and their aggregation}
 
-% (e.g., average neighborhood income or quality of local services)
+Let $Y$ be the income per consumption unit of a person living in tract $j$. I assume that $Y$ follows a GB2 distribution, with cumulative distribution function
+\begin{equation}\label{eq:gb2}
+F_j(y) = I_{t_j(y)}(p_j, q_j), \qquad t_j(y) = \frac{(y/b_j)^{a_j}}{1 + (y/b_j)^{a_j}},
+\end{equation}
+where $I_t(p, q)$ is the regularized incomplete beta function, $b_j > 0$ is a scale parameter and $a_j, p_j, q_j > 0$ are shape parameters. The GB2 nests the Singh--Maddala ($p_j = 1$) and Dagum ($q_j = 1$) distributions and, as a limiting case, the log-normal. Its upper tail is Pareto with index $a_j q_j$, which I constrain to exceed one so that the mean is finite, and I parameterize it by $\theta_j = (\ln a_j, \ln m_j, \ln p_j, \ln(a_j q_j - 1))$, where $m_j$ is the median.
 
-%Relatedly, a more recent literature on place effects has documented that the environment where children grow up has substantial causal impacts on their economic outcomes later in life \cite{chynplace}. Using experimental variation from the Moving to Opportunity program, \cite{chetty2016effects} show that childhood exposure to better neighborhoods significantly increases college attendance and earnings in adulthood.
+I estimate $\theta_j$ separately for each tract by weighted minimum distance to the thirteen indicators that the ADRH publishes for it,
+\begin{equation}\label{eq:md}
+\hat\theta_j = \arg\min_{\theta} \sum_{k=1}^{13} \rho_{jk}\big(g_k(\theta) - g_{jk}\big),
+\end{equation}
+where $g_{jk}$ is the published value of indicator $k$ and $g_k(\theta)$ its value under the GB2: the median, the mean, the Gini coefficient (computed, as in the ADRH, after replacing the lowest and highest 1.5\% of incomes), the P80/P20 ratio and the nine shares. Differences are measured in log points for the median, the mean and the P80/P20 ratio, in points for the Gini coefficient and in percentage points for the shares, and $\rho_{jk}(d) = (d/s_{jk})^2$, where $s_{jk}$ combines the rounding of the published figure with a tolerance of \TolShare{} points for the shares, \TolGini{} points for the Gini coefficient, \TolMeanPct{}\% for the mean and \TolPPct{}\% for the P80/P20 ratio. Two features of the publication enter $\rho_{jk}$. Medians, published as the midpoints of \texteuro 700 intervals, are treated as intervals: inside the interval the pull towards the published value is weak ($s = \MedPullPct{}\%$) and outside it steep ($s = \MedOutPct{}\%$). Values at the ADRH's caps (Section \ref{sec:data}) are treated as censored: beyond the cap, the tolerance widens to \CapAllowPct{}\% of the capped value. The minimization uses a Levenberg--Marquardt algorithm started from Dagum and Singh--Maddala fits, themselves started from the log-normal with the tract's median and Gini coefficient; \GbConvergedPct{}\% of the \GbTracts{} tracts converge.
 
-\subsection{Empirical approach}
+The shares are not published for \GbPriorTracts{} of these tracts. For them, the share targets are predictions from regressions of the logit of each published share on a cubic polynomial in the tract's log median, log ratio of mean to median, Gini coefficient and log P80/P20 ratio, and on log population, with province effects shrunk towards zero, estimated on the \GbPriorTrain{} tracts with published shares and no capped indicator. Their tolerance adds the regressions' root mean square error (\GbPriorRMSE{} percentage points on average). In the \GbGapMuns{} municipalities that publish shares, the predictions are shifted so that the municipality's tracts together reproduce its published shares.
 
-I estimate the national income distribution by exploiting the granular structure of census tract-level data and the theoretical properties of income distributions. My approach leverages the fact that income distributions within small geographic units tend to follow log-normal distributions more closely than in larger areas, and approximates the aggregate distribution using a mixture of these local-level distributions.
-
-Consider a census tract $j$ with an observed \emph{median} income $\tilde m_j$ and Gini coefficient $G_j$. Under the log-normality assumption, if income $Y$ follows a log-normal distribution with parameters $(\nu_j, \sigma_j^2)$, then
-
-\begin{equation}
-\ln(Y) \sim N(\nu_j, \sigma_j^2).
+The \LocMeanTracts{} tracts without these indicators (Section \ref{sec:data}) get a log-normal, $\ln Y \sim N(\nu_j, \sigma_j^2)$. Its Gini coefficient is $G_j = 2\,\Phi(\sigma_j/\sqrt{2}) - 1$, where $\Phi$ is the standard normal cumulative distribution function, so, given the tract's imputed Gini coefficient $G_j$ (Section \ref{sec:gini}) and imputed mean $\bar y_j$, I set
+\begin{equation}\label{eq:params}
+\sigma_j = \sqrt{2}\,\Phi^{-1}\!\left(\frac{G_j + 1}{2}\right), \qquad \nu_j = \ln \bar y_j - \frac{\sigma_j^2}{2}.
 \end{equation}
 
-The mapping between these parameters and observed statistics is:
-
-\begin{equation}
-\tilde m_j = \exp(\nu_j),
+The income distribution of an area $A$ (Spain, a province or a municipality) is the population-weighted mixture of the distributions of its tracts, with cumulative distribution function
+\begin{equation}\label{eq:mixture}
+F_A(y) = \sum_{j \in A} w_j\, F_j(y), \qquad w_j = \frac{N_j}{\sum_{k \in A} N_k},
 \end{equation}
+where $N_j$ is the population of tract $j$. The $p$-th percentile $q_{A,p}$, $p = 1, \dots, 99$, solves $F_A(q_{A,p}) = p/100$. I solve this equation with Brent's method, bracketing the root on a grid of incomes; the solutions satisfy it to within $10^{\RootErrExp}$. Of the \MunLookup{} municipalities covered, \MunSingleTract{} (\MunSingleTractPct{}\%, home to \MunSingleTractPopPct{}\% of the population) consist of a single tract, so their distribution is that tract's. The \MunDropped{} municipalities in which no tract has income data are not covered.
 
-\begin{equation}
-G_j = 2\Phi\left(\frac{\sigma_j}{\sqrt{2}}\right) - 1,
-\end{equation}
+\subsection{Missing Gini coefficients}\label{sec:gini}
 
-where $\Phi(\cdot)$ is the standard normal cumulative distribution function. From the observed Gini coefficient, I recover $\sigma_j$ as
-
-\begin{equation}
-\sigma_j = \sqrt{2}\,\Phi^{-1}\!\left(\frac{G_j + 1}{2}\right),
-\end{equation}
-
-and from the median I identify $\nu_j=\log \tilde m_j$. When the tract median is unavailable but the (equivalised) \emph{mean} income $\mu_j$ is observed, I use the exact log-normal relationship
-
-\begin{equation}
-\mu_j = \exp\!\left(\nu_j + \frac{\sigma_j^2}{2}\right)
-\quad\Rightarrow\quad
-\nu_j = \log \mu_j - \frac{\sigma_j^2}{2}.
-\end{equation}
-
-I then estimate the national distribution as a population-weighted mixture of these local log-normal distributions. For a given income level $y$, the density is
-
-\begin{equation}
-f(y) = \sum_{j=1}^{J} w_j\, f_j(y \mid \nu_j,\sigma_j^2),
-\end{equation}
-
-where $w_j$ is tract $j$'s population share and $f_j(\cdot \mid \nu_j,\sigma_j^2)$ is the log-normal density. Percentiles of the national distribution are obtained by solving
-
-\begin{equation}
-p = F(q_p) = \sum_{j=1}^{J} w_j \,\Phi\!\left(\frac{\ln(q_p) - \nu_j}{\sigma_j}\right),
-\end{equation}
-
-where $q_p$ is the $p^{th}$ percentile and $F(\cdot)$ is the cumulative distribution function of the mixture. I use numerical root-finding methods to find the value of $q_p$ that satisfies $F(q_p) - p = 0$ within a bounded interval.
-
-%This approach has several advantages. First, it respects the theoretical properties of income distributions at local levels where populations are relatively homogeneous. Second, it preserves tract-level moments while allowing for heterogeneity across tracts. Third, it provides a flexible framework that can be adapted and extended to calculate any distributional statistic of interest.
-
-\paragraph{Missing outcomes} For census tracts with missing Gini coefficients (approximately 5.5\% of the sample), I estimate them using a machine learning approach. Specifically, I train an XGBoost model using the following demographic predictors: dependency ratio (ratio of population under 18 and over 65 to working-age population), mean age, percentage of single-person households, logged mean equivalised income, mean household size, population size, and province fixed effects. Model performance is validated using a 5-fold cross-validation procedure, and is trained using default hyperparameters without grid search or additional tuning. For comparison, I also estimate a baseline OLS model using the same set of predictors. Out-of-sample prediction errors under both approaches are shown in Table \ref{perf}. Based on the cross-validation results, the XGBoost model demonstrates superior predictive performance compared to a baseline OLS model, as illustrated by a 6\% lower RMSE.
+For the \GiniImputedTracts{} tracts with income data but no published Gini coefficient, which get the log-normal, I predict it with gradient-boosted regression trees (XGBoost) trained on the \GiniTrainTracts{} tracts with a published Gini. The predictors are the logarithm of mean income per consumption unit, the dependency ratio, mean age, the share of the population under 18, the share of single-person households, mean household size, population and province dummies. The model uses \XgbRounds{} boosting rounds, a maximum tree depth of \XgbDepth{} and a learning rate of \XgbEta{}, without tuning. Table \ref{tab:gini} compares it with OLS on the same predictors, with province fixed effects, and with a constant, using the same \CvFolds{}-fold cross-validation folds for all three. XGBoost reduces the out-of-sample root mean square error (RMSE) by \XgbRMSEGain{}\% relative to OLS, with an out-of-sample $R^2$ of \XgbRsq{}.
 
 \begin{table}[H]
 \centering
-\resizebox{0.7\textwidth}{!}{% 
-\begin{threeparttable}[H]
+\begin{threeparttable}
 \onehalfspacing
-\centering
-\captionsetup{justification=centering} 
-\caption{Performance comparison between OLS and XGBoost models}\label{perf}
-\begin{tabular}{lccc}
-\hline
-Model    & RMSE & MAE & MAPE (\%) \\
-\hline
-OLS                & 2.98          & 2.29         & 8.02              \\
-XGBoost (CV)       & 2.80          & 2.14         & 7.51              \\
-\hline
-Relative improvement over OLS (\%) & 6.04\% & 6.55\% & 6.36\% \\
-\hline
-\end{tabular}
+\caption{Gini imputation: out-of-sample fit}\label{tab:gini}
+\footnotesize
+\input{output/table_gini_cv}
 \begin{tablenotes}[para,flushleft]
-\scriptsize 
-\textbf{Notes}: This table compares the out-of-sample performance of two predictive models -- OLS and XGBoost -- on predicting missing Gini coefficients using demographic predictors. RMSE represents the root mean square error, MAE is the mean absolute error, and MAPE is the mean absolute percentage error. Relative improvements in each metric are calculated as the percentage reduction of the error metric when using XGBoost compared to OLS. Results are based on a 5-fold cross-validation procedure for the XGBoost model.
+\scriptsize
+\textbf{Notes}: \CvFolds{}-fold cross-validation over the \GiniTrainTracts{} tracts with a published Gini coefficient, with the same folds for every model. RMSE is the root mean square error, MAE the mean absolute error and MAPE the mean absolute percentage error, all out of sample; $R^2$ is one minus the ratio of the out-of-sample squared error to the variance of the Gini coefficient. The Gini coefficient is measured in points (0--100).
 \end{tablenotes}
 \end{threeparttable}
-}
 \end{table}
 
-To validate the log-normality assumption at the tract level, I compare observed distributional statistics with their theoretical counterparts under log-normality. For each tract $j$, I recover $(\nu_j,\sigma_j)$ using the observed median and Gini coefficient. I then compute the following predicted statistics:
+Cross-validation measures accuracy for tracts like those in the training sample, all of which have at least \ObsGiniMinPop{} residents, whereas the tracts to impute are smaller. The model extrapolates poorly in that direction: trained on tracts with at least \SmallTrainMin{} residents, it predicts the Gini coefficient of the \SmallTestTracts{} tracts with \ObsGiniMinPop{} to \SmallTestMaxPop{} residents with an RMSE of \XgbSmallRMSE{}, no better than the standard deviation of the Gini across tracts (\GiniSD{}). The imputed Gini coefficients average \GiniPredMean{}, against \GiniObsMean{} for published ones. The imputation hardly affects the national and provincial distributions, since these tracts house \GiniMissPopPct{}\% of the population, but it matters for the smallest municipalities. In \MunSynthetic{} municipalities (\MunSyntheticPct{}\% of those covered, with \MunSyntheticPopPct{}\% of the population), no tract has a published Gini coefficient, so every tract gets the log-normal. Their income per person is, moreover, an average over small municipalities of the same agricultural district, which takes only \MunSyntheticIncomeValues{} distinct values across them. Their distributions are therefore model-based approximations rather than estimates specific to each municipality.
 
+\subsection{Nowcasting}\label{sec:nowcast}
+
+The ADRH is published almost two years after the income year, so its latest edition refers to \BaseYear{}. To compare households with a distribution of the same year, I project incomes to \TargetYear{} with the ECV, whose wave $t+1$ reports mean income per consumption unit in year $t$.
+
+Let $g^{\text{ADRH}}_t$ and $g^{\text{ECV}}_t$ be the growth of national mean income per consumption unit in year $t$ in each source, the ADRH mean being the population-weighted average over the municipalities observed in both years. Survey and administrative growth rates need not coincide, so I measure how ECV growth has compared with ADRH growth over the years both cover,
 \begin{equation}
-\widehat{\text{Mean}}_j \;=\; \exp\!\left(\nu_j + \frac{\sigma_j^2}{2}\right),
+\rho = \frac{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{ADRH}}_t}{\displaystyle\sum_{t=\NowcastFirstYear}^{\NowcastLastYear} g^{\text{ECV}}_t},
 \end{equation}
-
+and nowcast growth in \TargetYear{} as
 \begin{equation}
-\widehat{\text{P80/P20}_j} \;=\; \exp\!\left(\sigma_j \,[\Phi^{-1}(0.8) - \Phi^{-1}(0.2)]\right).
+\hat{g}_{\TargetYear} = \rho \, g^{\text{ECV}}_{\TargetYear}.
 \end{equation}
+Over \NowcastFirstYear--\NowcastLastYear{} the ECV slightly overstates administrative income growth ($\rho = \NowcastRho{}$). With ECV growth of \EcvGrowth{}\% in \TargetYear{}, the nowcast growth is \NowcastGrowth{}\%.
 
-To assess the fit, I estimate OLS regressions of the form
+I scale the income of every tract by $1+\hat{g}_{\TargetYear}$. Multiplying a GB2 variable by a constant multiplies its scale $b_j$ by that constant and leaves $a_j$, $p_j$ and $q_j$ unchanged (for a log-normal, it shifts $\nu_j$ by $\ln(1+\hat{g}_{\TargetYear})$ and leaves $\sigma_j$ unchanged), so the adjustment moves every distribution while preserving its shape and Gini coefficient. The underlying assumption is that incomes grew at a common rate across areas and along the distribution over one year.
 
+The projection is uncertain. In leave-one-year-out validation, $\rho\, g^{\text{ECV}}_t$ misses $g^{\text{ADRH}}_t$ by \NowcastLooMAE{} percentage points on average, against \EcvRawMAE{} points for uncorrected ECV growth. The estimate of $\rho$ also depends on the window and the estimator: it is \RhoLastThree{} over the last three years, \RhoExclCovid{} excluding 2020 and 2021, and \RhoOrigin{} by least squares through the origin. Across these choices, including no correction, nowcast growth ranges from \NowcastGrowthMin{}\% to \NowcastGrowthMax{}\%.
+
+\subsection{Placing a household}\label{sec:placing}
+
+\href{https://comparatuingreso.es/}{\mbox{Comparatuingreso.es}} asks for the household's net monthly income in \TargetYear{}, the year of the nowcast distribution, and for whether it was paid in 12 or 14 instalments (Spanish salaries and pensions are often paid in 14, with two extra payments a year). Annual income is the monthly amount times 12 or 14. Dividing it by the household's consumption units on the modified OECD scale, from the number of members aged 14 or over and under 14, gives income per consumption unit, $y$.
+
+The household's position in area $A$ is
 \begin{equation}
-\hat{y}_j = \alpha + \beta\, y_j + \epsilon_j,
+P_A(y) =
+\begin{cases}
+0 & \text{if } y < q_{A,1}, \\
+\max\{p \in \{1, \dots, 99\} : q_{A,p} \le y\} & \text{otherwise.}
+\end{cases}
 \end{equation}
-
-where $\hat{y}_j$ is the predicted value under log-normality and $y_j$ is the observed value (either the tract mean income or the P80/P20 ratio).
-
-\subsection{Nowcasting to the current year}
-
-The ADRH is published with a lag of roughly two years, so the most recent edition refers to income year 2023. To compare users against a contemporaneous distribution, I project incomes forward to 2024 using the Spanish Living Conditions Survey (\textit{Encuesta de Condiciones de Vida}, ECV), the national component of EU-SILC, whose survey wave $t+1$ reports mean equivalised income (\textit{renta media por unidad de consumo}) earned in year $t$.
-
-Let $g^{\text{ADRH}}_t$ and $g^{\text{ECV}}_t$ denote the year-on-year growth of national mean equivalised income in each source, where the ADRH mean is the population-weighted average across the municipalities observed in both years. Survey and administrative growth rates need not coincide, so I measure by how much the ECV over- or understates growth in the administrative data over the years covered by both sources,
-
-\begin{equation}
-\rho = \frac{\sum_{t=2016}^{2023} g^{\text{ADRH}}_t}{\sum_{t=2016}^{2023} g^{\text{ECV}}_t},
-\end{equation}
-
-and nowcast income growth in 2024 as
-
-\begin{equation}
-\hat{g}_{2024} = \rho \, g^{\text{ECV}}_{2024}.
-\end{equation}
-
-Over 2016--2023 the ECV slightly overstates administrative income growth ($\rho = 0.93$). With ECV growth of 5.4\% in 2024, this implies that equivalised income grew by 5.1\%.
-
-I scale the income of every census tract by $1+\hat{g}_{2024}$. Because multiplying a log-normal variate by a constant shifts its location parameter, $\nu_j \mapsto \nu_j + \ln(1+\hat{g}_{2024})$, while leaving $\sigma_j$ unchanged, the adjustment updates the level of every small-area distribution and preserves its shape, and hence the tract Gini coefficients. The underlying assumption is that incomes grew at a common rate across areas and along the distribution over the one-year horizon.
+Since $F_A(y) \ge P_A(y)/100$, a household with $P_A(y) \ge 1$ has more income per consumption unit than at least $P_A(y)\%$ of the population, which is how the app reports it; $P_A(y) = 0$ is reported as being among the 1\% with the lowest income. Positions are shares of persons, not households: every person counts with the income per consumption unit of their household.

@@ -1,20 +1,30 @@
 
 #-------------------------------------------------------------
 #* Author: Pablo Garcia Guzman
-#* Project: validation metrics for www.comaparatuingreso.es
-#* This script: calculates municipality-level stats for the ADRH
-#*   base year (2023). 3c. apply_nowcast_mun_stats.r then nowcasts the
-#*   income column to 2024 and writes data/municipality_stats.fst.
+#* Project: validation metrics for www.comparatuingreso.es
+#* This script: municipality statistics for the ADRH base year, shown
+#*   as context in the app. 3c. apply_nowcast_mun_stats.r then nowcasts
+#*   the income column and writes data/municipality_stats.fst.
+#*
+#* - Equivalised income (ADRH). Where the ADRH does not publish it
+#*   (municipalities under 100 residents), it is imputed as income per
+#*   person times the provincial, population-weighted ratio of the two
+#*   measures -- the rule 1b. fit_gb2.r applies to tracts -- and,
+#*   failing that, as the provincial population-weighted mean.
+#* - Share of the population aged 15+ with higher education, and share
+#*   born abroad (INE annual population census, tract tables exported
+#*   as CSV). Missing values take the provincial population-weighted
+#*   mean.
+#* Each *_is_imputed flag is set BEFORE any imputation: 1 means the
+#* source does not publish the value for that municipality.
+#*
+#* The census part needs TRACT_TABLES_DIR (the folder with
+#* tract_foreign_raw.csv and tract_educ_raw.csv). Without it, the census
+#* columns are carried over from the existing base-year file and only the
+#* income columns are rebuilt.
 #-------------------------------------------------------------
 
-packages_to_load <- c(
-    "tidyverse",
-    "data.table",
-    "ineAtlas",
-    "Hmisc",
-    "fst", 
-    "ineapir"
-)
+packages_to_load <- c("tidyverse", "data.table", "ineAtlas", "fst")
 
 package.check <- lapply(
   packages_to_load,
@@ -24,189 +34,109 @@ package.check <- lapply(
     }
   }
 )
-
-lapply(packages_to_load, require, character=T)
+lapply(packages_to_load, require, character.only = TRUE)
 
 #-------------------------------------------------------------------
+
+BASE_YEAR <- read_fst("data-raw/nowcast_factor.fst")$base_income_year
+OUT_FILE <- sprintf("data-raw/municipality_stats_%d.fst", BASE_YEAR)
+
+# Census reference periods in the INE tract tables (the app shows them)
+EDUC_PERIOD <- 2023
+FOREIGN_PERIOD <- 2024
 
 # ------------------------------ Atlas ----------------------------- #
 atlas_income <- merge(
     setDT(ineAtlas::get_atlas("income", "municipality")),
     setDT(ineAtlas::get_atlas("demographics", "municipality"))
 ) %>%
-    filter(year == 2023) %>%
-    select(
-        mun_code, prov_code,
-        prov_name, mun_name, net_income_equiv,
-        net_income_pc, population
-    )
+    filter(year == BASE_YEAR) %>%
+    select(mun_code, prov_code, net_income_equiv, net_income_pc, population)
 
-atlas_income_sources <- get_atlas(
-    "income_sources",
-    level = "municipality"
-) %>%
-    filter(year == 2023) %>%
-    select(mun_code, wage, pension)
-
-# ---------------------------- Census ------------------------------- #
-
-# INE tract-level tables (population by place of birth; population by
-# educational attainment), exported as CSV. Set TRACT_TABLES_DIR to the folder
-# holding tract_foreign_raw.csv and tract_educ_raw.csv.
-path_tract_tables <- Sys.getenv("TRACT_TABLES_DIR")
-if (!nzchar(path_tract_tables) || !dir.exists(path_tract_tables)) {
-  stop("Set TRACT_TABLES_DIR to the folder with tract_foreign_raw.csv and tract_educ_raw.csv")
-}
-
-foreign <- fread(file.path(path_tract_tables, "tract_foreign_raw.csv")) %>%
-  filter(`Municipios` != "" & `Secciones` == "") %>%
-  mutate(
-    mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
-    pop = gsub("[^0-9]", "", Total)
-  ) %>%
-  filter(`Periodo` == 2024 & Sexo == "Total") %>%
-  select(
-    mun_code, pop, `Lugar de nacimiento`
-  ) %>%
-  filter(`Lugar de nacimiento` != "Total") %>%
-  group_by(mun_code) %>%
-  mutate(
-    pop = as.numeric(pop),
-    total_pop = sum(pop),
-    pct_foreign_born = 100 * pop / total_pop
-  ) %>%
-  filter(`Lugar de nacimiento` == "Extranjera") %>%
-  select(pct_foreign_born, mun_code) %>%
-  ungroup()
-
-educ <- fread(file.path(path_tract_tables, "tract_educ_raw.csv")) %>%
-  filter(`Municipios` != "" & `Secciones` == "") %>%
-  mutate(
-    mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
-    value = as.numeric(gsub("[^0-9]", "", Total))
-  ) %>%
-  filter(`Periodo` == 2023) %>%
-  filter(`Sexo` == "Total") %>%
-  # Filter only the categories we need
-  filter(`Nivel de formación alcanzado` %in% 
-         c("Total", "Educación primaria e inferior", "Educación superior")) %>%
-  # Reshape to wide format
-  pivot_wider(
-    id_cols = mun_code,
-    names_from = `Nivel de formación alcanzado`,
-    values_from = value
-  ) %>%
-  # Calculate shares
-  mutate(
-    share_primary = 100*`Educación primaria e inferior` / Total,
-    pct_higher_ed_completed = 100*`Educación superior` / Total
-  ) %>%
-  # Select only the columns we want
-  select(mun_code, pct_higher_ed_completed)
-
-# mun_data_census <- ineAtlas::get_census(level = "municipality") %>%
-#     mutate(
-#         # Calculate derived population metrics
-#         pop_16_64 = total_pop * pct_16to64,
-#         pop_over_16 = total_pop * (1 - pct_under16),
-#         total_employed = employment_rate * pop_over_16,
-#         total_pensioners = pct_retirement_pension * pop_over_16,
-#         workers_per_pensioner = total_employed / total_pensioners,
-#     ) %>%
-#     mutate(
-#         # recalculate emp. rate as % of pop. 16-64
-#         employment_rate = total_employed / pop_16_64
-#     ) %>%
-#     select(
-#         mun_code, total_pop, total_employed, employment_rate,
-#         pct_foreign_born, pct_higher_ed_completed, unemployment_rate,
-#         pct_female, pct_single
-#     )
-
-# ------------------------------ Combine ----------------------------- #
-# Base processing that applies to all indicators
-processed_data <- atlas_income %>%
-    left_join(atlas_income_sources) %>%
-    left_join(foreign) %>%
-    left_join(educ) %>%
-    # mutate(
-    #     # calculate avg. gross salary
-    #     total_salaries = wage * total_pop,
-    #     avg_salary = round(total_salaries / total_employed, 0),
-    # ) %>%
-    # mutate(
-    #     # Convert percentages to 0-100 scale
-    #     across(
-    #         c(
-    #             pct_single, 
-    #             unemployment_rate, employment_rate, pct_female
-    #         ),
-    #         ~ . * 100
-    #     )
-    # ) %>%
-    mutate(
-        # Calculate national ratio for imputation
-        ratio = weighted.mean(net_income_equiv / net_income_pc, w = population, na.rm = TRUE),
-        # Impute missing values
-        net_income_equiv = if_else(
-            is.na(net_income_equiv),
-            net_income_pc * ratio,
-            net_income_equiv
-        )
-    ) %>%
-    # replace with provincial average if missing
-    mutate(
-        # Add imputation flags
-        across(
-            c(
-                net_income_equiv, 
-                pct_foreign_born, pct_higher_ed_completed
-            ),
-            list(is_imputed = ~as.integer(is.na(.)))
-        )
-    ) %>%
+income <- atlas_income %>%
+    mutate(net_income_equiv_is_imputed = as.integer(is.na(net_income_equiv))) %>%
     group_by(prov_code) %>%
     mutate(
-        across(
-            c(net_income_equiv, 
-              pct_foreign_born, pct_higher_ed_completed),
-            ~ ifelse(
-                is.na(.),
-                weighted.mean(., population, na.rm = TRUE),
-                .
-            )
-        )
+        ratio = weighted.mean(net_income_equiv / net_income_pc, w = population, na.rm = TRUE),
+        net_income_equiv = if_else(is.na(net_income_equiv), net_income_pc * ratio, net_income_equiv),
+        net_income_equiv = if_else(is.na(net_income_equiv),
+                                   weighted.mean(net_income_equiv, population, na.rm = TRUE),
+                                   net_income_equiv)
     ) %>%
     ungroup() %>%
-    select(
-        mun_code, prov_code, 
-        net_income_equiv, pct_foreign_born, pct_higher_ed_completed,
-        ends_with("is_imputed")
-    )
+    select(mun_code, prov_code, population, net_income_equiv, net_income_equiv_is_imputed)
 
-# ------------------------------ Save ----------------------------- #
+# ---------------------------- Census ------------------------------- #
+census_cols <- c("pct_foreign_born", "pct_higher_ed_completed",
+                 "pct_foreign_born_is_imputed", "pct_higher_ed_completed_is_imputed")
 
-# Calculate number of imputations per municipality
-imputation_stats <- processed_data %>%
-  select(ends_with("is_imputed")) %>%
-  mutate(
-    total_imputed = rowSums(across(everything()))
-  ) %>%
-  count(total_imputed) %>%
-  mutate(
-    pct = n/sum(n) * 100
-  )
+path_tract_tables <- Sys.getenv("TRACT_TABLES_DIR")
 
-# Print summary
-print("Distribution of imputed variables per municipality:")
-print(imputation_stats)
+if (nzchar(path_tract_tables)) {
+    if (!dir.exists(path_tract_tables)) stop("TRACT_TABLES_DIR does not exist: ", path_tract_tables)
 
-# Save
-municipality_stats <- processed_data %>%
+    foreign <- fread(file.path(path_tract_tables, "tract_foreign_raw.csv")) %>%
+      filter(`Municipios` != "" & `Secciones` == "") %>%
+      mutate(
+        mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
+        pop = gsub("[^0-9]", "", Total)
+      ) %>%
+      filter(`Periodo` == FOREIGN_PERIOD & Sexo == "Total") %>%
+      select(mun_code, pop, `Lugar de nacimiento`) %>%
+      filter(`Lugar de nacimiento` != "Total") %>%
+      group_by(mun_code) %>%
+      mutate(
+        pop = as.numeric(pop),
+        total_pop = sum(pop),
+        pct_foreign_born = 100 * pop / total_pop
+      ) %>%
+      filter(`Lugar de nacimiento` == "Extranjera") %>%
+      select(pct_foreign_born, mun_code) %>%
+      ungroup()
+
+    educ <- fread(file.path(path_tract_tables, "tract_educ_raw.csv")) %>%
+      filter(`Municipios` != "" & `Secciones` == "") %>%
+      mutate(
+        mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
+        value = as.numeric(gsub("[^0-9]", "", Total))
+      ) %>%
+      filter(`Periodo` == EDUC_PERIOD, `Sexo` == "Total") %>%
+      # "Total" is the population aged 15 and over
+      filter(`Nivel de formación alcanzado` %in% c("Total", "Educación superior")) %>%
+      pivot_wider(id_cols = mun_code, names_from = `Nivel de formación alcanzado`, values_from = value) %>%
+      mutate(pct_higher_ed_completed = 100 * `Educación superior` / Total) %>%
+      select(mun_code, pct_higher_ed_completed)
+
+    census <- income %>%
+        select(mun_code, prov_code, population) %>%
+        left_join(foreign, by = "mun_code") %>%
+        left_join(educ, by = "mun_code") %>%
+        mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
+                      list(is_imputed = ~ as.integer(is.na(.))))) %>%
+        group_by(prov_code) %>%
+        mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
+                      ~ ifelse(is.na(.), weighted.mean(., population, na.rm = TRUE), .))) %>%
+        ungroup() %>%
+        select(mun_code, all_of(census_cols))
+} else {
+    if (!file.exists(OUT_FILE)) stop("Set TRACT_TABLES_DIR: no base-year file to reuse census columns from")
+    message("TRACT_TABLES_DIR not set: census columns carried over from ", OUT_FILE)
+    census <- read_fst(OUT_FILE) %>% select(mun_code, all_of(census_cols))
+}
+
+# ------------------------------ Combine ----------------------------- #
+municipality_stats <- income %>%
+    left_join(census, by = "mun_code") %>%
     select(
         mun_code, prov_code,
-        net_income_equiv, pct_foreign_born, 
-        pct_higher_ed_completed, ends_with("_is_imputed")
+        net_income_equiv, pct_foreign_born, pct_higher_ed_completed,
+        net_income_equiv_is_imputed, pct_foreign_born_is_imputed,
+        pct_higher_ed_completed_is_imputed
     )
 
-write.fst(municipality_stats, "data-raw/municipality_stats_2023.fst")
+cat("Municipalities:", nrow(municipality_stats), "\n")
+cat("Imputed (source does not publish the value):\n")
+print(colSums(municipality_stats[, grep("_is_imputed$", names(municipality_stats))], na.rm = TRUE))
+
+write_fst(municipality_stats, OUT_FILE)
+cat("Saved", OUT_FILE, "\n")
