@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>comparatuingreso.es · promo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Hanken+Grotesk:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+  :root { --paper: #faf9f6; --ink: #1a1d23; --ink2: #4e5561; --ink3: #5f6673; --you: #2458c6; --guess: #a5600c; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+  #wrap { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); }
+  #stage { position: absolute; inset: 0; width: 1920px; height: 1080px; transform-origin: 50% 52%; will-change: transform; }
+  canvas { position: absolute; inset: 0; }
+  .t { position: absolute; font-family: 'Fraunces', Georgia, serif; color: var(--ink); white-space: nowrap;
+       font-variation-settings: 'SOFT' 50, 'WONK' 0; font-optical-sizing: auto; opacity: 0; line-height: 1.02; letter-spacing: -0.018em; }
+  .c { left: 0; width: 1920px; text-align: center; }
+  .i { font-style: italic; color: var(--ink2); letter-spacing: -0.005em; }
+  em { font-style: italic; letter-spacing: -0.01em; }
+  .sans { font-family: 'Hanken Grotesk', system-ui, sans-serif; letter-spacing: 0; }
+  .caps { font-family: 'Hanken Grotesk', system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 650; }
+  .you { color: var(--you); }
+  .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.1em 0.03em 0.18em; margin: -0.1em -0.03em -0.18em; }
+  .wi { display: inline-block; will-change: transform; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <canvas id="c" width="3840" height="2160" style="width:1920px;height:1080px"></canvas>
+
+  <!-- 1 · hook -->
+  <div id="h1a" class="t c words" style="top: 356px; font-size: 156px; font-weight: 460;">¿Sabes cómo</div>
+  <div id="h1b" class="t c words" style="top: 522px; font-size: 156px; font-weight: 460;">de <em class="you">rico</em> eres?</div>
+
+  <!-- 2 · a hundred people -->
+  <div id="s2a" class="t words" style="left: 1010px; top: 272px; font-size: 92px; font-weight: 460;">Si España fuera</div>
+  <div id="s2b" class="t words" style="left: 1010px; top: 376px; font-size: 92px; font-weight: 460;">cien personas,</div>
+  <div id="s2c" class="t i words" style="left: 1012px; top: 500px; font-size: 46px;">ordenadas de menos a más renta,</div>
+  <div id="q2a" class="t words" style="left: 1010px; top: 598px; font-size: 92px; font-weight: 460;">¿qué persona</div>
+  <div id="q2b" class="t words" style="left: 1010px; top: 702px; font-size: 92px; font-weight: 460;">serías <em class="you">tú</em>?</div>
+
+  <!-- 3 · the curve -->
+  <div id="s3a" class="t words" style="left: 258px; top: 86px; font-size: 76px; font-weight: 460;">La renta de España,</div>
+  <div id="s3b" class="t i words" style="left: 260px; top: 176px; font-size: 42px;">reconstruida con datos del IRPF</div>
+  <div id="tu" class="t i you" style="font-size: 52px; font-weight: 460;">¿Tú?</div>
+
+  <!-- 4 · the map -->
+  <div id="s4a" class="t words" style="left: 88px; top: 118px; font-size: 156px; font-weight: 440;">Miles de</div>
+  <div id="s4a2" class="t words" style="left: 90px; top: 276px; font-size: 156px; font-weight: 440;">barrios.</div>
+  <div id="s4b" class="t i words" style="left: 96px; top: 462px; font-size: 44px;">Una distribución de la renta</div>
+  <div id="s4c" class="t i words" style="left: 96px; top: 516px; font-size: 44px;">para cada uno.</div>
+  <div id="lgL" class="t sans" style="left: 94px; top: 642px; font-size: 21px; color: var(--ink3); font-weight: 600;">Menos renta</div>
+  <div id="lgR" class="t sans" style="left: 470px; top: 642px; font-size: 21px; color: var(--ink3); font-weight: 600;">Más renta</div>
+  <div id="canarias" class="t sans" style="font-size: 18px; color: var(--ink3); font-weight: 600;">Canarias</div>
+
+  <!-- 5 · end card -->
+  <div id="e1" class="t c words" style="top: 356px; font-size: 112px; font-weight: 460;">Descubre tu posición</div>
+  <div id="e2" class="t c words" style="top: 474px; font-size: 112px; font-weight: 460;">en la distribución de la renta</div>
+  <div id="url" class="t c you" style="top: 652px; font-size: 74px; font-weight: 480;">comparatuingreso.es</div>
+  <div id="foot" class="t c sans" style="top: 790px; font-size: 27px; color: var(--ink3); font-weight: 500;">Gratis · Sin registro · Datos oficiales del INE</div>
+</div></div>
+
+<script>
+const DATA = __DATA__
+
+// The cut sits on a 120 BPM grid (a beat every 0.5 s) so the score in music.mjs can hit it:
+// 0 question · 2 squares · 4 "¿qué persona serías tú?" (a cursor hops on the beats) · 6 histogram
+// 8 "¿Tú?" walks the curve · 9.5 map · 13 end card. No figures and no worked example on screen.
+
+// ---------- helpers ----------
+const W = 1920, H = 1080
+const cv = document.getElementById('c'), ctx = cv.getContext('2d')
+const $ = (id) => document.getElementById(id)
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
+const lerp = (a, b, t) => a + (b - a) * t
+const pr = (t, a, b) => clamp((t - a) / (b - a))
+const eOutC = (x) => 1 - Math.pow(1 - x, 3)
+const eInC = (x) => x * x * x
+const eIO = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+const eOutE = (x) => (x >= 1 ? 1 : 1 - Math.pow(2, -10 * x))
+const eOutB = (x) => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2) }
+const hex = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255] }
+const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t))
+const rgba = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`
+const COL = { paper: hex('#faf9f6'), ink: hex('#1a1d23'), ink3: hex('#5f6673'), hair: hex('#cdc9c0'),
+  you: hex('#2458c6'), light: hex('#d9dee5'), below: hex('#7f90a8'),
+  rampA: hex('#e2e6ec'), rampB: hex('#3f4c63'), area: hex('#e9ecf1') }
+const SANS = "'Hanken Grotesk', system-ui, sans-serif"
+
+// word masks (a word may carry inline markup, e.g. <em>)
+document.querySelectorAll('.words').forEach((el) => {
+  el.innerHTML = el.innerHTML.trim().split(/\s+(?![^<]*>)/).map((w) => `<span class="w"><span class="wi">${w}</span></span>`).join(' ')
+})
+function words(el, t, t0, { stagger = 0.065, dur = 0.9, out = null, outStagger = 0.03 } = {}) {
+  const ws = el.querySelectorAll('.wi')
+  let any = false
+  ws.forEach((w, i) => {
+    const p = eOutE(pr(t, t0 + i * stagger, t0 + i * stagger + dur))
+    let y = (1 - p) * 118
+    if (out !== null) { const q = eInC(pr(t, out + i * outStagger, out + i * outStagger + 0.5)); y -= q * 118 }
+    w.style.transform = `translateY(${y.toFixed(2)}%)`
+    if (p > 0 && y > -117) any = true
+  })
+  el.style.opacity = any ? 1 : 0
+}
+function fade(el, t, a, b, c, d, { dy = 18, x = null, y = null } = {}) {
+  const pin = eOutC(pr(t, a, b)), pout = eInC(pr(t, c, d))
+  const o = pin * (1 - pout)
+  el.style.opacity = o.toFixed(3)
+  const ty = (1 - pin) * dy - pout * dy * 0.6
+  if (x !== null) el.style.left = x + 'px'
+  if (y !== null) el.style.top = y + 'px'
+  el.style.transform = `translate(0px, ${ty.toFixed(2)}px)`
+  return o
+}
+
+// ---------- data ----------
+const NAT = DATA.dist.national, P = NAT.p
+function Q(q) {
+  if (q <= 0.01) return P[0] * Math.pow(q / 0.01, 0.8)
+  if (q >= 0.99) return P[98] * (1 + (q - 0.99) * 60)
+  const i = q * 100 - 1, lo = Math.floor(i), t = i - lo
+  return P[lo] * (1 - t) + P[lo + 1] * t
+}
+function pdfOf(d) {
+  let area = 0
+  for (let i = 1; i < d.x.length; i++) area += ((d.y[i] + d.y[i - 1]) / 2) * (d.x[i] - d.x[i - 1])
+  return (x) => {
+    if (x <= d.x[0] || x >= d.x[d.x.length - 1]) return 0
+    let lo = 0, hi = d.x.length - 1
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (d.x[m] <= x) lo = m; else hi = m }
+    const t = (x - d.x[lo]) / (d.x[hi] - d.x[lo])
+    return (d.y[lo] + t * (d.y[hi] - d.y[lo])) / area
+  }
+}
+const pdfN = pdfOf(NAT)
+
+// ---------- the hundred squares: shuffled grid → sorted grid → histogram ----------
+const gridR = (k) => ({ x: 292 + (k % 10) * 64, y: 222 + Math.floor(k / 10) * 64, w: 56, h: 56 })
+const PX0 = 258, PW = 1404, BASE = 930, BINS = 18, BIN = 5000, XMAX = 90000, BW = PW / BINS
+const inc = Array.from({ length: 100 }, (_, k) => Q((k + 0.5) / 100))
+const stacks = new Array(BINS).fill(0)
+const bin = inc.map((v) => Math.min(BINS - 1, Math.floor(v / BIN)))
+const slot = bin.map((b) => stacks[b]++)
+const UNIT = Math.min(30, 470 / Math.max(...stacks))
+const histR = (k) => ({ x: PX0 + bin[k] * BW + 6, y: BASE - (slot[k] + 1) * UNIT + 1.5, w: BW - 12, h: UNIT - 3 })
+const xOf = (v) => PX0 + (Math.min(v, XMAX) / XMAX) * PW
+const curveY = (v) => BASE - pdfN(v) * 100 * BIN * UNIT
+const rampCol = (k) => mix(COL.rampA, COL.rampB, k / 99)
+const rectLerp = (a, b, m) => ({ x: lerp(a.x, b.x, m), y: lerp(a.y, b.y, m), w: lerp(a.w, b.w, m), h: lerp(a.h, b.h, m) })
+// person k starts in a random seat and walks to seat k when the row is sorted
+const SEAT = (() => {
+  const a = Array.from({ length: 100 }, (_, i) => i); let s = 20240925
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647
+  for (let i = 0; i < 20; i++) rnd()
+  for (let i = 99; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] }
+  return a
+})()
+// "¿qué persona serías tú?": a blue outline hops from person to person, landing on the 8th notes
+const HOPS = [[4.25, 23], [4.5, 67], [4.75, 41], [5.0, 88], [5.25, 12], [5.5, 55]]
+function cursor(t) {
+  const o = pr(t, 4.08, 4.25) * (1 - pr(t, 5.75, 6.0))
+  if (o <= 0) return
+  let i = 0
+  while (i < HOPS.length - 1 && t >= HOPS[i + 1][0] - 0.17) i++
+  const [t1, k1] = HOPS[i], prev = HOPS[Math.max(0, i - 1)][1]
+  const m = i === 0 ? 1 : eIO(pr(t, t1 - 0.17, t1))
+  const r = rectLerp(gridR(prev), gridR(k1), m)
+  const land = 1 + 0.12 * Math.sin(Math.PI * pr(t, t1, t1 + 0.16))
+  const pad = 6 * land, cx = r.x + r.w / 2, cy = r.y + r.h / 2, w = r.w * land + 2 * pad, h = r.h * land + 2 * pad
+  ctx.save(); ctx.globalAlpha = o
+  ctx.fillStyle = rgba(COL.you, 0.9); ctx.fillRect(cx - (r.w * land) / 2, cy - (r.h * land) / 2, r.w * land, r.h * land)
+  ctx.strokeStyle = rgba(COL.you); ctx.lineWidth = 3.5; ctx.strokeRect(cx - w / 2, cy - h / 2, w, h)
+  ctx.restore()
+}
+
+function squares(t) {
+  if (t < 2.0 || t > 9.7) return
+  for (let k = 0; k < 100; k++) {
+    const s0 = SEAT[k]
+    const pop = eOutB(pr(t, 2.0 + s0 * 0.006, 2.0 + s0 * 0.006 + 0.4))
+    if (pop <= 0) continue
+    let r
+    if (t < 6.0) {
+      const d = (k % 10) * 0.018 + Math.floor(k / 10) * 0.02
+      const m = eIO(pr(t, 3.0 + d, 3.0 + d + 0.7))
+      r = rectLerp(gridR(s0), gridR(k), m)
+      r.y -= Math.sin(m * Math.PI) * (22 + (s0 % 4) * 9)
+    } else {
+      const d = bin[k] * 0.022 + (k % 7) * 0.02
+      const m = eIO(pr(t, 6.0 + d, 6.0 + d + 0.95))
+      r = rectLerp(gridR(k), histR(k), m)
+      r.y -= Math.sin(m * Math.PI) * (70 + (k % 5) * 16)
+    }
+    const alpha = lerp(1, 0.17, pr(t, 7.2, 7.8)) * (1 - pr(t, 9.2, 9.6))
+    const s = pop
+    ctx.fillStyle = rgba(rampCol(k), alpha)
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2
+    ctx.fillRect(cx - (r.w * s) / 2, cy - (r.h * s) / 2, r.w * s, r.h * s)
+  }
+}
+
+// ---------- 3 · axis and curve ----------
+function axis(o) {
+  if (o <= 0) return
+  ctx.save(); ctx.globalAlpha = o
+  ctx.fillStyle = rgba(COL.hair); ctx.fillRect(PX0, BASE + 2, PW * eOutC(o), 1.5)
+  ctx.fillStyle = rgba(COL.ink3); ctx.font = `600 24px ${SANS}`; ctx.textBaseline = 'top'
+  ctx.textAlign = 'left'; ctx.fillText('Menos ingresos', PX0, BASE + 20)
+  ctx.textAlign = 'right'; ctx.fillText('Más ingresos  →', PX0 + PW, BASE + 20)
+  ctx.restore()
+}
+function curve(t) {
+  const draw = eIO(pr(t, 6.95, 7.9)), out = 1 - pr(t, 9.2, 9.6)
+  if (draw <= 0 || out <= 0) return
+  const edge = PX0 + PW * draw
+  ctx.save(); ctx.globalAlpha = out
+  ctx.beginPath(); ctx.moveTo(PX0, BASE)
+  for (let x = PX0; x <= edge; x += 2) ctx.lineTo(x, curveY(((x - PX0) / PW) * XMAX))
+  ctx.lineTo(edge, BASE); ctx.closePath(); ctx.fillStyle = rgba(COL.area, 0.75); ctx.fill()
+  // "¿Tú?" walks along the curve, the people below it shaded blue
+  const w = walker(t)
+  if (w) {
+    const xe = w.x
+    ctx.beginPath(); ctx.moveTo(PX0, BASE)
+    for (let x = PX0; x <= xe; x += 2) ctx.lineTo(x, curveY(((x - PX0) / PW) * XMAX))
+    ctx.lineTo(xe, curveY(((xe - PX0) / PW) * XMAX)); ctx.lineTo(xe, BASE); ctx.closePath()
+    ctx.fillStyle = rgba(COL.you, 0.18 * w.a); ctx.fill()
+  }
+  ctx.beginPath()
+  for (let x = PX0; x <= edge; x += 2) { const y = curveY(((x - PX0) / PW) * XMAX); x === PX0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y) }
+  ctx.strokeStyle = rgba(COL.ink); ctx.lineWidth = 3.2; ctx.lineJoin = 'round'; ctx.stroke()
+  if (draw < 1) { ctx.fillStyle = rgba(COL.ink); ctx.beginPath(); ctx.arc(edge, curveY(((edge - PX0) / PW) * XMAX), 6, 0, 7); ctx.fill() }
+  if (w) {
+    const y = curveY(w.v)
+    ctx.strokeStyle = rgba(COL.you, w.a); ctx.lineWidth = 3
+    ctx.beginPath(); ctx.moveTo(w.x, BASE); ctx.lineTo(w.x, lerp(BASE, WALK_TOP, w.a)); ctx.stroke()
+    ctx.fillStyle = rgba(COL.you); ctx.beginPath(); ctx.arc(w.x, y, 11 * w.a, 0, 7); ctx.fill()
+    ctx.strokeStyle = rgba(COL.paper); ctx.lineWidth = 3; ctx.stroke()
+  }
+  ctx.restore()
+}
+const WALK_TOP = 372
+// the walker: in on the 8 s hit, strolls right, doubles back, settles
+function walker(t) {
+  const a = eOutB(pr(t, 8.0, 8.35))
+  if (a <= 0) return null
+  const u = pr(t, 8.0, 9.25)
+  const v = u < 0.5 ? lerp(9000, 52000, eIO(u / 0.5)) : lerp(52000, 27000, eIO((u - 0.5) / 0.5))
+  return { v, x: xOf(v), a: Math.min(1, a) }
+}
+
+// ---------- 4 · the map ----------
+const TR = DATA.tracts, NT = TR.lon.length
+const MX0 = 640, MY0 = 64, LON0 = -9.45, LAT0 = 43.85, KX = Math.cos((40 * Math.PI) / 180), S = 112
+const CX0 = 96, CY0 = 830, CLON0 = -18.25, CLAT0 = 29.5, CKX = Math.cos((28.5 * Math.PI) / 180)
+const proj = (lon, lat) => lon < -12 ? [CX0 + (lon - CLON0) * CKX * S, CY0 + (CLAT0 - lat) * S] : [MX0 + (lon - LON0) * KX * S, MY0 + (LAT0 - lat) * S]
+const MAD = proj(-3.7038, 40.4168)   // the dots bloom outwards from Madrid
+const RAMP3 = [hex('#dca24e'), hex('#bfc2c9'), hex('#1f3f8f')]
+const NB = 40
+const BUCKET_COL = Array.from({ length: NB }, (_, b) => { const t = b / (NB - 1); return t < 0.5 ? mix(RAMP3[0], RAMP3[1], t / 0.5) : mix(RAMP3[1], RAMP3[2], (t - 0.5) / 0.5) })
+const dots = (() => {
+  const idx = Array.from({ length: NT }, (_, i) => i).sort((a, b) => TR.med[a] - TR.med[b])
+  const tot = TR.pop.reduce((s, v) => s + v, 0)
+  let cum = 0; const rank = new Float64Array(NT)
+  for (const i of idx) { cum += TR.pop[i]; rank[i] = (cum - TR.pop[i] / 2) / tot }
+  const out = []
+  for (let i = 0; i < NT; i++) {
+    const [x, y] = proj(TR.lon[i], TR.lat[i])
+    const d = TR.lon[i] < -12 ? 1.05 : Math.hypot(x - MAD[0], y - MAD[1]) / 700
+    const j = ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1
+    out.push({ x, y, b: Math.min(NB - 1, Math.floor(rank[i] * NB)), d, j })
+  }
+  out.sort((a, b) => a.b - b.b)
+  return out
+})()
+const MAP0 = 9.45, MAP1 = 12.95
+const mapZoom = (t) => lerp(1.0, 1.06, eIO(pr(t, MAP0, MAP1)))
+function map(t) {
+  if (t < MAP0 || t > MAP1) return
+  const o = pr(t, MAP0, MAP0 + 0.2) * (1 - pr(t, 12.45, MAP1))
+  const zoom = mapZoom(t)
+  ctx.save(); ctx.globalAlpha = o
+  ctx.translate(1180, 560); ctx.scale(zoom, zoom); ctx.translate(-1180, -560)
+  let cur = -1
+  for (const p of dots) {
+    const a = eOutB(pr(t, 9.55 + p.d * 0.9 + p.j * 0.2, 9.55 + p.d * 0.9 + p.j * 0.2 + 0.45))
+    if (a <= 0) continue
+    if (p.b !== cur) { cur = p.b; ctx.fillStyle = rgba(BUCKET_COL[p.b]) }
+    const s = 2.6 * a
+    ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s)
+  }
+  const f = eOutC(pr(t, 10.4, 11.0))
+  if (f > 0) {
+    ctx.strokeStyle = rgba(COL.hair, f); ctx.lineWidth = 1.5
+    ctx.beginPath(); ctx.moveTo(CX0 - 12, CY0 - 40); ctx.lineTo(CX0 + 520 * f, CY0 - 40); ctx.stroke()
+  }
+  ctx.restore()
+  const lg = eOutC(pr(t, 10.7, 11.2)) * (1 - pr(t, 12.45, MAP1))
+  if (lg > 0) {
+    const g = ctx.createLinearGradient(96, 0, 96 + 470, 0)
+    g.addColorStop(0, rgba(RAMP3[0])); g.addColorStop(0.5, rgba(RAMP3[1])); g.addColorStop(1, rgba(RAMP3[2]))
+    ctx.save(); ctx.globalAlpha = lg; ctx.fillStyle = g; ctx.fillRect(96, 624, 470 * eOutC(lg), 10); ctx.restore()
+  }
+}
+
+// ---------- 5 · end card logo ----------
+function logo(t) {
+  if (t < 13.0) return
+  const cell = 11, gap = 4, size = 10 * cell + 9 * gap, x0 = W / 2 - size / 2, y0 = 196
+  for (let k = 0; k < 100; k++) {
+    const p = eOutB(pr(t, 13.0 + k * 0.005, 13.0 + k * 0.005 + 0.4))
+    if (p <= 0) continue
+    const c = rampCol(k)
+    const s = cell * p
+    const cx = x0 + (k % 10) * (cell + gap) + cell / 2, cy = y0 + Math.floor(k / 10) * (cell + gap) + cell / 2
+    ctx.fillStyle = rgba(c); ctx.fillRect(cx - s / 2, cy - s / 2, s, s)
+  }
+  const u = eIO(pr(t, 13.75, 14.3))
+  if (u > 0) { const wline = 612; ctx.fillStyle = rgba(COL.you, 0.9); ctx.fillRect(W / 2 - wline / 2, 752, wline * u, 3) }
+}
+
+// ---------- frame ----------
+function vignette() {
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 1.05)
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(40,36,28,0.07)')
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
+}
+
+window.DURATION = 15
+// a slow, continuous push-in so no frame is ever frozen
+const camScale = (t) => 1 + 0.03 * eIO(clamp(t / window.DURATION))
+window.render = function (t) {
+  $('stage').style.transform = `scale(${camScale(t).toFixed(5)})`
+  ctx.setTransform(2, 0, 0, 2, 0, 0)
+  ctx.fillStyle = rgba(COL.paper); ctx.fillRect(0, 0, W, H)
+
+  // 1 · hook
+  words($('h1a'), t, -1.2, { out: 1.7 })
+  words($('h1b'), t, 0.1, { out: 1.75, stagger: 0.09 })
+
+  // 2 · squares
+  squares(t)
+  cursor(t)
+  words($('s2a'), t, 2.2, { out: 5.7 })
+  words($('s2b'), t, 2.35, { out: 5.73 })
+  words($('s2c'), t, 2.85, { out: 5.76, stagger: 0.05 })
+  words($('q2a'), t, 3.9, { out: 5.8 })
+  words($('q2b'), t, 4.05, { out: 5.83, stagger: 0.08 })
+
+  // 3 · curve
+  axis(pr(t, 6.4, 7.0) * (1 - pr(t, 9.2, 9.6)))
+  curve(t)
+  words($('s3a'), t, 6.25, { out: 9.15 })
+  words($('s3b'), t, 6.45, { out: 9.2, stagger: 0.05 })
+  const w = walker(t), tu = $('tu')
+  if (w) { const r = tu.getBoundingClientRect(); fade(tu, t, 8.05, 8.35, 9.15, 9.5, { x: w.x - r.width / (2 * camScale(t)), y: WALK_TOP - 70 }) } else tu.style.opacity = 0
+
+  // 4 · map
+  map(t)
+  words($('s4a'), t, 10.0, { out: 12.4 })
+  words($('s4a2'), t, 10.12, { out: 12.42 })
+  words($('s4b'), t, 10.35, { out: 12.45, stagger: 0.05 })
+  words($('s4c'), t, 10.45, { out: 12.5, stagger: 0.05 })
+  fade($('lgL'), t, 10.7, 11.1, 12.45, 12.9)
+  fade($('lgR'), t, 10.8, 11.2, 12.45, 12.9)
+  fade($('canarias'), t, 10.5, 10.9, 12.45, 12.9, { x: CX0 - 12, y: CY0 - 72 })
+
+  // 5 · end card
+  logo(t)
+  words($('e1'), t, 13.0)
+  words($('e2'), t, 13.15, { stagger: 0.055 })
+  fade($('url'), t, 13.5, 14.0, 99, 100, { dy: 24 })
+  fade($('foot'), t, 13.9, 14.35, 99, 100)
+
+  vignette()
+}
+
+window.ready = (async () => {
+  await document.fonts.ready
+  await Promise.all([
+    document.fonts.load("460 156px 'Fraunces'"), document.fonts.load("italic 460 156px 'Fraunces'"), document.fonts.load("italic 400 46px 'Fraunces'"),
+    document.fonts.load(`500 22px 'Hanken Grotesk'`), document.fonts.load(`650 22px 'Hanken Grotesk'`),
+  ])
+  window.render(0)
+  return true
+})()
+</script>
+</body>
+</html>

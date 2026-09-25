@@ -149,6 +149,11 @@ src/
 2. **On calculate**: `computeResults` loads the three percentile tables in parallel and computes the percentile rank at each level; with consent, the answers are posted to `/api/appendResponse`.
 3. **For the figures**: `useLevels` loads the national, provincial (`density_curve_prov`) and municipal (`density_curve_mun/mun_<prov>`) densities and the municipality stats.
 
+### Icons and promo
+
+- **Icons** use Next's file conventions in `src/app/`: `icon.svg` (the curve with the blue "¿Tú?" dot), `apple-icon.png` (180×180, full bleed) and `favicon.ico` (48×48). The social card is `public/card_media.png`.
+- **`promo/`** is a separate package (not part of the app build) that renders the 15-second promo video: `src/scene.html` is a pure function of time (`window.render(t)`), `src/render.mjs` screenshots it frame by frame with headless Chrome into ffmpeg, and `src/music.mjs` synthesises the original score on the same 120 BPM grid. `cd promo && npm i && npm run preview` (stills in `promo/frames/`) or `npm run render` (`promo/videos/*.mp4`, gitignored).
+
 ---
 
 ## Calculation logic (read this before changing percentile math)

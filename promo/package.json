@@ -1,0 +1,15 @@
+{
+  "name": "comparatuingreso-promo",
+  "private": true,
+  "type": "module",
+  "description": "Motion-design promo video for comparatuingreso.es, rendered frame by frame with headless Chrome and ffmpeg",
+  "scripts": {
+    "preview": "node src/render.mjs --preview",
+    "render": "node src/render.mjs",
+    "music": "node src/music.mjs"
+  },
+  "devDependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright-core": "^1.47.0"
+  }
+}
