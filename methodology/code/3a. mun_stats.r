@@ -12,16 +12,16 @@
 #*   measures -- the rule 1b. fit_gb2.r applies to tracts -- and,
 #*   failing that, as the provincial population-weighted mean.
 #* - Share of the population aged 15+ with higher education, and share
-#*   born abroad (INE annual population census, tract tables exported
-#*   as CSV). Missing values take the provincial population-weighted
-#*   mean.
+#*   born abroad (INE annual population census, results by census tract:
+#*   tables 66592 and 65031, which also carry municipal totals). Missing
+#*   values take the provincial population-weighted mean.
 #* Each *_is_imputed flag is set BEFORE any imputation: 1 means the
 #* source does not publish the value for that municipality.
 #*
-#* The census part needs TRACT_TABLES_DIR (the folder with
-#* tract_foreign_raw.csv and tract_educ_raw.csv). Without it, the census
-#* columns are carried over from the existing base-year file and only the
-#* income columns are rebuilt.
+#* The census tables are large (0.2-0.35 GB each): the municipal rows of
+#* the periods used are kept in data-raw/census_<table>_<period>.csv, and
+#* the tables are only downloaded when that file is missing or when
+#* CENSUS_REFRESH=1.
 #-------------------------------------------------------------
 
 packages_to_load <- c("tidyverse", "data.table", "ineAtlas", "fst")
@@ -41,9 +41,10 @@ lapply(packages_to_load, require, character.only = TRUE)
 BASE_YEAR <- read_fst("data-raw/nowcast_factor.fst")$base_income_year
 OUT_FILE <- sprintf("data-raw/municipality_stats_%d.fst", BASE_YEAR)
 
-# Census reference periods in the INE tract tables (the app shows them)
-EDUC_PERIOD <- 2023
-FOREIGN_PERIOD <- 2024
+# Census reference periods (1 January), the latest in each table. The app
+# shows them: keep src/lib/years.ts in step (tests/years.test.ts checks).
+EDUC_PERIOD <- 2024      # table 66592, education of the population aged 15+
+FOREIGN_PERIOD <- 2025   # table 65031, place of birth (Spain / abroad)
 
 # ------------------------------ Atlas ----------------------------- #
 atlas_income <- merge(
@@ -70,59 +71,53 @@ income <- atlas_income %>%
 census_cols <- c("pct_foreign_born", "pct_higher_ed_completed",
                  "pct_foreign_born_is_imputed", "pct_higher_ed_completed_is_imputed")
 
-path_tract_tables <- Sys.getenv("TRACT_TABLES_DIR")
-
-if (nzchar(path_tract_tables)) {
-    if (!dir.exists(path_tract_tables)) stop("TRACT_TABLES_DIR does not exist: ", path_tract_tables)
-
-    foreign <- fread(file.path(path_tract_tables, "tract_foreign_raw.csv")) %>%
-      filter(`Municipios` != "" & `Secciones` == "") %>%
-      mutate(
-        mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
-        pop = gsub("[^0-9]", "", Total)
-      ) %>%
-      filter(`Periodo` == FOREIGN_PERIOD & Sexo == "Total") %>%
-      select(mun_code, pop, `Lugar de nacimiento`) %>%
-      filter(`Lugar de nacimiento` != "Total") %>%
-      group_by(mun_code) %>%
-      mutate(
-        pop = as.numeric(pop),
-        total_pop = sum(pop),
-        pct_foreign_born = 100 * pop / total_pop
-      ) %>%
-      filter(`Lugar de nacimiento` == "Extranjera") %>%
-      select(pct_foreign_born, mun_code) %>%
-      ungroup()
-
-    educ <- fread(file.path(path_tract_tables, "tract_educ_raw.csv")) %>%
-      filter(`Municipios` != "" & `Secciones` == "") %>%
-      mutate(
-        mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
-        value = as.numeric(gsub("[^0-9]", "", Total))
-      ) %>%
-      filter(`Periodo` == EDUC_PERIOD, `Sexo` == "Total") %>%
-      # "Total" is the population aged 15 and over
-      filter(`Nivel de formación alcanzado` %in% c("Total", "Educación superior")) %>%
-      pivot_wider(id_cols = mun_code, names_from = `Nivel de formación alcanzado`, values_from = value) %>%
-      mutate(pct_higher_ed_completed = 100 * `Educación superior` / Total) %>%
-      select(mun_code, pct_higher_ed_completed)
-
-    census <- income %>%
-        select(mun_code, prov_code, population) %>%
-        left_join(foreign, by = "mun_code") %>%
-        left_join(educ, by = "mun_code") %>%
-        mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
-                      list(is_imputed = ~ as.integer(is.na(.))))) %>%
-        group_by(prov_code) %>%
-        mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
-                      ~ ifelse(is.na(.), weighted.mean(., population, na.rm = TRUE), .))) %>%
-        ungroup() %>%
-        select(mun_code, all_of(census_cols))
-} else {
-    if (!file.exists(OUT_FILE)) stop("Set TRACT_TABLES_DIR: no base-year file to reuse census columns from")
-    message("TRACT_TABLES_DIR not set: census columns carried over from ", OUT_FILE)
-    census <- read_fst(OUT_FILE) %>% select(mun_code, all_of(census_cols))
+# Municipal totals (Sexo == "Total") of one census table for one period,
+# cached as a small CSV; the full table is downloaded only when needed.
+census_municipal <- function(table, period, category) {
+    cache <- sprintf("data-raw/census_%d_%d.csv", table, period)
+    if (!file.exists(cache) || Sys.getenv("CENSUS_REFRESH") == "1") {
+        message("Downloading INE census table ", table, " (large)...")
+        raw <- tempfile(fileext = ".csv")
+        options(timeout = max(1800, getOption("timeout")))
+        download.file(sprintf("https://www.ine.es/jaxiT3/files/t/es/csv_bdsc/%d.csv", table),
+                      raw, mode = "wb", quiet = TRUE)
+        x <- fread(raw, sep = ";", encoding = "UTF-8", colClasses = "character")
+        unlink(raw)
+        stopifnot(as.character(period) %in% x$Periodo)
+        x <- x[Municipios != "" & Secciones == "" & Sexo == "Total" & Periodo == as.character(period)]
+        fwrite(x[, c("Municipios", category, "Total"), with = FALSE], cache)
+    }
+    x <- fread(cache, colClasses = "character", encoding = "UTF-8")
+    x[, `:=`(mun_code = substr(gsub("[^0-9]", "", Municipios), 1, 5),
+             value = suppressWarnings(as.numeric(gsub("[^0-9]", "", Total))))]
+    x[]
 }
+
+foreign <- census_municipal(65031, FOREIGN_PERIOD, "Lugar de nacimiento") %>%
+    select(mun_code, place = `Lugar de nacimiento`, value) %>%
+    pivot_wider(id_cols = mun_code, names_from = place, values_from = value) %>%
+    mutate(pct_foreign_born = 100 * Extranjero / Total) %>%
+    select(mun_code, pct_foreign_born)
+
+educ <- census_municipal(66592, EDUC_PERIOD, "Nivel de formación alcanzado") %>%
+    # "Total" is the population aged 15 and over
+    filter(`Nivel de formación alcanzado` %in% c("Total", "Educación superior")) %>%
+    select(mun_code, level = `Nivel de formación alcanzado`, value) %>%
+    pivot_wider(id_cols = mun_code, names_from = level, values_from = value) %>%
+    mutate(pct_higher_ed_completed = 100 * `Educación superior` / Total) %>%
+    select(mun_code, pct_higher_ed_completed)
+
+census <- income %>%
+    select(mun_code, prov_code, population) %>%
+    left_join(foreign, by = "mun_code") %>%
+    left_join(educ, by = "mun_code") %>%
+    mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
+                  list(is_imputed = ~ as.integer(is.na(.))))) %>%
+    group_by(prov_code) %>%
+    mutate(across(c(pct_foreign_born, pct_higher_ed_completed),
+                  ~ ifelse(is.na(.), weighted.mean(., population, na.rm = TRUE), .))) %>%
+    ungroup() %>%
+    select(mun_code, all_of(census_cols))
 
 # ------------------------------ Combine ----------------------------- #
 municipality_stats <- income %>%

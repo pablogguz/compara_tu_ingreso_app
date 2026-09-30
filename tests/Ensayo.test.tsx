@@ -231,8 +231,8 @@ describe('Ensayo', () => {
     const facts = within(summary).getByRole('region', { name: /así es madrid/i })
     expect(facts).toHaveTextContent(/21\.500\s€/)
     expect(facts).toHaveTextContent(/renta media por unidad de consumo \(2025\)/i)
-    expect(facts).toHaveTextContent(/estudios superiores \(2023\)/i)
-    expect(facts).toHaveTextContent(/nacidas en el extranjero \(2024, media provincial\)/i)
+    expect(facts).toHaveTextContent(/estudios superiores \(2024\)/i)
+    expect(facts).toHaveTextContent(/nacidas en el extranjero \(2025, media provincial\)/i)
 
     // the record of the answers, and "Volver a empezar" keeps them
     expect(screen.getByText('40 de cada 100 por debajo de ti')).toBeInTheDocument()

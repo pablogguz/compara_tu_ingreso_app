@@ -62,7 +62,7 @@ Requires R (4.3 or later). The scripts install their own packages; the INE data 
 bash methodology/run_pipeline.sh
 ```
 
-This nowcasts, rebuilds every distribution and percentile table, and writes `public/data/`. Two steps are skipped unless asked for: re-fitting the Gini imputation model (`RUN_GINI_MODEL=1`) and recomputing the base-year municipal statistics, which needs INE tract tables exported as CSV (`TRACT_TABLES_DIR=/path/to/csvs`). See [`methodology/README.md`](methodology/README.md) for what each script does.
+This nowcasts, rebuilds every distribution and percentile table, and writes `public/data/`. Re-fitting the Gini imputation model is skipped unless asked for (`RUN_GINI_MODEL=1`); the census tables behind the municipal education and place-of-birth shares are cached and re-downloaded with `CENSUS_REFRESH=1`. See [`methodology/README.md`](methodology/README.md) for what each script does.
 
 The note is rebuilt with `bash methodology/tex/build_note.sh` (needs a TeX distribution).
 

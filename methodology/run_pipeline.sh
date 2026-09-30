@@ -10,9 +10,9 @@
 #   RUN_GINI_MODEL=1        also re-fit the Gini imputation model (1.)
 #   RUN_HOLDOUT=1           also re-run the leave-one-share-out validation of the
 #                           tract GB2 fits (1c., nine refits)
-#   TRACT_TABLES_DIR=/path  also rebuild the census columns of the base-year
-#                           municipal statistics (3a.); without it, 3a. only
-#                           rebuilds the income columns
+#   CENSUS_REFRESH=1        re-download the INE census tables behind the
+#                           municipal education and place-of-birth shares (3a.);
+#                           otherwise their cached municipal rows are used
 #   BUILD_NOTE=1            also rebuild tex/note.pdf (needs a TeX distribution)
 set -euo pipefail
 

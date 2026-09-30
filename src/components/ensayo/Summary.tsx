@@ -5,7 +5,7 @@ import type { Level, Stats } from '@/hooks/useLevels'
 import { smoothPath } from '@/lib/chartGeometry'
 import { euro, headline, num, pct, perceptionGap, shareText } from '@/lib/format'
 import { shareResult } from '@/lib/share'
-import { INCOME_YEAR } from '@/lib/years'
+import { BIRTHPLACE_YEAR, EDUCATION_YEAR, INCOME_YEAR } from '@/lib/years'
 import { findPercentile } from '@/lib/calculations'
 import { XMAX, contract, cx, levelPhrase, levelTitle } from './copy'
 import { curveInSquares, peakOf } from './geometry'
@@ -92,13 +92,13 @@ export default function Summary({ levels, stats, income, rawNational, guess, gue
             <Fact
               value={pct(stats.pct_higher_ed_completed)}
               label="Personas de 15 años o más con estudios superiores"
-              year={2023}
+              year={EDUCATION_YEAR}
               imputed={stats.pct_higher_ed_completed_is_imputed === 1}
             />
             <Fact
               value={pct(stats.pct_foreign_born)}
               label="Personas nacidas en el extranjero"
-              year={2024}
+              year={BIRTHPLACE_YEAR}
               imputed={stats.pct_foreign_born_is_imputed === 1}
             />
           </dl>

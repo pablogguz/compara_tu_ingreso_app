@@ -18,7 +18,7 @@ The note validates the result out of sample on what the fits do not target — t
 
 - _Atlas de Distribución de Renta de los Hogares_ ([ADRH](https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736177088&menu=ultiDatos&idp=1254735976608)), INE: income, inequality, income-threshold shares and demographic indicators by census tract and municipality, loaded with [`ineAtlas`](https://github.com/pablogguz/ineAtlas); national and provincial totals from the INE API with [`ineapir`](https://github.com/es-ine/ineapir) (the national median behind the relative thresholds, and validation).
 - _Informe Anual de Recaudación Tributaria_ ([AEAT](https://sede.agenciatributaria.gob.es/Sede/estadisticas/recaudacion-tributaria/informe-anual.html)), table 2.1 "Rentas de los hogares e IRPF": national household income from tax sources and income tax accrued, used for the nowcast (cached in `data-raw/aeat_rentas_hogares_<year>.xlsx`); population from Eurostat (`nama_10_pe`).
-- INE annual population census, tract tables exported as CSV: education and place of birth, for the municipal context indicators shown in the app (not used in the estimation).
+- INE annual population census, results by census tract (tables 66592 and 65031, with municipal totals): education of those aged 15+ (1 January 2024) and place of birth (1 January 2025), for the municipal context indicators shown in the app (not used in the estimation). Their municipal rows are cached in `data-raw/census_<table>_<period>.csv`.
 
 ## Code
 
@@ -52,9 +52,9 @@ runs `0d`, `1b`, `2`, `3a`, `3c`, the Arrow conversion, `5` and `6` (a few minut
 
 - `RUN_GINI_MODEL=1` also re-fits the Gini model (`1`);
 - `RUN_HOLDOUT=1` also re-runs the leave-one-share-out validation (`1c`) — do so whenever the GB2 fit or the data change, since the note reports it;
-- `TRACT_TABLES_DIR=/path/to/csvs` also rebuilds the census columns of the municipal statistics from the INE tract tables (`tract_foreign_raw.csv`, `tract_educ_raw.csv`); without it, `3a` rebuilds only the income columns and keeps the census columns of the existing base-year file;
+- `CENSUS_REFRESH=1` re-downloads the two census tables (0.2–0.35 GB each) instead of using their cached municipal rows;
 - `BUILD_NOTE=1` also rebuilds the note.
 
 The note is built with `bash methodology/tex/build_note.sh` (needs a TeX distribution). Its numbers, tables and figures all come from the pipeline, so rebuilding it after the pipeline updates the note to the latest data. The build fails if any reference or citation is unresolved.
 
-When the ADRH or the AEAT annual report publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d`, the census periods in `3a` if the tract tables are refreshed, and `src/lib/years.ts` in the app, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1`. R packages are installed by the scripts if missing (R 4.3 or later).
+When the ADRH or the AEAT annual report publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d`, the census periods in `3a` when the INE adds a census year, and `src/lib/years.ts` in the app, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1`. R packages are installed by the scripts if missing (R 4.3 or later).

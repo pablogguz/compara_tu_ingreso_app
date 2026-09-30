@@ -45,7 +45,7 @@ methodology/code/   (R pipeline, run from methodology/ by run_pipeline.sh)
 - **ADRH** (INE *Atlas de Distribución de Renta de los Hogares*, 2023) — per tract and municipality: mean and median income per consumption unit, Gini, P80/P20 and the shares of population below/above nine thresholds. Loaded via the `ineAtlas` R package; the national and provincial totals used to validate come from INE tables 53689/53688/53690/53694 via `ineapir`.
 - **AEAT** (Agencia Tributaria, *Informe Anual de Recaudación Tributaria*, table 2.1 "Rentas de los hogares e IRPF") — national household income from tax sources and income tax accrued, used only for the nowcast; the xlsx is cached in `methodology/data-raw/aeat_rentas_hogares_<year>.xlsx`. Population for per-person growth from Eurostat `nama_10_pe`.
 - **ADRH demographics** (population, age, household composition) per tract, via `ineAtlas`, for the weights and the Gini model.
-- **INE tract tables** (CSV exports, population by place of birth and by educational attainment) — education + foreign-born share for `3a. mun_stats.r`; the folder is passed as `TRACT_TABLES_DIR`. `3a` writes the base-year file `methodology/data-raw/municipality_stats_2023.fst`, which is kept in git so the rest of the pipeline runs without those CSVs.
+- **INE annual population census, results by census tract** (tables 66592, education of those aged 15+, latest 1 January 2024; and 65031, place of birth, latest 1 January 2025; both also carry municipal totals) — the education and foreign-born shares in `3a. mun_stats.r`. The tables are 0.2–0.35 GB, so `3a` keeps their municipal rows in `methodology/data-raw/census_<table>_<period>.csv` (in git) and only downloads them when that file is missing or with `CENSUS_REFRESH=1`. The periods are `EDUC_PERIOD` / `FOREIGN_PERIOD` in `3a` and `EDUCATION_YEAR` / `BIRTHPLACE_YEAR` in `src/lib/years.ts` (the test checks they match).
 
 ### Method (in 30 seconds)
 
@@ -76,12 +76,12 @@ For the published methodology note, see [methodology/tex/note.pdf](methodology/t
 bash methodology/run_pipeline.sh   # 0d → 1b → 2 → 3a → 3c → convert-data.R → 5 → 6
 # RUN_GINI_MODEL=1   also re-fits 1. predict_gini_ml.r
 # RUN_HOLDOUT=1      also re-runs the GB2 hold-out (1c)
-# TRACT_TABLES_DIR=/path  also rebuilds the census columns of the base-year municipal stats
+# CENSUS_REFRESH=1   re-downloads the INE census tables behind the municipal education / birthplace shares
 # BUILD_NOTE=1       also rebuilds methodology/tex/note.pdf
 npm test && npm run build
 ```
 
-When the ADRH (each autumn) or the AEAT annual report (each spring/summer) publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOME_YEAR` in `0d` (the other scripts read the years from its output), the census periods in `3a` if the CSVs are refreshed, and `ADRH_YEAR` / `INCOME_YEAR` in `src/lib/years.ts`, which all the app's copy reads (`tests/years.test.ts` checks they match `0d`). The note's numbers, tables and figures regenerate themselves.
+When the ADRH (each autumn) or the AEAT annual report (each spring/summer) publish a new year, bump `BASE_INCOME_YEAR` / `TARGET_INCOME_YEAR` in `0d` (the other scripts read the years from its output), and, when the INE adds a census year (place of birth each December, education each spring), `EDUC_PERIOD` / `FOREIGN_PERIOD` in `3a`; then the matching constants in `src/lib/years.ts`, which all the app's copy reads (`tests/years.test.ts` checks they match `0d` and `3a`). The note's numbers, tables and figures regenerate themselves.
 
 `scripts/convert-data.R` writes uncompressed Feather v2 — required because the browser-side `apache-arrow` IPC reader does not handle LZ4/ZSTD frames.
 
