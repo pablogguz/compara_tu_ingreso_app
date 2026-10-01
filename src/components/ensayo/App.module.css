@@ -464,6 +464,13 @@
   padding-bottom: 48px;
 }
 
+/* "Calculando…": a scene of its own, centred on the screen */
+.stage.scene {
+  align-content: center;
+  padding-top: 0;
+  padding-bottom: 8vh;
+}
+
 .caption {
   font-family: var(--sans);
   font-size: 13.5px;

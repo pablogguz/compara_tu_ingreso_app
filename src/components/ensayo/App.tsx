@@ -15,6 +15,7 @@ import Story from './Story'
 import Summary from './Summary'
 import HeroField from './HeroField'
 import { cx, householdText, incomeText } from './copy'
+import { jumpTo, sceneChange } from '@/lib/viewTransition'
 import { useReducedMotion, useReveal } from './hooks'
 import a from './App.module.css'
 import q from './Questions.module.css'
@@ -48,16 +49,22 @@ function Ensayo() {
   const [step, setStep] = useState(0)
   // the questions appear once the reader asks for them
   const [started, setStarted] = useState(false)
-  const scrollOnStart = useRef(false)
   // the answers and the story arrive together, once the figures are ready
   const [figuresReady, setFiguresReady] = useState(false)
-  const figuresDone = useCallback(() => setFiguresReady(true), [])
   const [introRef, introShown] = useReveal<HTMLDivElement>()
   const [closingRef, closingShown] = useReveal<HTMLParagraphElement>()
   // the guess has no default on screen: the reader has to choose
   const [guessTouched, setGuessTouched] = useState(false)
   const reduced = useReducedMotion()
   const done = flow.status === 'done' && !!flow.results
+
+  // The essay moves in scenes: intro → questions → "Calculando…" → the story.
+  // Each change cross-fades (sceneChange) and lands on the new scene at once,
+  // so the page is never seen scrolling between them.
+  const toQuestions = (focus: boolean) => {
+    jumpTo(document.getElementById('preguntas'))
+    if (focus) document.querySelector<HTMLElement>('#preguntas form input')?.focus({ preventScroll: true })
+  }
 
   const calculate = useCallback(async () => {
     const incomeOk = flow.income.state === 'valid' || flow.income.state === 'warning'
@@ -66,45 +73,39 @@ function Ensayo() {
       setStep(gap)
       return
     }
-    await flow.calculate()
+    sceneChange(
+      () => void flow.calculate(),
+      () => jumpTo(document.getElementById('preguntas'))
+    )
   }, [flow, guessTouched])
 
-  const toQuestions = useCallback(
-    (focus: boolean) => {
-      const el = document.getElementById('preguntas')
-      el?.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
-      if (focus) {
-        setTimeout(() => document.querySelector<HTMLElement>('#preguntas form input')?.focus({ preventScroll: true }), reduced ? 0 : 450)
+  // the figures are ready (or failed): the answers and the story arrive, and
+  // the reader lands on the story
+  const figuresDone = useCallback(() => {
+    sceneChange(
+      () => setFiguresReady(true),
+      () => {
+        const h = document.getElementById('ensayo-historia')
+        jumpTo(h?.closest('section'))
+        h?.focus({ preventScroll: true })
       }
-    },
-    [reduced]
-  )
+    )
+  }, [])
 
-  const start = () => {
-    if (started) {
-      toQuestions(true)
-      return
-    }
-    scrollOnStart.current = true
-    setStarted(true)
-  }
-
-  // once the questions have mounted, bring them in and focus the first one
-  useEffect(() => {
-    if (!started || !scrollOnStart.current) return
-    scrollOnStart.current = false
-    toQuestions(true)
-  }, [started, toQuestions])
+  const start = () => sceneChange(() => setStarted(true), () => toQuestions(true))
 
   const toIntro = () =>
     document.getElementById('introduccion')?.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
 
-  const again = () => {
-    flow.reset()
-    setFiguresReady(false)
-    setStep(0)
-    requestAnimationFrame(() => toQuestions(true))
-  }
+  const again = () =>
+    sceneChange(
+      () => {
+        flow.reset()
+        setFiguresReady(false)
+        setStep(0)
+      },
+      () => toQuestions(true)
+    )
 
   return (
     <div className={a.root}>
@@ -178,7 +179,12 @@ function Ensayo() {
         {started && (
           <section
             id="preguntas"
-            className={cx(a.flow, a.section, !done && a.stage)}
+            className={cx(
+              a.flow,
+              a.section,
+              !(done && figuresReady) && a.stage,
+              (flow.status === 'calculating' || (done && !figuresReady)) && a.scene
+            )}
             aria-labelledby="ensayo-preguntas"
           >
             <h2 className={a.srOnly} id="ensayo-preguntas">
@@ -208,7 +214,7 @@ function Ensayo() {
 
         {done && (
           <ErrorBoundary label="ensayo-resultados" onError={figuresDone}>
-            <Results flow={flow} reduced={reduced} onAgain={again} onReady={figuresDone} />
+            <Results flow={flow} onAgain={again} onReady={figuresDone} />
           </ErrorBoundary>
         )}
 
@@ -315,12 +321,10 @@ function Record({ flow, onEdit }: { flow: Flow; onEdit: () => void }) {
 
 function Results({
   flow,
-  reduced,
   onAgain,
   onReady,
 }: {
   flow: Flow
-  reduced: boolean
   onAgain: () => void
   /** the figures are ready (or failed): the answers and the story can arrive */
   onReady: () => void
@@ -329,23 +333,14 @@ function Results({
   const guess = flow.answers.perceivedPercentile
   const { levels, stats, loading, error, guessValue } = useLevels(results, flow.answers.municipality, guess)
   const ready = !loading && !error && levels.length === 3
-  const scrolled = useRef(false)
+  const told = useRef(false)
 
+  // the parent changes scene once the figures are ready or have failed
   useEffect(() => {
-    if (ready || error) onReady()
+    if (told.current || !(ready || error)) return
+    told.current = true
+    onReady()
   }, [ready, error, onReady])
-
-  // once the figures are ready, take the reader to the story
-  useEffect(() => {
-    if (!ready || scrolled.current) return
-    scrolled.current = true
-    const h = document.getElementById('ensayo-historia')
-    if (!h) return
-    h.focus({ preventScroll: true })
-    requestAnimationFrame(() =>
-      h.closest('section')?.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
-    )
-  }, [ready, reduced])
 
   if (error) {
     return (

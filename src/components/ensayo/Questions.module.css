@@ -728,12 +728,10 @@
 .loading {
   animation: softIn 500ms var(--ease) both;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 22px;
-  margin-top: 26px;
-  padding: 30px 0 34px;
-  border-top: 1px solid var(--ink);
-  border-bottom: 1px solid var(--hair);
+  gap: 26px;
+  text-align: center;
 }
 
 .loadingLine {
@@ -753,8 +751,8 @@
 
 /* sixteen squares breathe in a diagonal wave while the blue one hops */
 .spinner {
-  --cell: 12px;
-  --gap: 4px;
+  --cell: 16px;
+  --gap: 5px;
   --step: calc(var(--cell) + var(--gap));
   position: relative;
   flex-shrink: 0;

@@ -270,63 +270,25 @@ button {
 }
 
 /* ----------------------------------------------------------------------------
-   Screen + step transitions
-   Screens (landing → questions → loading → results) and question steps change
-   inside document.startViewTransition (src/lib/viewTransition.ts). The old
-   frame fades out with a slight soft focus while the new one plays its own
-   entrance; <html data-vt> says which kind of change is running, <html
-   data-nav> which way it goes. Browsers without the API swap instantly.
+   Scene changes in the essay (src/lib/viewTransition.ts): intro → questions →
+   "Calculando…" → the story. Inside document.startViewTransition, with
+   <html data-vt="scene">, the old frame fades out with a soft focus while the
+   new one rises in. Browsers without the API swap instantly.
    ---------------------------------------------------------------------------- */
-.stage {
-  min-height: 100vh;
-  min-height: 100dvh;
-  view-transition-name: stage;
+html[data-vt='scene']::view-transition-old(root) {
+  animation: sceneOut 380ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-::view-transition-group(stage) {
-  animation-duration: 0s;
+html[data-vt='scene']::view-transition-new(root) {
+  animation: sceneIn 760ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
 }
 
-html[data-vt='stage']::view-transition-old(stage) {
-  animation: stageOut 360ms var(--ease-soft) both;
+@keyframes sceneOut {
+  to { opacity: 0; transform: scale(0.985); filter: blur(5px); }
 }
 
-html[data-vt='stage']::view-transition-new(stage) {
-  animation: none;
-}
-
-@keyframes stageOut {
-  to { opacity: 0; transform: scale(0.99); filter: blur(6px); }
-}
-
-html[data-vt='step']::view-transition-old(stage),
-html[data-vt='step']::view-transition-new(stage) {
-  animation-duration: 280ms;
-}
-
-::view-transition-group(step) {
-  animation-duration: 520ms;
-  animation-timing-function: var(--ease-spring);
-}
-
-::view-transition-old(step) {
-  animation: stepOut 300ms var(--ease-soft) both;
-}
-
-html[data-nav='back']::view-transition-old(step) {
-  animation-name: stepOutBack;
-}
-
-::view-transition-new(step) {
-  animation: none;
-}
-
-@keyframes stepOut {
-  to { opacity: 0; transform: translateX(-20px); filter: blur(4px); }
-}
-
-@keyframes stepOutBack {
-  to { opacity: 0; transform: translateX(20px); filter: blur(4px); }
+@keyframes sceneIn {
+  from { opacity: 0; transform: translateY(18px); }
 }
 
 /* The header is the same element on both sides of a step change: show only
