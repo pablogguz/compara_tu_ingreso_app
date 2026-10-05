@@ -20,6 +20,39 @@ The note validates the result out of sample on what the fits do not target — t
 - _Informe Anual de Recaudación Tributaria_ ([AEAT](https://sede.agenciatributaria.gob.es/Sede/estadisticas/recaudacion-tributaria/informe-anual.html)), table 2.1 "Rentas de los hogares e IRPF": national household income from tax sources and income tax accrued, used for the nowcast (cached in `data-raw/aeat_rentas_hogares_<year>.xlsx`); population from Eurostat (`nama_10_pe`).
 - INE annual population census, results by census tract (tables 66592 and 65031, with municipal totals): education of those aged 15+ (1 January 2024) and place of birth (1 January 2025), for the municipal context indicators shown in the app (not used in the estimation). Their municipal rows are cached in `data-raw/census_<table>_<period>.csv`.
 
+## Replication package
+
+This folder is self-contained: it holds everything needed to rebuild the note, and nothing else.
+
+```
+methodology/
+├── run_pipeline.sh        # runs the whole chain, from the sources to the note
+├── code/                  # the R pipeline (below)
+├── data-raw/              # inputs kept in the repository
+│   ├── aeat_rentas_hogares_2025.xlsx    # AEAT table behind the nowcast (snapshot)
+│   ├── eurostat_population.csv          # Spain's population, Eurostat nama_10_pe (snapshot, with its vintage)
+│   ├── census_65031_2025.csv            # INE census, place of birth, municipal rows
+│   ├── census_66592_2024.csv            # INE census, education, municipal rows
+│   ├── gini_predicted.fst, gini_model_cv.fst   # Gini imputation (step 1), reused unless re-fitted
+│   └── gb2_holdout.fst                  # held-out validation (step 1c), reused unless re-run
+├── output/                # the note's figures and tables (generated)
+└── tex/                   # the note: sources, numbers.tex (generated) and note.pdf
+```
+
+`data/` and the other files in `data-raw/` (the nowcast factor and series, the base-year municipal statistics) are regenerated on every run and are not kept.
+
+**Requirements.** R 4.3 or later (tested with 4.5.2); the scripts install the packages they use if missing (data.table, fst, tidyverse, matrixStats, xgboost, readxl, jsonlite, ineAtlas, ineapir, arrow, ragg, systemfonts, scales). A TeX distribution with `pdflatex` and `bibtex` to build the note. Internet access: the ADRH is downloaded with `ineAtlas` and the published totals from the INE API; the AEAT, Eurostat and census inputs are read from `data-raw/`. The figures use the Source Serif 4 font if it is installed and the default serif otherwise.
+
+**Reproduce everything** (about 10 minutes on a 10-core laptop):
+
+```bash
+RUN_GINI_MODEL=1 RUN_HOLDOUT=1 BUILD_NOTE=1 bash methodology/run_pipeline.sh
+```
+
+Without the options, the run reuses the Gini imputation and the held-out validation kept in `data-raw/` and does not rebuild the PDF (a few minutes). Each step's output is listed below; the note's numbers are written to `tex/numbers.tex`, its tables and figures to `output/`, and the app's data to `../public/data/`.
+
+**What can differ.** The ADRH and the INE totals are read live, so a later run uses whatever the INE publishes then (the pipeline stops if the ADRH has a newer year than the one it is set to, so that the years are bumped deliberately). The AEAT table, the Eurostat population and the census rows are snapshots in `data-raw/` and do not change unless replaced: delete one to take the latest vintage. From a fresh copy of the repository, a run reproduces the note's numbers, tables and figures and the app's data bit for bit.
+
 ## Code
 
 Scripts are run from this folder (paths such as `data/` and `data-raw/` are relative to it), in this order. The ADRH year is set once, as `BASE_INCOME_YEAR` in `0d`; every later script reads it from `data-raw/nowcast_factor.fst`.
@@ -38,23 +71,14 @@ Scripts are run from this folder (paths such as `data/` and `data-raw/` are rela
 | `6. note_numbers.r` | Every number quoted in the note, as LaTeX macros, and the note's tables | `tex/numbers.tex`, `output/table_*.tex` |
 | `gb2_engine.r` | GB2 engine: indicators, residuals, vectorised Levenberg–Marquardt solver, targets and tolerances, share prior, mixtures (sourced, not run) | |
 | `note_data.r` | Helpers shared by `5.` and `6.` (sourced, not run) | |
-| `3b. tract_stats.r` | Tract-level statistics (not used by the app) | `data/tract_*` |
 
-`data-raw/` holds small inputs kept in the repository; `data/` is regenerated and not kept.
+## Options and updates
 
-## Rebuilding
-
-```bash
-bash methodology/run_pipeline.sh
-```
-
-runs `0d`, `1b`, `2`, `3a`, `3c`, the Arrow conversion, `5` and `6` (a few minutes; the GB2 fit uses up to 10 cores). Options:
+`run_pipeline.sh` runs `0d`, `1b`, `2`, `3a`, `3c`, the Arrow conversion, `5` and `6`. Options:
 
 - `RUN_GINI_MODEL=1` also re-fits the Gini model (`1`);
 - `RUN_HOLDOUT=1` also re-runs the leave-one-share-out validation (`1c`) — do so whenever the GB2 fit or the data change, since the note reports it;
 - `CENSUS_REFRESH=1` re-downloads the two census tables (0.2–0.35 GB each) instead of using their cached municipal rows;
-- `BUILD_NOTE=1` also rebuilds the note.
+- `BUILD_NOTE=1` also rebuilds the note (or run `bash methodology/tex/build_note.sh`). The build fails if any reference or citation is unresolved.
 
-The note is built with `bash methodology/tex/build_note.sh` (needs a TeX distribution). Its numbers, tables and figures all come from the pipeline, so rebuilding it after the pipeline updates the note to the latest data. The build fails if any reference or citation is unresolved.
-
-When the ADRH or the AEAT annual report publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d`, the census periods in `3a` when the INE adds a census year, and `src/lib/years.ts` in the app, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1`. R packages are installed by the scripts if missing (R 4.3 or later).
+When the ADRH or the AEAT annual report publish a new year, bump `BASE_INCOME_YEAR` and `TARGET_INCOME_YEAR` in `0d` (the AEAT table of the new year is downloaded to `data-raw/`: remove the old one, and delete `eurostat_population.csv` to refresh the population), the census periods in `3a` when the INE adds a census year, and `src/lib/years.ts` in the app, and run with `RUN_GINI_MODEL=1 RUN_HOLDOUT=1 BUILD_NOTE=1`.

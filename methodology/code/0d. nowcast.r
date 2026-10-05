@@ -27,7 +27,8 @@
 #*   data-raw/nowcast_series.fst -- the yearly ADRH and AEAT growth
 #*   rates behind rho, and the nowcast growth per year.
 #*   data-raw/nowcast_backtest.fst -- the backtest errors.
-#*   data-raw/aeat_rentas_hogares_<target>.xlsx -- the AEAT table used.
+#*   data-raw/aeat_rentas_hogares_<target>.xlsx -- the AEAT table used, and
+#*   data-raw/eurostat_population.csv -- the population used (snapshots).
 #-------------------------------------------------------------
 
 packages_to_load <- c("tidyverse", "data.table", "ineAtlas", "fst", "readxl", "jsonlite")
@@ -106,17 +107,24 @@ aeat <- data.table(
 stopifnot(max(aeat$year) == TARGET_INCOME_YEAR, !anyNA(aeat))
 
 #-------------------------------------------------------------
-# 3. Population (national accounts concept, Eurostat nama_10_pe)
+# 3. Population (national accounts concept, Eurostat nama_10_pe), kept as
+#    a snapshot so that runs are reproducible: Eurostat revises recent
+#    years. Delete the file to take the latest vintage.
 #-------------------------------------------------------------
-print("Downloading population (Eurostat nama_10_pe)...")
-pop_json <- fromJSON(paste0(
-  "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_pe",
-  "?geo=ES&na_item=POP_NC&unit=THS_PER&sinceTimePeriod=2006"))
-time_index <- unlist(pop_json$dimension$time$category$index)
-population <- data.table(
-  year = as.integer(names(time_index)),
-  pop = unlist(pop_json$value)[as.character(time_index)]
-)
+pop_file <- "data-raw/eurostat_population.csv"
+if (!file.exists(pop_file)) {
+  print("Downloading population (Eurostat nama_10_pe)...")
+  pop_json <- fromJSON(paste0(
+    "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_pe",
+    "?geo=ES&na_item=POP_NC&unit=THS_PER&sinceTimePeriod=2006"))
+  time_index <- unlist(pop_json$dimension$time$category$index)
+  fwrite(data.table(
+    year = as.integer(names(time_index)),
+    pop = unlist(pop_json$value)[as.character(time_index)],
+    vintage = pop_json$updated
+  ), pop_file)
+}
+population <- fread(pop_file)[, .(year, pop)]
 stopifnot(TARGET_INCOME_YEAR %in% population$year)
 
 aeat <- merge(aeat, population, by = "year")[order(year)]

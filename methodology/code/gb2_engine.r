@@ -12,10 +12,7 @@
 #* Solver: Levenberg-Marquardt vectorised across tracts (every tract is an
 #* independent small problem; all are advanced in lock-step).
 #*
-#* Ported unchanged from the method comparison (approach A, configuration
-#* "gb2, full, balanced"): families, indicators, residuals, solver,
-#* tolerances, starting values and the share prior. Only the data plumbing
-#* differs: the national median behind the relative thresholds is set with
+#* The national median behind the relative thresholds is set with
 #* gb2_setup(), and the caps are located on the tract table passed in.
 #-------------------------------------------------------------
 

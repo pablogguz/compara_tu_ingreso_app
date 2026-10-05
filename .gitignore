@@ -61,7 +61,5 @@ methodology/tex/*.out
 .Rhistory
 .RData
 .Rproj.user/
-
-# Method comparison: kept locally, not published
-methodology/research/
-methodology/method_comparison.md
+methodology/data-raw/nowcast_*.fst
+methodology/data-raw/municipality_stats_*.fst
