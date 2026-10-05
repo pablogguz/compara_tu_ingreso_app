@@ -184,8 +184,8 @@ describe('Ensayo', () => {
     fireEvent.change(screen.getByRole('slider', { name: /desliza/i }), { target: { value: '40' } })
     fireEvent.keyDown(forty, { key: 'Enter' })
 
-    // loading, then the story: 30 nationally, 60 in the province, 15 in the municipality
-    expect(await screen.findByText(/calculando/i)).toBeInTheDocument()
+    // the data is there, so no "Calculando…": straight to the story, 30
+    // nationally, 60 in the province, 15 in the municipality
     const story = await screen.findByRole('region', { name: /dónde estás, paso a paso/i }, { timeout: 4000 })
 
     // the answers go to the research log (which itself checks cookie consent),
@@ -240,6 +240,26 @@ describe('Ensayo', () => {
     fireEvent.click(screen.getByRole('button', { name: /volver a empezar/i }))
     expect(await screen.findByRole('combobox', { name: /en qué municipio vives/i })).toHaveValue('Madrid (Madrid)')
     expect(screen.queryByRole('region', { name: /tu resumen/i })).not.toBeInTheDocument()
+  })
+
+  it('shows "Calculando…" only when the data is slow', async () => {
+    vi.mocked(loadNationalPercentiles).mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve(NATIONAL), 500)))
+    render(<EnsayoApp />)
+    fireEvent.click(screen.getByRole('button', { name: /comenzar/i }))
+    const combo = await screen.findByRole('combobox', { name: /en qué municipio vives/i })
+    fireEvent.focus(combo)
+    fireEvent.change(combo, { target: { value: 'madrid' } })
+    fireEvent.keyDown(combo, { key: 'Enter', code: 'Enter' })
+    next()
+    fireEvent.change(await screen.findByRole('textbox', { name: /cuánto dinero/i }), { target: { value: '2500' } })
+    next()
+    next()
+    fireEvent.click(await screen.findByRole('radio', { name: '86 personas por debajo' }))
+    next(/ver dónde estoy/i)
+    expect(await screen.findByText(/calculando/i, {}, { timeout: 2000 })).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: /dónde estás, paso a paso/i }, { timeout: 4000 })).toBeInTheDocument()
+    expect(screen.queryByText(/calculando/i)).not.toBeInTheDocument()
+    vi.mocked(loadNationalPercentiles).mockResolvedValue(NATIONAL)
   })
 
   it('says so when the calculation fails, and retries', async () => {

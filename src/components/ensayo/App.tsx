@@ -44,14 +44,22 @@ export default function EnsayoApp() {
 }
 
 const TITLE = 'Descubre tu posición en la distribución de la renta'
+const LOADING_AFTER = 200
+const LOADING_AT_LEAST = 600
 
 function Ensayo() {
-  const flow = useFlow({ logResponses: true })
+  // no minimum wait: the calculation shows the story as soon as it is ready
+  const flow = useFlow({ logResponses: true, minLoadingMs: 0 })
   const [step, setStep] = useState(0)
   // the questions appear once the reader asks for them
   const [started, setStarted] = useState(false)
   // the answers and the story arrive together, once the figures are ready
   const [figuresReady, setFiguresReady] = useState(false)
+  // "Calculando…" only if the data is not there within LOADING_AFTER ms (it is
+  // prefetched while the questions are answered, so usually it never shows);
+  // once shown, it stays LOADING_AT_LEAST ms so it does not flicker
+  const [showLoading, setShowLoading] = useState(false)
+  const loadingShownAt = useRef<number | null>(null)
   const [introRef, introShown] = useReveal<HTMLDivElement>()
   const [closingRef, closingShown] = useReveal<HTMLParagraphElement>()
   // the guess has no default on screen: the reader has to choose
@@ -75,28 +83,46 @@ function Ensayo() {
   }
 
   const calculate = useCallback(async () => {
+    if (flow.status === 'calculating') return
     const incomeOk = flow.income.state === 'valid' || flow.income.state === 'warning'
     const gap = [!!flow.municipality, incomeOk, true, guessTouched].indexOf(false)
     if (gap !== -1) {
       setStep(gap)
       return
     }
-    sceneChange(
-      () => void flow.calculate(),
-      () => jumpTo(document.getElementById('preguntas'))
-    )
+    loadingShownAt.current = null
+    void flow.calculate()
   }, [flow, guessTouched])
 
-  // the figures are ready (or failed): the answers and the story arrive, and
-  // the reader lands on the story
+  const waiting = flow.status === 'calculating' || (done && !figuresReady)
+  useEffect(() => {
+    if (!waiting) return
+    const t = setTimeout(() => {
+      loadingShownAt.current = performance.now()
+      sceneChange(() => setShowLoading(true), () => jumpTo(document.getElementById('preguntas')))
+    }, LOADING_AFTER)
+    return () => clearTimeout(t)
+  }, [waiting])
+
+  // the figures are ready (or failed): the answers and the story arrive in one
+  // scene change, straight from the last question when nothing had to wait
   const figuresDone = useCallback(() => {
-    sceneChange(
-      () => setFiguresReady(true),
-      () => {
-        const h = document.getElementById('ensayo-historia')
-        jumpTo(h?.closest('section'))
-        h?.focus({ preventScroll: true })
-      }
+    const shown = loadingShownAt.current
+    const hold = shown === null ? 0 : Math.max(0, shown + LOADING_AT_LEAST - performance.now())
+    setTimeout(
+      () =>
+        sceneChange(
+          () => {
+            setFiguresReady(true)
+            setShowLoading(false)
+          },
+          () => {
+            const h = document.getElementById('ensayo-historia')
+            jumpTo(h?.closest('section'))
+            h?.focus({ preventScroll: true })
+          }
+        ),
+      hold
     )
   }, [])
 
@@ -110,6 +136,8 @@ function Ensayo() {
       () => {
         flow.reset()
         setFiguresReady(false)
+        setShowLoading(false)
+        loadingShownAt.current = null
         setStep(0)
       },
       () => toQuestions(true)
@@ -191,7 +219,7 @@ function Ensayo() {
               a.flow,
               a.section,
               !(done && figuresReady) && a.stage,
-              (flow.status === 'calculating' || (done && !figuresReady)) && a.scene
+              showLoading && waiting && a.scene
             )}
             aria-labelledby="ensayo-preguntas"
           >
@@ -199,9 +227,9 @@ function Ensayo() {
               Cuatro preguntas
             </h2>
 
-            {flow.status === 'calculating' || (done && !figuresReady) ? (
+            {showLoading && waiting ? (
               <Loading />
-            ) : done ? (
+            ) : done && figuresReady ? (
               <Record flow={flow} onEdit={again} />
             ) : (
               <Questions
@@ -222,7 +250,7 @@ function Ensayo() {
 
         {done && (
           <ErrorBoundary label="ensayo-resultados" onError={figuresDone}>
-            <Results flow={flow} onAgain={again} onReady={figuresDone} />
+            <Results flow={flow} onAgain={again} onReady={figuresDone} show={figuresReady} />
           </ErrorBoundary>
         )}
 
@@ -331,11 +359,14 @@ function Results({
   flow,
   onAgain,
   onReady,
+  show,
 }: {
   flow: Flow
   onAgain: () => void
   /** the figures are ready (or failed): the answers and the story can arrive */
   onReady: () => void
+  /** render once the scene changes, so the story arrives with the answers */
+  show: boolean
 }) {
   const results = flow.results!
   const guess = flow.answers.perceivedPercentile
@@ -350,7 +381,7 @@ function Results({
     onReady()
   }, [ready, error, onReady])
 
-  if (error) {
+  if (error && show) {
     return (
       <section className={cx(a.flow, a.section)}>
         <p className={q.error} role="alert">
@@ -362,8 +393,8 @@ function Results({
       </section>
     )
   }
-  // until then the spinner above keeps the reader company
-  if (!ready) return null
+  // until then the reader stays on the questions (or "Calculando…")
+  if (!ready || !show) return null
 
   return (
     <>

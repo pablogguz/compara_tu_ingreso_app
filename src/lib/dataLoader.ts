@@ -1,27 +1,38 @@
-// Data loading: Apache Arrow files from public/data (written by
-// scripts/convert-data.R). Everything per municipality is split by province,
-// so a household downloads only its own province's slice (~0.5–1 MB), and
-// each file is fetched once: the cache holds the promise, so concurrent calls
+// Data loading from public/data (written by scripts/convert-data.R).
+// What the landing page needs, Spain and the municipality list, is JSON; the
+// rest is Apache Arrow, split by province so a household downloads only its
+// own slice (~0.5–1 MB), and the Arrow reader itself is loaded only then.
+// Each file is fetched once: the cache holds the promise, so concurrent calls
 // (the calculation, the figures, a prefetch) share one request.
-import { tableFromIPC, type Table } from 'apache-arrow'
+import type { Table } from 'apache-arrow'
 
-const tables = new Map<string, Promise<Table>>()
+const files = new Map<string, Promise<unknown>>()
 
-function loadTable(path: string): Promise<Table> {
-  let pending = tables.get(path)
+function once<T>(path: string, load: (response: Response) => Promise<T>): Promise<T> {
+  let pending = files.get(path) as Promise<T> | undefined
   if (!pending) {
-    pending = fetch(path)
-      .then((response) => {
-        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`)
-        return response.arrayBuffer()
-      })
-      .then((buffer) => tableFromIPC(new Uint8Array(buffer)))
+    pending = fetch(path).then((response) => {
+      if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`)
+      return load(response)
+    })
     // a failed request is not cached, so a retry fetches again
-    pending.catch(() => tables.delete(path))
-    tables.set(path, pending)
+    pending.catch(() => files.delete(path))
+    files.set(path, pending)
   }
   return pending
 }
+
+const loadTable = (path: string) =>
+  once<Table>(path, async (response) => {
+    const [{ tableFromIPC }, buffer] = await Promise.all([import('apache-arrow'), response.arrayBuffer()])
+    return tableFromIPC(new Uint8Array(buffer))
+  })
+
+interface National {
+  percentiles: number[]
+  density: { x: number[]; y: number[] }
+}
+const loadNational = () => once<National>('/data/national.json', (response) => response.json())
 
 function column(table: Table, name: string): number[] {
   const values = table.getChild(name)
@@ -46,7 +57,7 @@ const provinceOf = (munCode: string) => munCode.slice(0, 2)
 
 /** Income at percentiles 1…99 in Spain. */
 export async function loadNationalPercentiles(): Promise<number[]> {
-  return column(await loadTable('/data/national_percentiles.arrow'), 'value')
+  return (await loadNational()).percentiles
 }
 
 /** Income at percentiles 1…99 in a province. */
@@ -63,14 +74,23 @@ export async function loadMunicipalPercentiles(munCode: string): Promise<number[
 export async function loadMunicipalityLookup(): Promise<
   Array<{ mun_code: string; mun_name: string; prov_code: string; prov_name: string }>
 > {
-  const table = await loadTable('/data/municipality_lookup.arrow')
-  const [mun, name, prov, provName] = ['mun_code', 'mun_name', 'prov_code', 'prov_name'].map((c) => strings(table, c))
-  return mun.map((code, i) => ({ mun_code: code, mun_name: name[i], prov_code: prov[i], prov_name: provName[i] }))
+  const lookup = await once<{ provinces: Array<[string, string]>; municipalities: Array<[string, string]> }>(
+    '/data/municipality_lookup.json',
+    (response) => response.json()
+  )
+  const provName = new Map(lookup.provinces)
+  return lookup.municipalities.map(([code, name]) => ({
+    mun_code: code,
+    mun_name: name,
+    prov_code: provinceOf(code),
+    prov_name: provName.get(provinceOf(code)) ?? '',
+  }))
 }
 
 /** Spain's density curve, every 500 € up to 160.000 €. */
 export async function loadNationalDensity(): Promise<Array<{ x: number; y: number }>> {
-  return curve(await loadTable('/data/density_curve.arrow'), 'y')
+  const { density } = await loadNational()
+  return density.x.map((x, i) => ({ x, y: density.y[i] }))
 }
 
 /** A province's density curve. */

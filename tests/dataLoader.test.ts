@@ -9,9 +9,14 @@ vi.stubGlobal('fetch', async (url: string) => {
   fetched.push(url)
   try {
     const buf = readFileSync(path.join(__dirname, '..', 'public', url))
-    return { ok: true, status: 200, arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) }
+    return {
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+      json: async () => JSON.parse(buf.toString('utf8')),
+    }
   } catch {
-    return { ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0) }
+    return { ok: false, status: 404, arrayBuffer: async () => new ArrayBuffer(0), json: async () => null }
   }
 })
 
@@ -61,6 +66,7 @@ describe('dataLoader', () => {
     const d = await load()
     const lookup = await d.loadMunicipalityLookup()
     expect(lookup.length).toBeGreaterThan(8000)
+    expect(lookup.find((m) => m.mun_code === '28079')).toEqual({ mun_code: '28079', mun_name: 'Madrid', prov_code: '28', prov_name: 'Madrid' })
     const missing: string[] = []
     for (const m of lookup) {
       const ok = await Promise.all([d.loadMunicipalPercentiles(m.mun_code), d.loadMunicipalDensity(m.mun_code, m.prov_code)])
@@ -79,12 +85,11 @@ describe('dataLoader', () => {
     expect(Object.values(counts).every((n) => n === 1)).toBe(true)
     expect(Object.keys(counts).sort()).toEqual(
       [
-        '/data/density_curve.arrow',
         '/data/density_curve_mun/mun_28.arrow',
         '/data/density_curve_prov.arrow',
         '/data/mun_percentiles/mun_28.arrow',
         '/data/municipality_stats/mun_28.arrow',
-        '/data/national_percentiles.arrow',
+        '/data/national.json',
         '/data/provincial_percentiles.arrow',
       ].sort()
     )

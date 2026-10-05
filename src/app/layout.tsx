@@ -7,17 +7,19 @@ import './globals.css'
 // properties on <html>; public/css/styles.css builds --font-display and
 // --font-ui on top of them (with plain fallbacks for environments where the
 // variables are absent, e.g. tests).
+// Only the axes and styles the essay uses: Fraunces' optical size and
+// softness (WONK stays at its default), Hanken Grotesk upright.
 const fraunces = Fraunces({
   subsets: ['latin'],
   style: ['normal', 'italic'],
-  axes: ['opsz', 'SOFT', 'WONK'],
+  axes: ['opsz', 'SOFT'],
   variable: '--font-fraunces',
   display: 'swap',
 })
 
 const hanken = Hanken_Grotesk({
   subsets: ['latin'],
-  style: ['normal', 'italic'],
+  style: ['normal'],
   variable: '--font-hanken',
   display: 'swap',
 })
