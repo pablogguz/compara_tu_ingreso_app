@@ -16,6 +16,7 @@ import Summary from './Summary'
 import HeroField from './HeroField'
 import { cx, householdText, incomeText } from './copy'
 import { jumpTo, sceneChange } from '@/lib/viewTransition'
+import { prefetchMunicipality } from '@/lib/dataLoader'
 import { useReducedMotion, useReveal } from './hooks'
 import a from './App.module.css'
 import q from './Questions.module.css'
@@ -57,6 +58,13 @@ function Ensayo() {
   const [guessTouched, setGuessTouched] = useState(false)
   const reduced = useReducedMotion()
   const done = flow.status === 'done' && !!flow.results
+
+  // as soon as the municipality is known, fetch its province's data in the
+  // background: by the last question the calculation is instant
+  const munCode = flow.answers.municipality
+  useEffect(() => {
+    if (munCode) prefetchMunicipality(munCode)
+  }, [munCode])
 
   // The essay moves in scenes: intro → questions → "Calculando…" → the story.
   // Each change cross-fades (sceneChange) and lands on the new scene at once,

@@ -1,219 +1,118 @@
-// Data loading utilities using Apache Arrow
-import { tableFromIPC } from 'apache-arrow';
+// Data loading: Apache Arrow files from public/data (written by
+// scripts/convert-data.R). Everything per municipality is split by province,
+// so a household downloads only its own province's slice (~0.5–1 MB), and
+// each file is fetched once: the cache holds the promise, so concurrent calls
+// (the calculation, the figures, a prefetch) share one request.
+import { tableFromIPC, type Table } from 'apache-arrow'
 
-/**
- * Load Arrow file and convert to appropriate format
- */
-async function loadArrowFile(path: string): Promise<any> {
-  const response = await fetch(path);
-  const buffer = await response.arrayBuffer();
-  const table = tableFromIPC(new Uint8Array(buffer));
-  return table;
-}
+const tables = new Map<string, Promise<Table>>()
 
-/**
- * Convert Arrow table to array of objects
- */
-function tableToObjects<T>(table: any): T[] {
-  const result: T[] = [];
-  for (let i = 0; i < table.numRows; i++) {
-    const row: any = {};
-    for (const field of table.schema.fields) {
-      row[field.name] = table.getChild(field.name)?.get(i);
-    }
-    result.push(row);
+function loadTable(path: string): Promise<Table> {
+  let pending = tables.get(path)
+  if (!pending) {
+    pending = fetch(path)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`)
+        return response.arrayBuffer()
+      })
+      .then((buffer) => tableFromIPC(new Uint8Array(buffer)))
+    // a failed request is not cached, so a retry fetches again
+    pending.catch(() => tables.delete(path))
+    tables.set(path, pending)
   }
-  return result;
+  return pending
 }
 
-/**
- * Convert Arrow table to simple array (for single column data)
- */
-function tableToArray(table: any, columnName: string): number[] {
-  const column = table.getChild(columnName);
-  const result: number[] = [];
-  for (let i = 0; i < column.length; i++) {
-    result.push(column.get(i));
-  }
-  return result;
+function column(table: Table, name: string): number[] {
+  const values = table.getChild(name)
+  if (!values) throw new Error(`No data for ${name}`)
+  return Array.from(values.toArray() as ArrayLike<number>)
 }
 
-// Cache for loaded data
-const dataCache: Map<string, any> = new Map();
+function strings(table: Table, name: string): string[] {
+  const values = table.getChild(name)
+  if (!values) throw new Error(`No data for ${name}`)
+  return Array.from(values as Iterable<string>)
+}
 
-/**
- * Load national percentiles
- */
+function curve(table: Table, name: string): Array<{ x: number; y: number }> {
+  const xs = column(table, 'x')
+  const ys = column(table, name)
+  return xs.map((x, i) => ({ x, y: ys[i] }))
+}
+
+/** The province of an INE municipality code ("28079" → "28"). */
+const provinceOf = (munCode: string) => munCode.slice(0, 2)
+
+/** Income at percentiles 1…99 in Spain. */
 export async function loadNationalPercentiles(): Promise<number[]> {
-  const cacheKey = 'national_percentiles';
-  if (dataCache.has(cacheKey)) {
-    return dataCache.get(cacheKey);
-  }
-
-  const table = await loadArrowFile('/data/national_percentiles.arrow');
-  const values = tableToArray(table, 'value');
-  dataCache.set(cacheKey, values);
-  return values;
+  return column(await loadTable('/data/national_percentiles.arrow'), 'value')
 }
 
-/**
- * Load provincial percentiles for a specific province
- */
-export async function loadProvincialPercentiles(
-  provCode: string
-): Promise<number[]> {
-  const cacheKey = `provincial_percentiles`;
-  
-  let table;
-  if (dataCache.has(cacheKey)) {
-    table = dataCache.get(cacheKey);
-  } else {
-    table = await loadArrowFile('/data/provincial_percentiles.arrow');
-    dataCache.set(cacheKey, table);
-  }
-
-  return tableToArray(table, provCode);
+/** Income at percentiles 1…99 in a province. */
+export async function loadProvincialPercentiles(provCode: string): Promise<number[]> {
+  return column(await loadTable('/data/provincial_percentiles.arrow'), provCode)
 }
 
-/**
- * Load municipal percentiles for a specific municipality
- */
-export async function loadMunicipalPercentiles(
-  munCode: string
-): Promise<number[]> {
-  const cacheKey = `mun_percentiles`;
-  
-  let table;
-  if (dataCache.has(cacheKey)) {
-    table = dataCache.get(cacheKey);
-  } else {
-    table = await loadArrowFile('/data/mun_percentiles.arrow');
-    dataCache.set(cacheKey, table);
-  }
-
-  return tableToArray(table, munCode);
+/** Income at percentiles 1…99 in a municipality (its province's file). */
+export async function loadMunicipalPercentiles(munCode: string): Promise<number[]> {
+  return column(await loadTable(`/data/mun_percentiles/mun_${provinceOf(munCode)}.arrow`), munCode)
 }
 
-/**
- * Load municipality lookup data
- */
+/** Every municipality with an estimated distribution. */
 export async function loadMunicipalityLookup(): Promise<
-  Array<{
-    mun_code: string;
-    mun_name: string;
-    prov_code: string;
-    prov_name: string;
-  }>
+  Array<{ mun_code: string; mun_name: string; prov_code: string; prov_name: string }>
 > {
-  const cacheKey = 'municipality_lookup';
-  if (dataCache.has(cacheKey)) {
-    return dataCache.get(cacheKey);
-  }
-
-  const table = await loadArrowFile('/data/municipality_lookup.arrow');
-  const data = tableToObjects<{
-    mun_code: string;
-    mun_name: string;
-    prov_code: string;
-    prov_name: string;
-  }>(table);
-  dataCache.set(cacheKey, data);
-  return data;
+  const table = await loadTable('/data/municipality_lookup.arrow')
+  const [mun, name, prov, provName] = ['mun_code', 'mun_name', 'prov_code', 'prov_name'].map((c) => strings(table, c))
+  return mun.map((code, i) => ({ mun_code: code, mun_name: name[i], prov_code: prov[i], prov_name: provName[i] }))
 }
 
-/**
- * Load national density curve
- */
-export async function loadNationalDensity(): Promise<
-  Array<{ x: number; y: number }>
-> {
-  const cacheKey = 'density_curve';
-  if (dataCache.has(cacheKey)) {
-    return dataCache.get(cacheKey);
-  }
-
-  const table = await loadArrowFile('/data/density_curve.arrow');
-  const data = tableToObjects<{ x: number; y: number }>(table);
-  dataCache.set(cacheKey, data);
-  return data;
+/** Spain's density curve, every 500 € up to 160.000 €. */
+export async function loadNationalDensity(): Promise<Array<{ x: number; y: number }>> {
+  return curve(await loadTable('/data/density_curve.arrow'), 'y')
 }
 
-/**
- * Load provincial density curve
- */
-export async function loadProvincialDensity(
-  provCode: string
-): Promise<Array<{ x: number; y: number }>> {
-  const cacheKey = `density_prov_${provCode}`;
-  if (dataCache.has(cacheKey)) {
-    return dataCache.get(cacheKey);
-  }
-
-  const table = await loadArrowFile('/data/density_curve_prov.arrow');
-  const allData = tableToObjects<{
-    prov_code: string;
-    x: number;
-    y: number;
-  }>(table);
-  
-  const filtered = allData
-    .filter((d) => d.prov_code === provCode)
-    .map((d) => ({ x: d.x, y: d.y }));
-  
-  dataCache.set(cacheKey, filtered);
-  return filtered;
+/** A province's density curve. */
+export async function loadProvincialDensity(provCode: string): Promise<Array<{ x: number; y: number }>> {
+  return curve(await loadTable('/data/density_curve_prov.arrow'), provCode)
 }
 
-/**
- * Load municipal density curve
- */
-export async function loadMunicipalDensity(
-  munCode: string,
-  provCode: string
-): Promise<Array<{ x: number; y: number }>> {
-  const cacheKey = `density_mun_${munCode}`;
-  if (dataCache.has(cacheKey)) {
-    return dataCache.get(cacheKey);
-  }
-
-  const table = await loadArrowFile(
-    `/data/density_curve_mun/mun_${provCode}.arrow`
-  );
-  const allData = tableToObjects<{
-    mun_code: string;
-    x: number;
-    y: number;
-  }>(table);
-  
-  const filtered = allData
-    .filter((d) => d.mun_code === munCode)
-    .map((d) => ({ x: d.x, y: d.y }));
-  
-  dataCache.set(cacheKey, filtered);
-  return filtered;
+/** A municipality's density curve (its province's file). */
+export async function loadMunicipalDensity(munCode: string, provCode: string): Promise<Array<{ x: number; y: number }>> {
+  return curve(await loadTable(`/data/density_curve_mun/mun_${provCode}.arrow`), munCode)
 }
 
-/**
- * Load municipality statistics
- */
+/** A municipality's context figures, or null when there are none. */
 export async function loadMunicipalityStats(munCode: string): Promise<{
-  net_income_equiv: number;
-  net_income_equiv_is_imputed: number;
-  pct_higher_ed_completed: number;
-  pct_higher_ed_completed_is_imputed: number;
-  pct_foreign_born: number;
-  pct_foreign_born_is_imputed: number;
+  net_income_equiv: number
+  net_income_equiv_is_imputed: number
+  pct_higher_ed_completed: number
+  pct_higher_ed_completed_is_imputed: number
+  pct_foreign_born: number
+  pct_foreign_born_is_imputed: number
 } | null> {
-  const cacheKey = 'municipality_stats';
-  
-  let allStats;
-  if (dataCache.has(cacheKey)) {
-    allStats = dataCache.get(cacheKey);
-  } else {
-    const table = await loadArrowFile('/data/municipality_stats.arrow');
-    allStats = tableToObjects(table);
-    dataCache.set(cacheKey, allStats);
-  }
+  const table = await loadTable(`/data/municipality_stats/mun_${provinceOf(munCode)}.arrow`)
+  const i = strings(table, 'mun_code').indexOf(munCode)
+  if (i === -1) return null
+  const row: Record<string, unknown> = {}
+  for (const field of table.schema.fields) row[field.name] = table.getChild(field.name)?.get(i)
+  return row as never
+}
 
-  return allStats.find((s: any) => s.mun_code === munCode) || null;
+/**
+ * Starts downloading everything a household in this municipality will need,
+ * so that by the time the questions are answered the calculation and the
+ * figures are instant. Failures are left for the real calls to report.
+ */
+export function prefetchMunicipality(munCode: string): void {
+  const prov = provinceOf(munCode)
+  const quiet = (p: Promise<unknown>) => p.catch(() => {})
+  quiet(loadNationalPercentiles())
+  quiet(loadProvincialPercentiles(prov))
+  quiet(loadMunicipalPercentiles(munCode))
+  quiet(loadNationalDensity())
+  quiet(loadProvincialDensity(prov))
+  quiet(loadMunicipalDensity(munCode, prov))
+  quiet(loadMunicipalityStats(munCode))
 }

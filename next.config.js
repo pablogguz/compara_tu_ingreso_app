@@ -9,6 +9,11 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // the Arrow data: cached for an hour, then served stale while it revalidates
+        source: '/data/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' }],
+      },
+      {
         source: '/:path*',
         headers: [
           {

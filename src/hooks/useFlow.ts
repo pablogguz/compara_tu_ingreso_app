@@ -73,7 +73,7 @@ interface FlowOptions {
 
 // Answers, validation and the calculation.
 export function useFlow(options: FlowOptions = {}): Flow {
-  const { initial, minLoadingMs = 900, logResponses = false } = options
+  const { initial, minLoadingMs = 600, logResponses = false } = options
   const { municipalities, loading } = useMunicipalities()
   const [answers, setAnswers] = useState<Answers>(() => ({ ...DEFAULT_ANSWERS, ...initial }))
   const [status, setStatus] = useState<FlowStatus>('idle')

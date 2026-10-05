@@ -29,6 +29,7 @@ vi.mock('@/lib/dataLoader', () => ({
   loadProvincialDensity: vi.fn(),
   loadMunicipalDensity: vi.fn(),
   loadMunicipalityStats: vi.fn(),
+  prefetchMunicipality: vi.fn(),
 }))
 
 import {

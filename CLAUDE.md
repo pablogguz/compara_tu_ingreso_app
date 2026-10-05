@@ -61,14 +61,16 @@ For the published methodology note, see [methodology/tex/note.pdf](methodology/t
 
 | File | Contents | Loader in code |
 |------|----------|----------------|
-| `national_percentiles.arrow` | 99 numbers — value at percentile 1..99 nationally | [`loadNationalPercentiles`](src/lib/dataLoader.ts) |
-| `provincial_percentiles.arrow` | One column per province code; rows are percentile 1..99 | [`loadProvincialPercentiles`](src/lib/dataLoader.ts) |
-| `mun_percentiles.arrow` | One column per ~8k municipality codes; rows are percentile 1..99 | [`loadMunicipalPercentiles`](src/lib/dataLoader.ts) |
+| `national_percentiles.arrow` | `{ percentile, value }`: income at percentiles 1..99 in Spain | [`loadNationalPercentiles`](src/lib/dataLoader.ts) |
+| `provincial_percentiles.arrow` | `percentile` + one column per province code | [`loadProvincialPercentiles`](src/lib/dataLoader.ts) |
+| `mun_percentiles/mun_<prov>.arrow` | `percentile` + one column per municipality of that province (52 files) | [`loadMunicipalPercentiles`](src/lib/dataLoader.ts) |
 | `municipality_lookup.arrow` | `{ mun_code, mun_name, prov_code, prov_name }` | [`loadMunicipalityLookup`](src/lib/dataLoader.ts) |
-| `density_curve.arrow` | National density `{ x, y }` points | [`loadNationalDensity`](src/lib/dataLoader.ts) |
-| `density_curve_prov.arrow` | All provincial density curves stacked: `{ prov_code, x, y }` | [`loadProvincialDensity`](src/lib/dataLoader.ts) |
-| `density_curve_mun/mun_<provCode>.arrow` | Municipal density curves for one province (one file per province ~ 54 files) | [`loadMunicipalDensity`](src/lib/dataLoader.ts) |
-| `municipality_stats.arrow` | Per-municipality `{ net_income_equiv, pct_higher_ed_completed, pct_foreign_born, *_is_imputed }` | [`loadMunicipalityStats`](src/lib/dataLoader.ts) |
+| `density_curve.arrow` | Spain's density `{ x, y }`, every 500 € up to 160.000 € | [`loadNationalDensity`](src/lib/dataLoader.ts) |
+| `density_curve_prov.arrow` | `x` + one float32 column per province | [`loadProvincialDensity`](src/lib/dataLoader.ts) |
+| `density_curve_mun/mun_<prov>.arrow` | `x` + one float32 column per municipality of that province | [`loadMunicipalDensity`](src/lib/dataLoader.ts) |
+| `municipality_stats/mun_<prov>.arrow` | The province's rows `{ mun_code, prov_code, net_income_equiv, pct_higher_ed_completed, pct_foreign_born, *_is_imputed }` | [`loadMunicipalityStats`](src/lib/dataLoader.ts) |
+
+A household downloads only its province's slice (about 0.5–1 MB in all; the previous all-Spain files were 13 MB and took ~18 s on 4G). `dataLoader` caches each file's promise, so concurrent calls share one request, and `prefetchMunicipality()` starts the downloads as soon as the municipality is chosen, so by the last question the calculation is instant. `tests/dataLoader.test.ts` reads the real files: every municipality in the lookup must have its percentiles and curve, and each file is fetched once. `/data/*` is served with `Cache-Control: public, max-age=3600, stale-while-revalidate=86400`.
 
 ### Updating the data
 
@@ -176,7 +178,7 @@ All math lives in [src/lib/calculations.ts](src/lib/calculations.ts) and must st
 - **Wording.** The distributions are population-weighted, with each household's income per consumption unit, so describe people: "más que el 86 % de la población", "86 de cada 100 personas tienen menos ingresos que tú", "la persona con menos ingresos". Don't talk about households when describing the row of people. The essay doesn't explain consumption units or say what it compares with (that is in the help dialog). Avoid semicolons in copy. The shared sentences live in `src/lib/format.ts`.
 - **Buttons.** Every `<button>` declares `type=`. The HelpModal and cookie banner use the global `.btn` system.
 - **Spanish UI strings.** All user-facing text is `es-ES`. Numbers go through `src/lib/format.ts` (`euro()`, `pct()`, `num()`), which groups four-digit numbers too ("5.143 €").
-- **Apache Arrow loading is synchronous-after-fetch.** `tableFromIPC()` is fast but blocks the main thread — keep arrow files small (<5 MB each). The largest is `density_curve_mun/mun_*.arrow` at ~1–2 MB per province.
+- **Keep the data small.** `tableFromIPC()` blocks the main thread and every byte is downloaded on a phone: split anything per municipality by province, keep curves on the 500 € grid in float32 (`scripts/convert-data.R`). The largest file a household downloads is its province's municipal curves (Burgos, ~0.5 MB).
 
 ---
 
