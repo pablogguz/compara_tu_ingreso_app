@@ -149,6 +149,12 @@ describe('Ensayo', () => {
     fireEvent.click(screen.getByRole('button', { name: '14 pagas' }))
     expect(screen.getByText(/35\.000\s€ al año/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '12 pagas' }))
+    // a figure that looks like a year's income is flagged, with a one-click fix
+    fireEvent.change(income, { target: { value: '30000' } })
+    expect(screen.getByText(/seguro que es al mes/i)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /usar 2\.500\s€ al mes/i }))
+    expect(income).toHaveValue('2.500')
+    expect(screen.queryByText(/seguro que es al mes/i)).not.toBeInTheDocument()
     next()
 
     // 3 · household: steppers and the OECD scale spelled out

@@ -307,8 +307,19 @@
 
 .moneyPer {
   font-family: var(--sans);
-  font-size: 15px;
-  color: var(--ink-3);
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--you);
+}
+
+/* "cada mes" in the question: the unit people most often get wrong */
+.perMonth {
+  font-weight: inherit;
+  color: var(--you);
+  text-decoration: underline;
+  text-decoration-color: var(--you);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.14em;
 }
 
 .pagasRow {
@@ -352,6 +363,41 @@
   color: var(--you-deep);
 }
 
+/* a figure that looks like a year's income: the line turns ochre */
+.money.moneyCheck {
+  border-bottom-color: var(--guess);
+}
+
+.check {
+  margin-top: 18px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--guess);
+  border-left-width: 4px;
+  border-radius: 3px;
+  background: var(--guess-tint);
+  font-family: var(--sans);
+  animation: softIn 360ms var(--ease) both;
+}
+
+.checkTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--guess);
+}
+
+.checkText {
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.check .checkFix {
+  margin-top: 12px;
+  min-height: 40px;
+  background: var(--paper);
+}
+
 .annual {
   font-size: 20px;
   font-weight: 400;
@@ -364,12 +410,6 @@
   color: var(--ink-3);
 }
 
-.aside {
-  margin-top: 18px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--ink-3);
-}
 
 /* ---- 3 · household ---- */
 

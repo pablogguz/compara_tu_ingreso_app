@@ -236,17 +236,24 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
   const v = flow.income
   const clean = (message: string) => message.replace(/^[^\p{L}\p{N}]+/u, '')
   const message =
-    v.state === 'invalid' || v.state === 'warning'
-      ? { text: clean(v.message), error: v.state === 'invalid' }
+    v.state === 'invalid'
+      ? { text: clean(v.message), error: true }
       : v.state === 'empty' && attempted
         ? { text: `Escribe cuánto dinero entraba en tu hogar cada mes en ${INCOME_YEAR}.`, error: true }
         : null
+  // a figure this high is usually a year's income typed as a month's
+  const looksAnnual = v.state === 'warning' && typeof value === 'number'
+  const perMonth = typeof value === 'number' ? Math.round(value / periods) : 0
+  const useMonthly = () => {
+    flow.set('monthlyIncome', perMonth)
+    input.current?.focus()
+  }
 
   return (
     <>
       <h3 className={q.qTitle}>
         <label htmlFor="ensayo-ingresos" id="ensayo-q-title">
-          ¿Cuánto dinero entraba en tu hogar cada mes en {INCOME_YEAR}?
+          ¿Cuánto dinero entraba en tu hogar <strong className={q.perMonth}>cada mes</strong> en {INCOME_YEAR}?
         </label>
       </h3>
       <p className={cx(q.hint, q.hintNote)} id="ensayo-ingresos-hint">
@@ -260,7 +267,7 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
       </p>
 
       <div className={q.moneyRow}>
-        <span className={q.money}>
+        <span className={cx(q.money, looksAnnual && q.moneyCheck)}>
           <span ref={mirror} className={cx(q.moneyInput, q.moneyMirror)} aria-hidden="true">
             {text || '0'}
           </span>
@@ -277,7 +284,7 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
             value={text}
             onChange={onChange}
             aria-invalid={v.state === 'invalid' || undefined}
-            aria-describedby={`ensayo-ingresos-hint ensayo-ingresos-year${message ? ' ensayo-ingresos-msg' : ''}`}
+            aria-describedby={`ensayo-ingresos-hint ensayo-ingresos-year${message || looksAnnual ? ' ensayo-ingresos-msg' : ''}`}
           />
           <span className={q.moneyUnit} aria-hidden="true">
             €
@@ -301,25 +308,22 @@ function StepIncome({ flow, attempted }: { flow: Flow; attempted: boolean }) {
           ))}
         </div>
         <p className={q.annual} id="ensayo-ingresos-year">
-          {flow.annualIncome !== null ? (
-            <>
-              <span className={q.annualOp}>=</span> {euro(flow.annualIncome)} al año
-            </>
-          ) : (
-            <>
-              <span className={q.annualOp}>=</span> … € al año
-            </>
-          )}
+          <span className={q.annualOp}>=</span> {flow.annualIncome !== null ? euro(flow.annualIncome) : '… €'} al año
         </p>
       </div>
 
-      <p className={q.aside}>
-        Si cobrabas en 14 pagas, escribe lo que entraba un mes normal: contaremos las dos extras.
-        <Sidenote n={2} title="¿Por qué las pagas?">
-          En España muchas nóminas se cobran en 14 pagas: dos meses al año entra el doble. Para calcular lo que entra
-          en casa al año multiplicamos por 14 en lugar de por 12.
-        </Sidenote>
-      </p>
+      {looksAnnual && (
+        <div className={q.check} id="ensayo-ingresos-msg" role="status">
+          <p className={q.checkTitle}>¿Seguro que es al mes?</p>
+          <p className={q.checkText}>
+            {euro(value as number)} al mes son {euro((value as number) * periods)} al año. Si es lo que entra en todo el
+            año, divídelo entre {periods}.
+          </p>
+          <button type="button" className={cx(a.btn, a.btnSecondary, q.checkFix)} onClick={useMonthly}>
+            Usar {euro(perMonth)} al mes
+          </button>
+        </div>
+      )}
 
       {message && (
         <p
